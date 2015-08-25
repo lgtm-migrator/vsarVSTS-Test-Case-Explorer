@@ -1,0 +1,36 @@
+{
+    "manifestVersion": 1,
+    "id": "almrangers-vsoextensions-testcases",
+    "version": "0.1.0",
+    "name": "Test Case Explorer Extension",
+    "description": "An extension to manage test cases.",
+    "baseUri": "https://localhost:44300/",
+    "publisher": "mathias",
+    "icons": {
+        "default": "img/logo.png"
+    },
+  "tags": [
+    "Sample"
+  ],
+  "galleryFlags": [
+      "Public"
+    ],
+    "categories": [
+        "Productivity"
+    ],
+    "contributions": [
+        {
+            "id": "test-case-hub",
+            "type": "ms.vss-web.hub",
+            "description": "Test Case Explorer",
+            "targets": [
+                "ms.vss-test-web.test-hub-group"
+            ],
+            "properties": {
+                "name": "Test cases",
+                "order": 40,
+                "uri": "index.html"
+            }
+        }
+    ]
+}

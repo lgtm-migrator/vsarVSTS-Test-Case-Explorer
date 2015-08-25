@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<head>
+    <title>Test Case Explorer</title>
+    <link rel="stylesheet" type="text/css" href="css/app.css">
+</head>
+<html>
+<body>
+    <script src="sdk/scripts/VSS.SDK.js"></script>
+    <script type="text/javascript">
+        VSS.init({
+            explicitNotifyLoaded: true,
+            usePlatformScripts: true,
+            usePlatformStyles: true,
+            moduleLoaderConfig: {
+                paths: {
+                    "Scripts": "scripts"
+                }
+            }
+        });
+
+        // Wait for the SDK to be initialized
+        VSS.ready(function () {
+            require(["Scripts/app"], function (app) { });
+        });
+
+        VSS.notifyLoadSucceeded();
+
+    </script>
+
+    <h1>Test Case Explorer</h1>
+
+    <div id="content"></div>
+</body>
+</html>
