@@ -1,7 +1,20 @@
-﻿body {
-    font-family: 'Segoe UI', sans-serif;
+﻿#testcase-extension {
+    font-size: 14px;
+    position: fixed;
+    width: 100%;
+    height: 100%;
 }
 
-span {
-    font-style: italic;
-}
+    #testcase-extension > .splitter > .leftPane {
+        width: 10%;
+        overflow: auto;
+    }
+
+    #testcase-extension > .splitter > .handleBar {
+        left: 10%;
+    }
+
+    #testcase-extension > .splitter > .rightPane {
+        left: 10%;
+        overflow: auto;
+    }
