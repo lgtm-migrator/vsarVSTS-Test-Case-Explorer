@@ -5,6 +5,10 @@
     height: 100%;
 }
 
+#testmanagement-view-left-pane{
+    margin-left:16px;
+}
+
     #testcase-extension > .splitter > .leftPane {
         width: 10%;
         overflow: auto;
