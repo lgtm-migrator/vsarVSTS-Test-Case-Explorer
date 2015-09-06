@@ -3,28 +3,28 @@ import TestClient = require("TFS/TestManagement/RestClient");
 import WITClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
 
-    
-    export function getNodes(param) {
 
-        switch (param) {
-            case "Area path":
-                return getStructure(Contracts.TreeStructureGroup.Areas);
-                break;
-            case "Iteration path":
-                return getStructure(Contracts.TreeStructureGroup.Iterations);
-                break;
-            case "Priority":
-                return getPrioriy();
-                break;
-            case "State":
-                return getStates();
-                break;
-            case "Test plan":
-                return getTestPlans();
-                break;
-        }
+export function getNodes(param) {
 
+    switch (param) {
+        case "Area path":
+            return getStructure(Contracts.TreeStructureGroup.Areas);
+            break;
+        case "Iteration path":
+            return getStructure(Contracts.TreeStructureGroup.Iterations);
+            break;
+        case "Priority":
+            return getPrioriy();
+            break;
+        case "State":
+            return getStates();
+            break;
+        case "Test plan":
+            return getTestPlans();
+            break;
     }
+
+}
 
 
 

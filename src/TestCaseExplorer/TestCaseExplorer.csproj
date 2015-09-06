@@ -54,6 +54,7 @@
     <TypeScriptCompile Include="scripts\ref\q.d.ts" />
     <TypeScriptCompile Include="scripts\ref\VSS.d.ts" />
     <TypeScriptCompile Include="scripts\ref\knockout.d.ts" />
+    <TypeScriptCompile Include="scripts\TestCaseView.ts" />
     <TypeScriptCompile Include="scripts\TreeViewDataService.ts" />
     <TypeScriptCompile Include="scripts\TreeViewView.ts" />
   </ItemGroup>
