@@ -1,6 +1,7 @@
 ﻿/// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 
+
 import Controls = require("VSS/Controls");
 import Grids = require("VSS/Controls/Grids");
 import Menus = require("VSS/Controls/Menus");
@@ -8,6 +9,7 @@ import Menus = require("VSS/Controls/Menus");
 
 import TreeView = require("VSS/Controls/TreeView");
 import CommonControls = require("VSS/Controls/Common");
+
 
 var menuItems: Menus.IMenuItemSpec[] = [
     { id: "file", text: "New", icon: "icon-add-small" },
@@ -61,20 +63,9 @@ var grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-
 
 function InitTreeViewView() {
 
-    var cboSources = ["Area path","Iteration path","Priority", "State", "Test plan", "Team"];
+    var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan", "Team"];
 
-        // Converts the source to TreeNodes
-    function convertToTreeNodes(items) {
-        return $.map(items, function (item) {
-            var node = new TreeView.TreeNode(item.name);
-            node.icon = item.icon;
-            node.expanded = item.expanded;
-            if (item.children && item.children.length > 0) {
-                node.addRange(convertToTreeNodes(item.children));
-            }
-            return node;
-        });
-    }
+   
 
 
     var cbo = Controls.create(CommonControls.Combo, $("#treeview-Cbo-container"), {
@@ -86,70 +77,157 @@ function InitTreeViewView() {
     var treeOptions = {
         width: 400,
         height: "100%",
-        nodes: convertToTreeNodes(getNodes(cbo.getText()))
-    };
-    
-
-    var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
-    treeview.onItemClick = function (node: TreeView.TreeNode, nodeElement: any, e?: JQueryEventObject): void {
-        $("#treeview-value").text( node.title);
+        nodes: null
     };
 
-        
+
+
+
     $("#treeview-Cbo-container").change(function () {
         //treeview.removeNode(treeview.rootNode);
-        treeview.rootNode = convertToTreeNodes(getNodes(cbo.getText()));
+        getNodes(cbo.getText()).then(function (data) {
 
-       // treeview.setDataSource(convertToTreeNodes(getNodes(cbo.getText())));
+            treeOptions.nodes = data;
+
+            var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
+            treeview.onItemClick = function (node: TreeView.TreeNode, nodeElement: any, e?: JQueryEventObject): void {
+                $("#treeview-value").text(node.text);
+            };
+            
+            
+        });
+
+        // treeview.setDataSource(convertToTreeNodes(getNodes(cbo.getText())));
 
         //treeOptions.nodes = convertToTreeNodes(getNodes(cbo.getText()));
 
         //Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
 
 
-    }); 
+    });
+}
+
+
+    import Contracts = require("TFS/WorkItemTracking/Contracts");
 
     function getNodes(param) {
-
+        
         switch (param) {
             case "Area path":
-                return [
-                    {
-                        name: "Project", icon: "icon icon-people", children: [
-                            { name: "Area 1" },
-                            { name: "Area 2" },
-                            { name: "Area 3" },
-                            { name: "Area 4" }],
-                        expanded: true
-                    }
-                ];
+                return getStructure(Contracts.TreeStructureGroup.Areas);
                 break;
             case "Iteration path":
-                return [
-                    {
-                        name: "Project", icon: "icon icon-people", children: [
-                            { name: "Iteration 1" },
-                            { name: "Iteration 2" },
-                            { name: "Iteration 3" },
-                            { name: "Iteration 4" }],
-                        expanded: true
-                    }
-                ];
+                return getStructure(Contracts.TreeStructureGroup.Iterations);
                 break;
             case "Priority":
-                return [
-                    {
-                        name: "1"
-                    },
-                    {
-                        name: "2"
-                    },
-                    {
-                        name: "3"
-                    }]; 
+                return getPrioriy();
+                break;
+            case "State":
+                return getStates();
+                break;
+            case "Test plan":
+                return getTestPlans();
                 break;
         }
 
     }
 
+
+
+
+
+    import TestClient = require("TFS/TestManagement/RestClient");
+    import WITClient = require("TFS/WorkItemTracking/RestClient");
+
+
+
+function getTestPlans(): IPromise<TreeView.TreeNode[]> {
+    // Get an instance of the client
+    var deferred = $.Deferred<TreeView.TreeNode[]>();
+
+    var tstClient = TestClient.getClient();
+    tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
+
+        var d = [{
+            name: "Test plans", children: $.map(data, function (item) {
+                return { name: item.name };
+            })
+        }];
+        var d2 = convertToTreeNodes(d)
+        deferred.resolve(d2);
+    });
+    return deferred.promise();
+}
+
+function getStructure(structure: Contracts.TreeStructureGroup): IPromise<TreeView.TreeNode[]>
+{
+    var deferred = $.Deferred<TreeView.TreeNode[]>();
+
+    var client = WITClient.getClient();
+    client.getClassificationNode(VSS.getWebContext().project.name, structure, null, 7).then(function (data) {
+        
+        var d = [];
+
+        d.push(data);
+        deferred.resolve(convertToTreeNodes(d));
+
+    });
+    
+    //TODO - getClasification Node doesnt work as expected with areapath
+
+  
+    return deferred.promise();
+}
+
+function getStates(): IPromise<TreeView.TreeNode[]> {
+    var deferred = $.Deferred<TreeView.TreeNode[]>();
+
+    var client = WITClient.getClient();
+    var project = VSS.getWebContext().project.name;
+
+    client.getWorkItemTypeCategory(project,  "Microsoft.TestCaseCategory").then(function (witCat) {
+
+        client.getWorkItemType(project, witCat.defaultWorkItemType.name).then(function (data) {
+            var d: any = data;
+
+            var t = { name: "States", children: [] };
+            for (var s in d.transitions) {
+                t.children.push({ name: s });
+            }
+
+            var t2 = [];
+            t2.push(t);
+            deferred.resolve(convertToTreeNodes(t2));
+        });
+    });
+    
+      return deferred.promise();
+}
+
+function getPrioriy(): IPromise<TreeView.TreeNode[]> {
+    var deferred = $.Deferred<TreeView.TreeNode[]>();
+
+    var client = WITClient.getClient();
+    client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
+        var d = [{ name: "Priority", children: [{ name: "1" }, { name: "2" }, { name: "3" }, { name: "4" }] }];
+        
+        deferred.resolve(convertToTreeNodes(d));
+    });
+    
+    return deferred.promise();
+}
+
+// Converts the source to TreeNodes
+function convertToTreeNodes(items): TreeView.TreeNode[] {
+    var a: TreeView.TreeNode[] = [];
+    items.forEach(function (item) {
+        var node = new TreeView.TreeNode(item.name);
+        node.icon = item.icon;
+        node.expanded = item.expanded;
+        if (item.children && item.children.length > 0) {
+            node.addRange(convertToTreeNodes(item.children));
+        }
+        a.push(node);
+    });
+    return a;
 }
