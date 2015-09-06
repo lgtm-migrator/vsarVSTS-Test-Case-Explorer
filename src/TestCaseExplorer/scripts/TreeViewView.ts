@@ -25,20 +25,19 @@ export class TreeviewView {
             nodes: null
         };
 
+        var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
+        treeview.onItemClick = function (node, nodeElement, e) {
+            callbackFunction(cbo.getText(), node.text);
+        };
+
         var callbackFunction: TreeviewSelectedCallback = callback
         $("#treeview-Cbo-container").change(function () {
             TreeViewDataService.getNodes(cbo.getText()).then(function (data) {
-                treeOptions.nodes = data;
-                var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
-                treeview.onItemClick = function (node, nodeElement, e) {
-                    callbackFunction(cbo.getText(), node.text);
-
-                    $("#treeview-value").text(node.text);
-                };
+                treeview.rootNode.clear();
+                treeview.rootNode.addRange( data);
+                
+                treeview._draw();
             });
-            // treeview.setDataSource(convertToTreeNodes(getNodes(cbo.getText())));
-            //treeOptions.nodes = convertToTreeNodes(getNodes(cbo.getText()));
-            //Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
         });
     }
 }
