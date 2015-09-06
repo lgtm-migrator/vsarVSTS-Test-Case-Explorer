@@ -4,6 +4,7 @@
 import Controls = require("VSS/Controls");
 import Grids = require("VSS/Controls/Grids");
 import Menus = require("VSS/Controls/Menus");
+import Contracts = require("TFS/WorkItemTracking/Contracts");
 
 var menuItems: Menus.IMenuItemSpec[] = [
     { id: "file", text: "New", icon: "icon-add-small" },
@@ -29,6 +30,18 @@ import RestClient = require("TFS/WorkItemTracking/RestClient");
 var client = RestClient.getClient();
 //client.queryByWiql()
 //client.queryByWiql(
+var queryText = "SELECT [System.Id], [System.Links.LinkType], [System.WorkItemType], [System.Title], [System.AssignedTo], [System.State], [System.Tags] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project  AND  [Source].[System.WorkItemType] = 'Test Case'  AND  [Source].[System.State] <> '') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [System.Id] mode(DoesNotContain)";
+//client.getWorkItems(
+client.queryByWiql({ query: queryText }, "FeaturesInc").then(result => {
+    var x = result.workItems;
+});
+
+//var x = client.queryByWiql( {""}, "");
+import RestTestClient = require("TFS/TestManagement/RestClient");
+var c = RestTestClient.getClient();
+
+//c.getTestCases(
+//client.queryByWiql(x, "FeaturesInc");
 
 var options = {
     height: "1000px", // Explicit height is required for a Grid control

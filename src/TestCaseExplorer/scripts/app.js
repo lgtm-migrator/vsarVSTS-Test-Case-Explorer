@@ -1,6 +1,6 @@
 /// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
-define(["require", "exports", "VSS/Controls", "VSS/Controls/Grids", "VSS/Controls/Menus", "TFS/WorkItemTracking/RestClient"], function (require, exports, Controls, Grids, Menus, RestClient) {
+define(["require", "exports", "VSS/Controls", "VSS/Controls/Grids", "VSS/Controls/Menus", "TFS/WorkItemTracking/RestClient", "TFS/TestManagement/RestClient"], function (require, exports, Controls, Grids, Menus, RestClient, RestTestClient) {
     var menuItems = [
         { id: "file", text: "New", icon: "icon-add-small" },
         { separator: true },
@@ -19,6 +19,14 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/Grids", "VSS/Control
     var client = RestClient.getClient();
     //client.queryByWiql()
     //client.queryByWiql(
+    var queryText = "SELECT [System.Id], [System.Links.LinkType], [System.WorkItemType], [System.Title], [System.AssignedTo], [System.State], [System.Tags] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project  AND  [Source].[System.WorkItemType] = 'Test Case'  AND  [Source].[System.State] <> '') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [System.Id] mode(DoesNotContain)";
+    //client.getWorkItems(
+    client.queryByWiql({ query: queryText }, "FeaturesInc").then(function (result) {
+        var x = result.workItems;
+    });
+    var c = RestTestClient.getClient();
+    //c.getTestCases(
+    //client.queryByWiql(x, "FeaturesInc");
     var options = {
         height: "1000px",
         columns: [
