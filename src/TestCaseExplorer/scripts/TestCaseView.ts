@@ -9,7 +9,12 @@ import RestClient = require("TFS/WorkItemTracking/RestClient");
 import RestTestClient = require("TFS/TestManagement/RestClient");
 
 export class TestCaseView {
-public initialize() {
+    public RefreshGrid(pivot:string, value:string)
+    {
+
+    }
+
+    public initialize() {
 
 var menuItems: Menus.IMenuItemSpec[] = [
     { id: "file", text: "New", icon: "icon-add-small" },

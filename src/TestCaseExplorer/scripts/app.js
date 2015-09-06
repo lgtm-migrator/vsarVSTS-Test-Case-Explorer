@@ -4,6 +4,9 @@ define(["require", "exports", "scripts/TestCaseView", "scripts/TreeViewView"], f
     var tc = new TestCaseView.TestCaseView();
     tc.initialize();
     var tv = new TreeViewView.TreeviewView();
-    tv.initialize();
+    tv.initialize(RefreshGrid);
+    function RefreshGrid(pivot, value) {
+        tc.RefreshGrid(pivot, value);
+    }
 });
 //# sourceMappingURL=app.js.map
