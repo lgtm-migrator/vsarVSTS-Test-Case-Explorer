@@ -7,14 +7,25 @@ import Menus = require("VSS/Controls/Menus");
 import Contracts = require("TFS/WorkItemTracking/Contracts");
 import RestClient = require("TFS/WorkItemTracking/RestClient");
 import RestTestClient = require("TFS/TestManagement/RestClient");
+import DetailsView = require("scripts/DetailsView");
+
 
 export class TestCaseView {
+
+    private _paneToggler: DetailsView.DetailsPaneToggler;
+
     public RefreshGrid(pivot:string, value:string)
     {
 
     }
 
-    public initialize() {
+    public toggle() {
+    }
+
+
+    public initialize(paneToggler: DetailsView.DetailsPaneToggler) {
+
+        this._paneToggler = paneToggler;
 
     var menuItems: Menus.IMenuItemSpec[] = [
         { id: "file", text: "New", icon: "icon-add-small" },
@@ -22,11 +33,25 @@ export class TestCaseView {
         { id: "clone", text: "Clone", noIcon: true },
         { separator: true },
         { id: "column_options", text: "Column Options", noIcon: true },
-        { id: "toggle", showText: true, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text:"Show/hide"},
+        { id: "toggle", showText: true, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
     ];
 
+
+
     var menubarOptions = {
-        items: menuItems
+        items: menuItems,
+        executeAction: function (args) {
+            var command = args.get_commandName();
+            switch (command) {
+                case "toggle":
+                    paneToggler.toggleDetailsPane()
+                    break;
+                default:
+                    alert("Unhandled action: " + command);
+                    break;
+            }
+        }
+
     };
 
     var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);

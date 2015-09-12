@@ -45,11 +45,14 @@
     <Content Include="img\logo.png" />
     <Content Include="index.html" />
     <Content Include="sdk\scripts\VSS.SDK.js" />
-    <Content Include="web.config" />
+    <Content Include="web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="package.json" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="scripts\app.ts" />
+    <TypeScriptCompile Include="scripts\DetailsView.ts" />
     <TypeScriptCompile Include="scripts\ref\jquery.d.ts" />
     <TypeScriptCompile Include="scripts\ref\q.d.ts" />
     <TypeScriptCompile Include="scripts\ref\VSS.d.ts" />

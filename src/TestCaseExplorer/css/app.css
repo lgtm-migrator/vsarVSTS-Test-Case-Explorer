@@ -5,6 +5,12 @@
     height: 100%;
 }
 
+#far-right-pane-pivot {
+    display:none;
+    width:150px;
+}
+
+
 #testmanagement-view-left-pane{
     margin-left:16px;
 }

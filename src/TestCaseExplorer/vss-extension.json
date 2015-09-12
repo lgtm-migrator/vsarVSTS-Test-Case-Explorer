@@ -1,11 +1,11 @@
 {
     "manifestVersion": 1,
-    "id": "almrangers-vsoextensions-testcases",
+    "id": "almrangers-vsoextensions-testcases-dev",
     "version": "0.1.0",
-    "name": "Test Case Explorer Extension",
+    "name": "DEV://Test Case Explorer Extension",
     "description": "An extension to manage test cases.",
     "baseUri": "https://localhost:44300/",
-    "publisher": "mathias",
+    "publisher": "mskold",
     "icons": {
         "default": "img/logo.png"
     },
@@ -13,7 +13,7 @@
     "Sample"
   ],
   "galleryFlags": [
-      "Public"
+      
     ],
     "categories": [
         "Productivity"
