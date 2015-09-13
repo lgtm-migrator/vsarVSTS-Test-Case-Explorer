@@ -1,3 +1,5 @@
+/// <reference path='ref/jquery.d.ts' />
+/// <reference path='ref/VSS.d.ts' />
 define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView"], function (require, exports, Contracts, TestClient, WITClient, TreeView) {
     function getNodes(param) {
         switch (param) {
@@ -35,24 +37,36 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return deferred.promise();
     }
     exports.getTestPlans = getTestPlans;
+    function getTestSuitesForTestCase(testCaseId) {
+        // Get an instance of the client
+        var deferred = $.Deferred();
+        var tstClient = TestClient.getClient();
+        tstClient.getSuitesByTestCaseId(testCaseId).then(function (data) {
+            deferred.resolve(data);
+        });
+        return deferred.promise();
+    }
+    exports.getTestSuitesForTestCase = getTestSuitesForTestCase;
     function getTestPlanaAndSuites(planId, testPlanName) {
         // Get an instance of the client
         var deferred = $.Deferred();
         planId = 546;
         var tstClient = TestClient.getClient();
         tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
-            var tRoot = new TreeView.TreeNode(testPlanName);
-            BuildTestSuiteTree(data.filter(function (i) { return i.parent == null; }), tRoot, data);
+            var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null; }), null, data);
             deferred.resolve([tRoot]);
         });
         return deferred.promise();
     }
     exports.getTestPlanaAndSuites = getTestPlanaAndSuites;
     function BuildTestSuiteTree(tsList, parentNode, allTS) {
+        var returnNode = null;
         tsList.forEach(function (t) {
             var node = new TreeView.TreeNode(t.name);
             node.id = t.id;
             node.type = t.suiteType;
+            node.expanded = true;
+            node.droppable = true;
             switch (t.suiteType) {
                 case "StaticTestSuite":
                     node.icon = "icon-tfs-tcm-static-suite";
@@ -65,8 +79,14 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                     break;
             }
             BuildTestSuiteTree(allTS.filter(function (i) { return i.parent != null && i.parent.id == t.id; }), node, allTS);
-            parentNode.children.push(node);
+            if (parentNode != null) {
+                parentNode.children.push(node);
+            }
+            else {
+                returnNode = node;
+            }
         });
+        return returnNode;
     }
     function getStructure(structure) {
         var deferred = $.Deferred();

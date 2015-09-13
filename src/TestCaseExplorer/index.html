@@ -51,14 +51,19 @@
                     <div class="handleBar"></div>
                     <div id="detailsPane" class="rightPane hotkey-section hotkey-section-3">
                         <div class="hub-pivot far-right-pane-pivot">
-                            <div id="details-Cbo-container" class="dropdown"></div>
+                            <div id="details-Cbo-container" ></div>
                             <div id="detailPanels">
-                                <div id="TestPlan">
+                                <div id="details-TestPlan" style="display:none">
                                     Test plan: <div id="details-cboTestPlan"></div>
 
                                     <div id="details-treeviewTestPlan" class="treeview"></div>
                                 </div>
-                                <div id="TestResults">
+                                <div id="details-testSuites" style="display:none">
+                                    Test case  <b><span id="details-testCase"></span></b> exists in:<br/>
+
+                                    <div id="details-gridTestSuites" ></div>
+                                </div>
+                                <div id="details-TestResults" style="display:none">
                                     Test results:
 
                                     <div id="details-gridTestResults" class="treeview"></div>

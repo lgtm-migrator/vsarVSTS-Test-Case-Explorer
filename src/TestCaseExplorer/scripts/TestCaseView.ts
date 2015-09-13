@@ -9,6 +9,7 @@ import RestClient = require("TFS/WorkItemTracking/RestClient");
 import RestTestClient = require("TFS/TestManagement/RestClient");
 import DetailsToggle = require("scripts/DetailsToggle");
 
+export interface TestCaseViewSelectedCallback { (value: string): void }
 
 export class TestCaseView {
 
@@ -23,7 +24,7 @@ export class TestCaseView {
     }
 
 
-    public initialize(paneToggler: DetailsToggle.DetailsPaneToggler) {
+    public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback ) {
 
         this._paneToggler = paneToggler;
 
@@ -57,8 +58,8 @@ export class TestCaseView {
     var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
 
     var dataSource = [];
-    dataSource.push({ id: "5214", title: "User should be able to...", state: "Design", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
-    dataSource.push({ id: "5215", title: "Main page of Phone should...", state: "Active", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
+    dataSource.push({ id: "586", title: "User should be able to...", state: "Design", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
+    dataSource.push({ id: "552", title: "Main page of Phone should...", state: "Active", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
 
 
     var client = RestClient.getClient();
@@ -90,11 +91,25 @@ export class TestCaseView {
             { text: "Automation status", index: "automation_status", width: 75 }
         ],
         // This data source is rendered into the Grid columns defined above
-        source: dataSource
+        source: dataSource,
+        draggable: true,
+        droppable: true
+
     };
 
     // Create the grid in a container element
     var grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
 
+    $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
+        var s = grid.getRowData(grid.getSelectedDataIndex()).id;
+        selectCallBack(s);
+    });
+
+
+        
+    grid.enableDragDrop();
+
     }
+
+
 }
