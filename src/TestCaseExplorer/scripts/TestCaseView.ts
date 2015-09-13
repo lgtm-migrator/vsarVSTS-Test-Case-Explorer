@@ -37,7 +37,7 @@ export class TestCaseView {
         { id: "toggle", showText: true, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
     ];
 
-
+    var tcv = this;
 
     var menubarOptions = {
         items: menuItems,
@@ -46,6 +46,7 @@ export class TestCaseView {
             switch (command) {
                 case "toggle":
                     paneToggler.toggleDetailsPane()
+                    menubar.updateCommandStates([{ id: command, toggled: tcv._paneToggler._isTestCaseDetailsPaneOn()}]);
                     break;
                 default:
                     alert("Unhandled action: " + command);
