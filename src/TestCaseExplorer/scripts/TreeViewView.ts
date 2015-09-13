@@ -14,7 +14,9 @@ export class TreeviewView {
     public initialize(callback: TreeviewSelectedCallback) {
         var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan", "Team"];
 
-        var cbo = Controls.create(CommonControls.Combo, $("#treeview-Cbo-container"), {
+        var cbo = Controls.create(CommonControls.Combo, $("#treeview-Cbo-container"),  {
+            mode: "drop",
+            allowEdit: false, 
             source: cboSources
         });
         cbo.setText(cboSources[0]);

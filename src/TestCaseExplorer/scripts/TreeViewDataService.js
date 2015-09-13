@@ -34,6 +34,40 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         });
         return deferred.promise();
     }
+    exports.getTestPlans = getTestPlans;
+    function getTestPlanaAndSuites(planId, testPlanName) {
+        // Get an instance of the client
+        var deferred = $.Deferred();
+        planId = 546;
+        var tstClient = TestClient.getClient();
+        tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
+            var tRoot = new TreeView.TreeNode(testPlanName);
+            BuildTestSuiteTree(data.filter(function (i) { return i.parent == null; }), tRoot, data);
+            deferred.resolve([tRoot]);
+        });
+        return deferred.promise();
+    }
+    exports.getTestPlanaAndSuites = getTestPlanaAndSuites;
+    function BuildTestSuiteTree(tsList, parentNode, allTS) {
+        tsList.forEach(function (t) {
+            var node = new TreeView.TreeNode(t.name);
+            node.id = t.id;
+            node.type = t.suiteType;
+            switch (t.suiteType) {
+                case "StaticTestSuite":
+                    node.icon = "icon-tfs-tcm-static-suite";
+                    break;
+                case "RequirementTestSuite":
+                    node.icon = "icon-tfs-tcm-requirement-based-suite";
+                    break;
+                case "DynamicTestSuite":
+                    node.icon = "icon-tfs-tcm-query-based-suite";
+                    break;
+            }
+            BuildTestSuiteTree(allTS.filter(function (i) { return i.parent != null && i.parent.id == t.id; }), node, allTS);
+            parentNode.children.push(node);
+        });
+    }
     function getStructure(structure) {
         var deferred = $.Deferred();
         var client = WITClient.getClient();

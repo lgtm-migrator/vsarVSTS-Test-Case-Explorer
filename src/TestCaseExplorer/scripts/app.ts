@@ -1,8 +1,8 @@
 ﻿/// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 
-import DetailsView = require("scripts/DetailsView");
-var paneToggler = new DetailsView.DetailsPaneToggler();
+import DetailsToggle = require("scripts/DetailsToggle");
+var paneToggler = new DetailsToggle.DetailsPaneToggler();
 
 
 import TestCaseView = require("scripts/TestCaseView");
@@ -12,6 +12,11 @@ tc.initialize(paneToggler);
 import TreeViewView = require("scripts/TreeViewView");
 var tv = new TreeViewView.TreeviewView();
 tv.initialize( RefreshGrid);
+
+import DetailsView = require("scripts/DetailsView");
+var dv = new DetailsView.DetailsView();
+dv.initialize();
+
 
 
 paneToggler.init(this, $(".far-right-pane-pivot"), null,  null, null);

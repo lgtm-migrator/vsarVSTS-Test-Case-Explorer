@@ -28,7 +28,7 @@ export function getNodes(param) {
 
 
 
-    function getTestPlans(): IPromise<TreeView.TreeNode[]> {
+    export function getTestPlans(): IPromise<TreeView.TreeNode[]> {
         // Get an instance of the client
         var deferred = $.Deferred<TreeView.TreeNode[]>();
 
@@ -44,6 +44,45 @@ export function getNodes(param) {
             deferred.resolve(d2);
         });
         return deferred.promise();
+}
+
+
+    export function getTestPlanaAndSuites(planId:number, testPlanName:string): IPromise<TreeView.TreeNode[]> {
+        // Get an instance of the client
+        var deferred = $.Deferred<TreeView.TreeNode[]>();
+        planId = 546;
+        var tstClient = TestClient.getClient();
+        tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
+            var tRoot = new TreeView.TreeNode(testPlanName);            
+            
+            BuildTestSuiteTree(data.filter(function (i) { return i.parent == null }), tRoot, data);
+            
+            deferred.resolve([tRoot]);
+        });
+        return deferred.promise();
+    }
+
+    function BuildTestSuiteTree(tsList: any[], parentNode: TreeView.TreeNode, allTS: any[]) {
+        tsList.forEach(function (t) {
+            var node = new TreeView.TreeNode(t.name);
+            node.id = t.id;
+            node.type = t.suiteType;
+            switch (t.suiteType) {
+                case "StaticTestSuite" :
+                    node.icon = "icon-tfs-tcm-static-suite";
+                    break;
+                case "RequirementTestSuite" :
+                    node.icon = "icon-tfs-tcm-requirement-based-suite";
+                    break;
+                case "DynamicTestSuite":
+                    node.icon = "icon-tfs-tcm-query-based-suite";
+                    break;
+            }
+            BuildTestSuiteTree(allTS.filter(function (i) { return  i.parent!=null && i.parent.id == t.id }), node, allTS);
+
+            parentNode.children.push(node);
+
+        });
     }
 
     function getStructure(structure: Contracts.TreeStructureGroup): IPromise<TreeView.TreeNode[]> {

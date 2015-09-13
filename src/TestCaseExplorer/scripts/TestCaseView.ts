@@ -7,12 +7,12 @@ import Menus = require("VSS/Controls/Menus");
 import Contracts = require("TFS/WorkItemTracking/Contracts");
 import RestClient = require("TFS/WorkItemTracking/RestClient");
 import RestTestClient = require("TFS/TestManagement/RestClient");
-import DetailsView = require("scripts/DetailsView");
+import DetailsToggle = require("scripts/DetailsToggle");
 
 
 export class TestCaseView {
 
-    private _paneToggler: DetailsView.DetailsPaneToggler;
+    private _paneToggler: DetailsToggle.DetailsPaneToggler;
 
     public RefreshGrid(pivot:string, value:string)
     {
@@ -23,7 +23,7 @@ export class TestCaseView {
     }
 
 
-    public initialize(paneToggler: DetailsView.DetailsPaneToggler) {
+    public initialize(paneToggler: DetailsToggle.DetailsPaneToggler) {
 
         this._paneToggler = paneToggler;
 
