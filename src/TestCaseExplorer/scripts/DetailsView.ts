@@ -5,8 +5,10 @@ import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
 import Grids = require("VSS/Controls/Grids");
 import CommonControls = require("VSS/Controls/Common");
+import Menus = require("VSS/Controls/Menus");
 
 import TreeViewDataService = require("scripts/TreeViewDataService");
+
 
 
 interface PaneRefresh {
@@ -21,40 +23,70 @@ export class DetailsView {
     public _selectedPane: PaneRefresh;
 
     public initialize() {
-        var cboSources = ["Test plan", "Test suites", "Test results", "requirement",];
+        //var cboSources = ["Test plan", "Test suites", "Test results", "requirement",];
 
-        var cbo = Controls.create(CommonControls.Combo , $("#details-Cbo-container"), {
-            source: cboSources
-        });
+        //var cbo = Controls.create(CommonControls.Combo , $("#details-Cbo-container"), {
+        //    source: cboSources
+        //});
 
+        var menuItems: Menus.IMenuItemSpec[] = [
+           
+            {
+                id: "root", text: "Select Pane ", childItems: [
+                    { id: "TestPlan", text: "Test plan"},
+                    { id: "TestSuites", text: "Test suites", icon: "icon-commented-file" },
+                    { id: "TestResults", text: "Test results" }
 
-
-        var treeOptions = {
-            width: 400,
-            height: "100%",
-            nodes: null
-        };
-
-        var treeview = Controls.create(TreeView.TreeView, $("#details-treeview-container"), treeOptions);
-        treeview.onItemClick = function (node, nodeElement, e) {
-        };
+                ]
+            },
+            {
+                id: "rootPanePlace", text: "Select Position ", childItems: [
+                    { id: "right", text: "Right", },
+                    { id: "bottom", text: "Bottom"}
+                ]
+            },
+        ];
 
         var dv = this;
-        
-        $("#details-Cbo-container").change(function () {
-            switch (cbo.getText()) {
-                case "Test plan":
-                    dv.ShowPanel("TestPlan");
-                    break;
-                case "Test suites":
-                    dv.ShowPanel("TestSuites");
-                    break;
-                case "Test result":
-                    dv.ShowPanel("TestResult");
-                    break;
+        var menubar: Menus.MenuBar = null;
+
+        var menubarOptions = {
+            items: menuItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                dv.ShowPanel(command);
+                
+                    menuItems[0].text = command;
+                    
+                menubar.updateItems(menuItems);
             }
 
-        });
+        };
+
+         menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#details-Cbo-container"), menubarOptions);
+         var defaultMenuItem= menuItems[0].childItems[0];
+         menuItems[0].text = menuItems[0].childItems[0].text;
+         menubar.updateItems(menuItems);
+
+         dv.ShowPanel(defaultMenuItem.id);
+         
+
+        
+        
+        //$("#details-Cbo-container").change(function () {
+        //    switch (cbo.getText()) {
+        //        case "Test plan":
+        //            dv.ShowPanel("TestPlan");
+        //            break;
+        //        case "Test suites":
+        //            dv.ShowPanel("TestSuites");
+        //            break;
+        //        case "Test result":
+        //            dv.ShowPanel("TestResult");
+        //            break;
+        //    }
+
+        //});
     }
 
     public selectionChanged(id: string)
