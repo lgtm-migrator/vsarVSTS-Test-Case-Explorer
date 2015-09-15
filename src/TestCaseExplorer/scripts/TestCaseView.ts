@@ -34,7 +34,7 @@ export class TestCaseView {
         { id: "clone", text: "Clone", noIcon: true },
         { separator: true },
         { id: "column_options", text: "Column Options", noIcon: true },
-        { id: "toggle", showText: true, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
+        { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
     ];
 
     var tcv = this;
