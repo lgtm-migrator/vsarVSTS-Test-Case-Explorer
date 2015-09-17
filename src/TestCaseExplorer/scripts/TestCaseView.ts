@@ -106,38 +106,39 @@ export class TestCaseView {
 
         this._paneToggler = paneToggler;
 
-        var menuItems: Menus.IMenuItemSpec[] = [
-            { id: "file", text: "New", icon: "icon-add-small" },
-            { separator: true },
-            { id: "clone", text: "Clone", noIcon: true },
-            { separator: true },
-            { id: "column_options", text: "Column Options", noIcon: true },
-            { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
-        ];
+    var menuItems: Menus.IMenuItemSpec[] = [
+        { id: "file", text: "New", icon: "icon-add-small" },
+        { separator: true },
+        { id: "clone", text: "Clone", noIcon: true },
+        { separator: true },
+        { id: "column_options", text: "Column Options", noIcon: true },
+        { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
+    ];
 
-        var tcv = this;
+    var tcv = this;
 
-        var menubarOptions = {
-            items: menuItems,
-            executeAction: function (args) {
-                var command = args.get_commandName();
-                switch (command) {
-                    case "toggle":
-                        paneToggler.toggleDetailsPane()
+    var menubarOptions = {
+        items: menuItems,
+        executeAction: function (args) {
+            var command = args.get_commandName();
+            switch (command) {
+                case "toggle":
+                    paneToggler.toggleDetailsPane()
                         menubar.updateCommandStates([{ id: command, toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
-                        break;
-                    default:
-                        alert("Unhandled action: " + command);
-                        break;
-                }
+                    break;
+                default:
+                    alert("Unhandled action: " + command);
+                    break;
             }
-        };
+        }
+    };
 
-        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
+    var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
+    menubar.updateCommandStates([{ id: "toggle", toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
 
-        var dataSource = [];
-        dataSource.push({ id: "586", title: "User should be able to...", state: "Design", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
-        dataSource.push({ id: "552", title: "Main page of Phone should...", state: "Active", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
+    var dataSource = [];
+    dataSource.push({ id: "554", title: "User should be able to...", state: "Design", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
+    dataSource.push({ id: "552", title: "Main page of Phone should...", state: "Active", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
 
         //var result = this.getTestCases(50, 51);
         //result.then(testCases => {
@@ -147,52 +148,58 @@ export class TestCaseView {
         //});
 
         var client = WorkItemClient.getClient();
-        //client.queryByWiql()
-        //client.queryByWiql(
+    //client.queryByWiql()
+    //client.queryByWiql(
         var queryText = "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project  AND  [Source].[System.WorkItemType] = 'Test Case'  AND  [Source].[System.State] <> '') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [System.Id] mode(DoesNotContain)";
-        //client.getWorkItems(
-        client.queryByWiql({ query: queryText }, "FeaturesInc").then(result => {
-            var x = result.workItems;
-        });
+    //client.getWorkItems(
+    client.queryByWiql({ query: queryText }, "FeaturesInc").then(result => {
+        var x = result.workItems;
+    });
 
-        //var x = client.queryByWiql( {""}, "");
+    //var x = client.queryByWiql( {""}, "");
         var c = TestClient.getClient();
         //c.getTestCases(VSS.getWebContext().project.name, 1, 1).then(result => {
-        
+
         //});
-        //c.getTestCases(
-        //client.queryByWiql(x, "FeaturesInc");
+    //c.getTestCases(
+    //client.queryByWiql(x, "FeaturesInc");
 
-        var options = {
-            height: "1000px", // Explicit height is required for a Grid control
-            columns: [
-                // text is the column header text. 
-                // index is the key into the source object to find the data for this column
-                // width is the width of the column, in pixels
-                { text: "Id", index: "id", width: 50 },
-                { text: "Title", index: "title", width: 150 },
-                { text: "State", index: "state", width: 50 },
-                { text: "Assigned To", index: "assigned_to", width: 75 },
-                { text: "Priority", index: "priority", width: 50 },
-                { text: "Automation status", index: "automation_status", width: 75 }
-            ],
-            // This data source is rendered into the Grid columns defined above
-            source: dataSource,
-            draggable: true,
-            droppable: true
+    var options = {
+        height: "1000px", // Explicit height is required for a Grid control
+        columns: [
+            // text is the column header text. 
+            // index is the key into the source object to find the data for this column
+            // width is the width of the column, in pixels
+            { text: "Id", index: "id", width: 50 },
+            { text: "Title", index: "title", width: 150 },
+            { text: "State", index: "state", width: 50 },
+            { text: "Assigned To", index: "assigned_to", width: 75 },
+            { text: "Priority", index: "priority", width: 50 },
+            { text: "Automation status", index: "automation_status", width: 75 }
+        ],
+        // This data source is rendered into the Grid columns defined above
+        source: dataSource,
+        draggable: true,
+        droppable: true
 
-        };
+    };
 
-        // Create the grid in a container element
+    // Create the grid in a container element
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
 
-        $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
+    $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
             var s = this._grid.getRowData(this._grid.getSelectedDataIndex()).id;
-            selectCallBack(s);
-        });
+        selectCallBack(s);
+    });
 
         this._grid.enableDragDrop();
 
+    }
+
+    public updateTogle(paneToggler) {
+        var menubar = <Menus.MenuBar>Controls.Enhancement.getInstance(Menus.MenuBar, $("#menu-container"));
+
+        menubar.updateCommandStates([{ id: "toggle", toggled: paneToggler._isTestCaseDetailsPaneOn() }]);
     }
 }
 

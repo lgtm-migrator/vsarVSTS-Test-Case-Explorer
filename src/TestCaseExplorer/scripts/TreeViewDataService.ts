@@ -29,7 +29,50 @@ export function getNodes(param) {
 
 }
 
+export function getIconFromSuiteType(suiteType): string
+{
+    var icon: string = "";
+    switch (suiteType) {
+        case "StaticTestSuite":
+            icon = "icon-tfs-tcm-static-suite";
+            break;
+        case "RequirementTestSuite":
+            icon = "icon-tfs-tcm-requirement-based-suite";
+            break;
+        case "DynamicTestSuite":
+            icon = "icon-tfs-tcm-query-based-suite";
+            break;
+    }
+    return icon;
+}
 
+
+export function getIconFromTestOutcome(outcome): string {
+    var icon: string = "";
+    switch (outcome) {
+        case "NotApplicable":
+            icon = "icon-tfs-tcm-not-applicable";
+            break;
+        case "Blocked":
+            icon = "icon-tfs-tcm-block-test";
+            break;
+        case "Passed":
+            icon = "icon-tfs-build-status-succeeded";
+            break;
+            
+                case "Failed":
+            icon = "icon-tfs-build-status-failed";
+                    break;
+                case "None":
+                    icon = "icon-tfs-tcm-block-test";
+                    break;
+                case "DynamicTestSuite":
+                    icon = "icon-tfs-build-status-succeeded";
+                    break
+     
+    }
+    return icon;
+}
 
     export function getTestPlans(): IPromise<TreeView.TreeNode[]> {
         // Get an instance of the client
@@ -62,6 +105,22 @@ export function getNodes(param) {
         return deferred.promise();
     }
 
+    export function getTestResultsForTestCase(testCaseId: number): IPromise<any[]> {
+        // Get an instance of the client
+        var deferred = $.Deferred<any[]>();
+
+        var tstClient = TestClient.getClient();
+        var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId};
+
+
+        tstClient.getTestResultsByQuery(q,VSS.getWebContext().project.name, true).then(function (data) {
+
+
+            deferred.resolve(data);
+        });
+        return deferred.promise();
+    }
+
 
     export function getTestPlanaAndSuites(planId:number, testPlanName:string): IPromise<TreeView.TreeNode[]> {
         // Get an instance of the client
@@ -85,17 +144,8 @@ export function getNodes(param) {
             node.type = t.suiteType;
             node.expanded = true;
             node.droppable = true;
-            switch (t.suiteType) {
-                case "StaticTestSuite" :
-                    node.icon = "icon-tfs-tcm-static-suite";
-                    break;
-                case "RequirementTestSuite" :
-                    node.icon = "icon-tfs-tcm-requirement-based-suite";
-                    break;
-                case "DynamicTestSuite":
-                    node.icon = "icon-tfs-tcm-query-based-suite";
-                    break;
-            }
+            node.icon = getIconFromSuiteType(t.suiteType);
+
             BuildTestSuiteTree(allTS.filter(function (i) { return  i.parent!=null && i.parent.id == t.id }), node, allTS);
 
             if (parentNode != null) {
@@ -108,6 +158,7 @@ export function getNodes(param) {
         });
         return returnNode;
     }
+
 
     function getStructure(structure: Contracts.TreeStructureGroup): IPromise<TreeView.TreeNode[]> {
         var deferred = $.Deferred<TreeView.TreeNode[]>();

@@ -21,6 +21,47 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         }
     }
     exports.getNodes = getNodes;
+    function getIconFromSuiteType(suiteType) {
+        var icon = "";
+        switch (suiteType) {
+            case "StaticTestSuite":
+                icon = "icon-tfs-tcm-static-suite";
+                break;
+            case "RequirementTestSuite":
+                icon = "icon-tfs-tcm-requirement-based-suite";
+                break;
+            case "DynamicTestSuite":
+                icon = "icon-tfs-tcm-query-based-suite";
+                break;
+        }
+        return icon;
+    }
+    exports.getIconFromSuiteType = getIconFromSuiteType;
+    function getIconFromTestOutcome(outcome) {
+        var icon = "";
+        switch (outcome) {
+            case "NotApplicable":
+                icon = "icon-tfs-tcm-not-applicable";
+                break;
+            case "Blocked":
+                icon = "icon-tfs-tcm-block-test";
+                break;
+            case "Passed":
+                icon = "icon-tfs-build-status-succeeded";
+                break;
+            case "Failed":
+                icon = "icon-tfs-build-status-failed";
+                break;
+            case "None":
+                icon = "icon-tfs-tcm-block-test";
+                break;
+            case "DynamicTestSuite":
+                icon = "icon-tfs-build-status-succeeded";
+                break;
+        }
+        return icon;
+    }
+    exports.getIconFromTestOutcome = getIconFromTestOutcome;
     function getTestPlans() {
         // Get an instance of the client
         var deferred = $.Deferred();
@@ -47,6 +88,17 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return deferred.promise();
     }
     exports.getTestSuitesForTestCase = getTestSuitesForTestCase;
+    function getTestResultsForTestCase(testCaseId) {
+        // Get an instance of the client
+        var deferred = $.Deferred();
+        var tstClient = TestClient.getClient();
+        var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
+        tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {
+            deferred.resolve(data);
+        });
+        return deferred.promise();
+    }
+    exports.getTestResultsForTestCase = getTestResultsForTestCase;
     function getTestPlanaAndSuites(planId, testPlanName) {
         // Get an instance of the client
         var deferred = $.Deferred();
@@ -67,17 +119,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             node.type = t.suiteType;
             node.expanded = true;
             node.droppable = true;
-            switch (t.suiteType) {
-                case "StaticTestSuite":
-                    node.icon = "icon-tfs-tcm-static-suite";
-                    break;
-                case "RequirementTestSuite":
-                    node.icon = "icon-tfs-tcm-requirement-based-suite";
-                    break;
-                case "DynamicTestSuite":
-                    node.icon = "icon-tfs-tcm-query-based-suite";
-                    break;
-            }
+            node.icon = getIconFromSuiteType(t.suiteType);
             BuildTestSuiteTree(allTS.filter(function (i) { return i.parent != null && i.parent.id == t.id; }), node, allTS);
             if (parentNode != null) {
                 parentNode.children.push(node);
