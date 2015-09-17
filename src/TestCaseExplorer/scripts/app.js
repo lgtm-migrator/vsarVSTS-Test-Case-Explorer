@@ -1,14 +1,17 @@
 /// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
-define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "scripts/TestCaseView", "scripts/TreeViewView"], function (require, exports, DetailsToggle, DetailsView, TestCaseView, TreeViewView) {
+define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "scripts/TestCaseView", "scripts/TreeViewView", "VSS/Controls", "VSS/Controls/Common"], function (require, exports, DetailsToggle, DetailsView, TestCaseView, TreeViewView, Controls, CommonControls) {
     var paneToggler = new DetailsToggle.DetailsPaneToggler();
     var dv = new DetailsView.DetailsView();
-    dv.initialize();
     var tc = new TestCaseView.TestCaseView();
     tc.initialize(paneToggler, RefreshPane);
     var tv = new TreeViewView.TreeviewView();
+    var splitter = Controls.Enhancement.getInstance(CommonControls.Splitter, $(".right-hub-splitter"));
+    paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(function (t) {
+        tc.updateTogle(t);
+    });
     tv.initialize(RefreshGrid);
-    paneToggler.init(this, $(".far-right-pane-pivot"), null, null, null);
+    dv.initialize();
     function RefreshGrid(pivot, value) {
         tc.RefreshGrid(pivot, value);
     }

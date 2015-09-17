@@ -57,6 +57,7 @@ export class TestCaseView {
     };
 
     var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
+    menubar.updateCommandStates([{ id: "toggle", toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
 
     var dataSource = [];
     dataSource.push({ id: "554", title: "User should be able to...", state: "Design", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
@@ -110,6 +111,12 @@ export class TestCaseView {
         
     grid.enableDragDrop();
 
+    }
+
+    public updateTogle(paneToggler) {
+        var menubar = <Menus.MenuBar>Controls.Enhancement.getInstance(Menus.MenuBar, $("#menu-container"));
+
+        menubar.updateCommandStates([{ id: "toggle", toggled: paneToggler._isTestCaseDetailsPaneOn() }]);
     }
 
 

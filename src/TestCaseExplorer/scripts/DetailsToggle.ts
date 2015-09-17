@@ -13,25 +13,50 @@ export interface TreeviewSelectedCallback { (type: string, value: string): void 
 export class Details {
 }
 
+    var panelToggler = this;
+    
+
 export class DetailsPaneToggler {
     private _previousPaneOnPosition: string;
-    private _workItemPaneMode: string;
+    private _previousPaneOnWidth: number;
+    private _PanePosition: string;
     private _paneFilter: any;
     private _positionFilter: any;
     private _$farRightPaneHubPivot: any;
     private _savedPaneFilterItem: any;
-    private _splitter;
+    private _splitter: CommonControls.Splitter;
 
-    private _workItemForm;
-    private _viewPaneForm;
+    private _MasterForm;
+    private _detailsForm;
     private _parent;
 
-    public init(parent, farRightPanelCss, splitter, workItemForm, viewPaneForm) {
+
+    
+
+    public init(parent, farRightPanelCss, splitter: CommonControls.Splitter, masterForm, detailsForm): IPromise<DetailsPaneToggler>  {
+        var deferred = $.Deferred<DetailsPaneToggler>(); 
         this._parent = parent;
         this._splitter = splitter;
-        this._workItemForm = workItemForm;
-        this._viewPaneForm = viewPaneForm;
+        this._MasterForm = masterForm;
+        this._detailsForm= detailsForm;
         this._$farRightPaneHubPivot = farRightPanelCss;
+
+        var toggler = this;
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+            // Set value in user scope
+            dataService.getValue("PanePosition", { scopeType: "User" }).then(function (savedPanePosition: any) {
+                if (savedPanePosition != null) {
+                    toggler._PanePosition = savedPanePosition
+                }
+                else {
+                    toggler._PanePosition = "off";
+                }
+                toggler._showWorkItemPane(toggler._PanePosition, null); //toggler._paneFilter.getSelectedItem().value);
+                deferred.resolve(toggler);
+            });
+        });
+        return deferred.promise();
+        
     }
 
 
@@ -50,23 +75,33 @@ export class DetailsPaneToggler {
                 VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
                     // Set value in user scope
                     dataService.getValue("PreviousPaneOnPosition", { scopeType: "User" }).then(function (prevPanePosition: any) {
-                        if (prevPanePosition && prevPanePosition.value) {
-                            toggler._previousPaneOnPosition = prevPanePosition.value;
+                        if (prevPanePosition != null && prevPanePosition!="off" ){
+                            toggler._previousPaneOnPosition = prevPanePosition;
                         }
                         else {
                             toggler._previousPaneOnPosition = "right";
                         }
                         toggler._showWorkItemPane(toggler._previousPaneOnPosition, null); //toggler._paneFilter.getSelectedItem().value);
                     });
+                    dataService.getValue("PreviousDetailsPaneWidth", { scopeType: "User" }).then(function (savedDetailsPaneWidth: number) {
+                        if (savedDetailsPaneWidth != null) {
+                            toggler._previousPaneOnWidth = savedDetailsPaneWidth;
+                        }
+                        else {
+                            toggler._previousPaneOnWidth = 100;
+                        }
+                    });
 
                 });
+
+
             }
         }
 
     }
 
     public _isTestCaseDetailsPaneOn = function () {
-        if (this._workItemPaneMode && this._workItemPaneMode !== "off") {
+        if (this._PanePosition && this._PanePosition !== "off") {
             return true;
         }
         return false;
@@ -83,53 +118,58 @@ export class DetailsPaneToggler {
       
         this._savedPaneFilterItem = pane;
 
-        if (this._workItemPaneMode !== position) {
-            if (position === "off" && this._workItemPaneMode) {
+        if (this._PanePosition !== position) {
+            if (position === "off" && this._PanePosition) {
 
-                this._previousPaneOnPosition = this._workItemPaneMode;
+                this._previousPaneOnPosition = this._PanePosition;
                 var toggle = this;
                 VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
                     // Set value in user scope
-                    dataService.setValue("PreviousPaneOnPosition", toggle._workItemPaneMode, { scopeType: "User" }).then(function (value) {
+                    dataService.setValue("PreviousPaneOnPosition", toggle._PanePosition, { scopeType: "User" }).then(function (value) {
+                        console.log("User scoped key value is " + value);
+                    });
+                    dataService.setValue("PreviousDetailsPaneWidth", toggle._splitter.rightPane.width(), { scopeType: "User" }).then(function (value) {
                         console.log("User scoped key value is " + value);
                     });
                 });
 
 
             }
-            this._workItemPaneMode = position;
+            this._PanePosition = position;
         }
         VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
             // Set value in user scope
             dataService.setValue("PanePosition", position, { scopeType: "User" });
-            dataService.setValue("PaneMode", pane, { scopeType: "User" });
+            dataService.setValue("SelectedPanel", pane, { scopeType: "User" });
         });
 
+        if (this._splitter == null) {
+            this._splitter = <CommonControls.Splitter>Controls.Enhancement.getInstance(CommonControls.Splitter, $(".right-hub-splitter"));
+
+        }
         if (position === "off") {
             this._$farRightPaneHubPivot.css("display", "none");
 
-            //TODO - Ugly toogle
-            $("#detailsPane").css("display", "none");
-            $("#testCasePane").css("width", "100%");
-            $("#detailsPane").css("width", "0%");
-            
+          
 
-            //this._splitter.noSplit();
-            //this._workItemForm.unbind();
-            //this._workItemForm.hideElement();
-            //this._viewPaneForm.unbind();
-            //this._viewPaneForm.hide();
+            this._splitter.noSplit();
+            //this._MasterForm.unbind();
+            //this._MasterForm.hideElement();
+            //this._detailsForm.unbind();
+            //this._detailsForm.hide();
         }
         else {
-            //if (position === "right") {
-            //    this._splitter.horizontal();
-            //    this._splitter.split();
-            //}
-            //else {
+            if (position === "right") {
+                this._splitter.horizontal();
+                this._splitter.split();
+                this._splitter.rightPane.width(this._previousPaneOnWidth);
+            }
+            else {
+                this._splitter.vertical();
+                this._splitter.split();
+                this._splitter.rightPane.width(this._previousPaneOnWidth);
 
-            //    this._splitter.vertical();
-            //    this._splitter.split();
-            //}
+            }
             if (pane === "TestHubView.paneMode_suites" || pane === "TestHubView.paneMode_results") {
                 // selectedTestCaseId = (this._testPointList.getSelectionCount() <= 1) ? selectedTestCaseId : 0;
                 // this._showAssociatedNodes(selectedTestCaseId, pane);
@@ -138,10 +178,7 @@ export class DetailsPaneToggler {
 
                 //this._showWorkItem(selectedTestCaseId, true);
             }
-            //TODO - Ugly toogle
-            $("#testCasePane").css("width", "80%");
-            $("#detailsPane").css("width", "20%");
-            $("#detailsPane").css("display", "block");
+
 
 
             this._$farRightPaneHubPivot.css("display", "block");
