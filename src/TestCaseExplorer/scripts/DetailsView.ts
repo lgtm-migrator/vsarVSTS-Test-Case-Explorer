@@ -131,15 +131,21 @@ export class DetailsView {
 
      public initialize() {
          $("#details-testSuites").css("display", "block");
-         var treeOptionsTestPlan = {
-             width: 400,
-             height: "100%",
-             nodes: null
-         };
 
          var options = {
              height: "1000px", // Explicit height is required for a Grid control
              columns: [
+                 {
+                     text: "", index: "suiteType", width: 20, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
+                         var suiteType = this.getColumnValue(dataIndex, column.index);
+
+                         var d = $("<div class='grid-cell'/>").width(column.width || 100)
+                         var dIcon = $("<div class='testpoint-outcome-shade icon'/>").addClass(TreeViewDataService.getIconFromSuiteType(suiteType));
+                         d.append(dIcon);
+                       
+                         return d;
+                     }
+                 },
                  // text is the column header text. 
                  // index is the key into the source object to find the data for this column
                  // width is the width of the column, in pixels
@@ -168,13 +174,13 @@ export class DetailsView {
          $("#details-testCase").text(id);
 
          TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(function (data) {
-             pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name }; }));
+             pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType}; }));
          });
      }
  }
 
 
- class testPlanPane implements PaneRefresh{
+ class testPlanPane implements PaneRefresh {
 
      public initialize() {
          $("#details-TestPlan").css("display", "block");
@@ -216,14 +222,51 @@ export class DetailsView {
      }
 
      public masterIdChanged(id: string) {
-         //NOthing
+
+        //Nothing 
      }
  }
 
 class testResultsPane implements PaneRefresh {
+    private _grid;
 
     public initialize() {
-        $("details-TestResults").css("display", "block");
+        $("#details-TestResults").css("display", "block");
+
+        var options = {
+            height: "1000px", // Explicit height is required for a Grid control
+            columns: [
+                // text is the column header text. 
+                // index is the key into the source object to find the data for this column
+                // width is the width of the column, in pixels
+                {
+                    text: "Outcome", index: "Outcome", width: 100, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
+                        var outcome = this.getColumnValue(dataIndex, column.index);
+                        var d = $("<div class='grid-cell'/>").width(column.width || 100)
+                        var dIcon = $("<div class='testpoint-outcome-shade icon'/>");
+                        dIcon.addClass(TreeViewDataService.getIconFromTestOutcome(outcome));
+                        d.append(dIcon);
+                        var dTxt = $("<span />");
+                        dTxt.text(outcome);
+                        d.append(dTxt);
+
+                        return d;
+                    }
+                },
+ 
+                { text: "Configuration", index: "Configuration", width: 50 },
+                { text: "Run by", index: "RunBy", width: 150 },
+                { text: "Date ", index: "Date", width: 150 },
+                { text: "Duration", index: "suite", width: 150 }
+
+            ],
+            // This data source is rendered into the Grid columns defined above
+            source: null
+        };
+
+        // Create the grid in a container element
+        this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestResults"), options);
+
 
       
     }
@@ -232,7 +275,14 @@ class testResultsPane implements PaneRefresh {
     }
 
     public masterIdChanged(id: string) {
-        //NOthing
+        var pane = this;
+
+        $("#details-testCase").text(id);
+
+        TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(function (data) {
+            var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
+            pane._grid.setDataSource(ds);
+        });
     }
 }
     
