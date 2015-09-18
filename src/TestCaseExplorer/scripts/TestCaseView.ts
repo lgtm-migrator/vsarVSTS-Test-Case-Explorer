@@ -59,10 +59,10 @@ export class TestCaseView {
         var deferred = $.Deferred<any[]>();
         var workItemClient = WorkItemClient.getClient();
 
-        workItemClient.getWorkItems(workItemIds, ["System.Id", "System.Title", "System.State", "System.AssignedTo"]).then(result => {
+        workItemClient.getWorkItems(workItemIds, ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"]).then(result => {
             var dataSource = [];
             result.forEach(workItem => {
-                dataSource.push({ id: workItem.id, title: workItem.fields["System.Title"], state: workItem.fields["System.State"], assigned_to: workItem.fields["System.State"], priority: "1", automation_status: "Planned" });
+                dataSource.push({ id: workItem.id, title: workItem.fields["System.Title"], state: workItem.fields["System.State"], assigned_to: workItem.fields["System.State"], priority: workItem.fields["Microsoft.VSTS.Common.Priority"], automation_status: workItem.fields["Microsoft.VSTS.TCM.AutomationStatus"] });
             });
             deferred.resolve(dataSource);
         });
@@ -74,12 +74,26 @@ export class TestCaseView {
         var deferred = $.Deferred<any[]>();
         var workItemClient = WorkItemClient.getClient();
 
-        workItemClient.queryByWiql({ query: "TODO" }, VSS.getWebContext().project.name).then(result => {
-            var dataSource = [];
-            //result.forEach(tc => {
-            //    dataSource.push({ id: tc.testCase.id, title: "111Main page of Phone should...", state: "Active", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
-            //});
-            deferred.resolve(dataSource);
+        var typeField: string;
+        switch (structureType) {
+            case WorkItemContracts.TreeNodeStructureType.Area:
+                typeField = "System.AreaPath";
+                break;
+            case WorkItemContracts.TreeNodeStructureType.Iteration:
+                typeField = "System.IterationsPath";
+                break;
+        }
+
+        var wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.WorkItemType] = 'Test Case'  AND  [" + typeField + "] UNDER '" + path + "' ORDER BY [System.Id]";
+
+        workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
+            var ids = result.workItems.map(function (item) {
+                return item.id;
+            }).map(Number);
+
+            this.getTestCases(ids).then(testCases => {
+                deferred.resolve(testCases);
+            });
         });
 
         return deferred.promise();
