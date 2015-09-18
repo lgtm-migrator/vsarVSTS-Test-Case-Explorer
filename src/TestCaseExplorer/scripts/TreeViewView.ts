@@ -29,7 +29,7 @@ export class TreeviewView {
 
         var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
         treeview.onItemClick = function (node, nodeElement, e) {
-            callbackFunction(cbo.getText(), node.text);
+            callbackFunction(cbo.getText(), node.config);
         };
 
         var callbackFunction: TreeviewSelectedCallback = callback
