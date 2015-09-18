@@ -81,13 +81,22 @@ export function getIconFromTestOutcome(outcome): string {
         var tstClient = TestClient.getClient();
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
 
-            var d = [{
-                name: "Test plans", children: $.map(data, function (item) {
-                    return { name: item.name , id:item.id };
-                })
-            }];
-            var d2 = convertToTreeNodes(d)
-            deferred.resolve(d2);
+            var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }]);
+
+            var i=0 ;
+            var noPlans = data.length;
+            data.forEach(function (t) {
+                getTestPlanaAndSuites(t.id, t.name).then(function (n) {
+                    tRoot[0].addRange(n);
+                    i++;
+                    if (i >= noPlans) {
+                        tRoot[0].expanded = true;
+                        deferred.resolve(tRoot);
+                    }
+                });
+            });
+
+            
         });
         return deferred.promise();
 }
@@ -145,7 +154,7 @@ export function getIconFromTestOutcome(outcome): string {
             node.expanded = true;
             node.droppable = true;
             node.icon = getIconFromSuiteType(t.suiteType);
-            node.config = { suiteId: t.id, testPlanId: t.plan.id };
+            node.config = { suiteId: t.id, testPlanId: parseInt( t.plan.id) };
             BuildTestSuiteTree(allTS.filter(function (i) { return  i.parent!=null && i.parent.id == t.id }), node, allTS);
 
             if (parentNode != null) {
