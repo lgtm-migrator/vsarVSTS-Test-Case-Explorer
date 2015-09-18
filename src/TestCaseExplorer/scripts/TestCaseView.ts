@@ -152,7 +152,7 @@ export class TestCaseView {
     //client.queryByWiql(
         var queryText = "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project  AND  [Source].[System.WorkItemType] = 'Test Case'  AND  [Source].[System.State] <> '') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [System.Id] mode(DoesNotContain)";
     //client.getWorkItems(
-    client.queryByWiql({ query: queryText }, "FeaturesInc").then(result => {
+    client.queryByWiql({ query: queryText },  VSS.getWebContext().project.name).then(result => {
         var x = result.workItems;
     });
 
@@ -162,7 +162,7 @@ export class TestCaseView {
 
         //});
     //c.getTestCases(
-    //client.queryByWiql(x, "FeaturesInc");
+    //client.queryByWiql(x,  VSS.getWebContext().project.name);
 
     var options = {
         height: "1000px", // Explicit height is required for a Grid control
