@@ -18,6 +18,9 @@ export class TestCaseView {
     private _grid: Grids.Grid;
 
     public RefreshGrid(pivot: string, value: string) {
+
+        this._grid.setDataSource(null);
+
         switch (pivot) {
             case "Area path":
                 this.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value).then(result => {
@@ -30,14 +33,14 @@ export class TestCaseView {
                 });
                 break;
             case "Priority":
-                //this.getTestCasesByPriority(value).then(result => {
-                //    this._grid.setDataSource(result);
-                //});
+                this.getTestCasesByPriority(value).then(result => {
+                    this._grid.setDataSource(result);
+                });
                 break;
             case "State":
-                //this.getTestCasesByState(value).then(result => {
-                //    this._grid.setDataSource(result);
-                //});
+                this.getTestCasesByState(value).then(result => {
+                    this._grid.setDataSource(result);
+                });
                 break;
             case "Test plan":
                 this.getTestCasesByTestPlan(50, 51).then(result => {
@@ -45,7 +48,7 @@ export class TestCaseView {
                 });
                 break;
             case "Team":
-                //this.getTestCasesByTeam("Area", value).then(result => {
+                //this.getTestCasesByTeam(value).then(result => {
                 //    this._grid.setDataSource(result);
                 //});
                 break;
@@ -62,7 +65,7 @@ export class TestCaseView {
         workItemClient.getWorkItems(workItemIds, ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"]).then(result => {
             var dataSource = [];
             result.forEach(workItem => {
-                dataSource.push({ id: workItem.id, title: workItem.fields["System.Title"], state: workItem.fields["System.State"], assigned_to: workItem.fields["System.State"], priority: workItem.fields["Microsoft.VSTS.Common.Priority"], automation_status: workItem.fields["Microsoft.VSTS.TCM.AutomationStatus"] });
+                dataSource.push({ id: workItem.id, title: workItem.fields["System.Title"], state: workItem.fields["System.State"], assigned_to: workItem.fields["System.AssignedTo"], priority: workItem.fields["Microsoft.VSTS.Common.Priority"], automation_status: workItem.fields["Microsoft.VSTS.TCM.AutomationStatus"] });
             });
             deferred.resolve(dataSource);
         });
@@ -70,21 +73,9 @@ export class TestCaseView {
         return deferred.promise();
     }
 
-    private getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string): IPromise<any> {
+    private getTestCasesByWiql(wiql: string): IPromise<any> {
         var deferred = $.Deferred<any[]>();
         var workItemClient = WorkItemClient.getClient();
-
-        var typeField: string;
-        switch (structureType) {
-            case WorkItemContracts.TreeNodeStructureType.Area:
-                typeField = "System.AreaPath";
-                break;
-            case WorkItemContracts.TreeNodeStructureType.Iteration:
-                typeField = "System.IterationsPath";
-                break;
-        }
-
-        var wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.WorkItemType] = 'Test Case'  AND  [" + typeField + "] UNDER '" + path + "' ORDER BY [System.Id]";
 
         workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
             var ids = result.workItems.map(function (item) {
@@ -97,6 +88,31 @@ export class TestCaseView {
         });
 
         return deferred.promise();
+    }
+
+    private getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string): IPromise<any> {
+        var typeField: string;
+        switch (structureType) {
+            case WorkItemContracts.TreeNodeStructureType.Area:
+                typeField = "System.AreaPath";
+                break;
+            case WorkItemContracts.TreeNodeStructureType.Iteration:
+                typeField = "System.IterationPath";
+                break;
+        }
+
+        var wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [" + typeField + "] UNDER '" + path + "' ORDER BY [System.Id]";
+        return this.getTestCasesByWiql(wiql);
+    }
+
+    private getTestCasesByPriority(priority: string): IPromise<any> {
+        var wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [Microsoft.VSTS.Common.Priority] = " + priority + " ORDER BY [System.Id]";
+        return this.getTestCasesByWiql(wiql);
+    }
+
+    private getTestCasesByState(state: string): IPromise<any> {
+        var wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [System.State] = '" + state + "' ORDER BY [System.Id]";
+        return this.getTestCasesByWiql(wiql);
     }
 
     private getTestCasesByTestPlan(planId: number, suiteId: number): IPromise<any> {
@@ -120,91 +136,65 @@ export class TestCaseView {
 
         this._paneToggler = paneToggler;
 
-    var menuItems: Menus.IMenuItemSpec[] = [
-        { id: "file", text: "New", icon: "icon-add-small" },
-        { separator: true },
-        { id: "clone", text: "Clone", noIcon: true },
-        { separator: true },
-        { id: "column_options", text: "Column Options", noIcon: true },
-        { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
-    ];
+        var menuItems: Menus.IMenuItemSpec[] = [
+            { id: "file", text: "New", icon: "icon-add-small" },
+            { separator: true },
+            { id: "clone", text: "Clone", noIcon: true },
+            { separator: true },
+            { id: "column_options", text: "Column Options", noIcon: true },
+            { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
+        ];
 
-    var tcv = this;
+        var tcv = this;
 
-    var menubarOptions = {
-        items: menuItems,
-        executeAction: function (args) {
-            var command = args.get_commandName();
-            switch (command) {
-                case "toggle":
-                    paneToggler.toggleDetailsPane()
+        var menubarOptions = {
+            items: menuItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                switch (command) {
+                    case "toggle":
+                        paneToggler.toggleDetailsPane()
                         menubar.updateCommandStates([{ id: command, toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
-                    break;
-                default:
-                    alert("Unhandled action: " + command);
-                    break;
+                        break;
+                    default:
+                        alert("Unhandled action: " + command);
+                        break;
+                }
             }
-        }
-    };
+        };
 
-    var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
-    menubar.updateCommandStates([{ id: "toggle", toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
+        menubar.updateCommandStates([{ id: "toggle", toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
 
-    var dataSource = [];
-    dataSource.push({ id: "554", title: "User should be able to...", state: "Design", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
-    dataSource.push({ id: "552", title: "Main page of Phone should...", state: "Active", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
+        var options = {
+            height: "1000px", // Explicit height is required for a Grid control
+            columns: [
+                { text: "Id", index: "id", width: 50 },
+                { text: "Title", index: "title", width: 200 },
+                { text: "State", index: "state", width: 75 },
+                { text: "Assigned To", index: "assigned_to", width: 150 },
+                { text: "Priority", index: "priority", width: 50 },
+                { text: "Automation status", index: "automation_status", width: 150 }
+            ],
+            draggable: true,
+            droppable: true,
+            openRowDetail: (index: number) => {
+                // Double clicking row or hitting enter key when the row is selected
+                // will cause this function to be executed
+                var item = this._grid.getRowData(index);
 
-        //var result = this.getTestCases(50, 51);
-        //result.then(testCases => {
-        //    testCases.forEach(tc => {
-        //        dataSource.push({ id: tc.testCase.id, title: "111Main page of Phone should...", state: "Active", assigned_to: "Kapil Rata", priority: "1", automation_status: "Planned" });
-        //    });
-        //});
+                alert(item.id);
+            }
 
-        var client = WorkItemClient.getClient();
-    //client.queryByWiql()
-    //client.queryByWiql(
-        var queryText = "SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project  AND  [Source].[System.WorkItemType] = 'Test Case'  AND  [Source].[System.State] <> '') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [System.Id] mode(DoesNotContain)";
-    //client.getWorkItems(
-    client.queryByWiql({ query: queryText }, "FeaturesInc").then(result => {
-        var x = result.workItems;
-    });
+        };
 
-    //var x = client.queryByWiql( {""}, "");
-        var c = TestClient.getClient();
-        //c.getTestCases(VSS.getWebContext().project.name, 1, 1).then(result => {
-
-        //});
-    //c.getTestCases(
-    //client.queryByWiql(x, "FeaturesInc");
-
-    var options = {
-        height: "1000px", // Explicit height is required for a Grid control
-        columns: [
-            // text is the column header text. 
-            // index is the key into the source object to find the data for this column
-            // width is the width of the column, in pixels
-            { text: "Id", index: "id", width: 50 },
-            { text: "Title", index: "title", width: 150 },
-            { text: "State", index: "state", width: 50 },
-            { text: "Assigned To", index: "assigned_to", width: 75 },
-            { text: "Priority", index: "priority", width: 50 },
-            { text: "Automation status", index: "automation_status", width: 75 }
-        ],
-        // This data source is rendered into the Grid columns defined above
-        source: dataSource,
-        draggable: true,
-        droppable: true
-
-    };
-
-    // Create the grid in a container element
+        // Create the grid in a container element
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
 
-    $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
+        $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
             var s = this._grid.getRowData(this._grid.getSelectedDataIndex()).id;
-        selectCallBack(s);
-    });
+            selectCallBack(s);
+        });
 
         this._grid.enableDragDrop();
 
