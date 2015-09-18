@@ -69,7 +69,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
             var d = [{
                     name: "Test plans", children: $.map(data, function (item) {
-                        return { name: item.name };
+                        return { name: item.name, id: item.id };
                     })
                 }];
             var d2 = convertToTreeNodes(d);
@@ -120,6 +120,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             node.expanded = true;
             node.droppable = true;
             node.icon = getIconFromSuiteType(t.suiteType);
+            node.config = { suiteId: t.id, testPlanId: t.plan.id };
             BuildTestSuiteTree(allTS.filter(function (i) { return i.parent != null && i.parent.id == t.id; }), node, allTS);
             if (parentNode != null) {
                 parentNode.children.push(node);
@@ -134,8 +135,24 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var deferred = $.Deferred();
         var client = WITClient.getClient();
         client.getClassificationNode(VSS.getWebContext().project.name, structure, null, 7).then(function (data) {
+            var p = VSS.getWebContext().project.name;
             var d = [];
-            d.push(data);
+            //fake
+            if (structure == Contracts.TreeStructureGroup.Areas) {
+                var f = { name: p, path: "" + p, children: [] };
+                f.children.push({ name: "Mobile", path: "" + p + "\\Mobile", children: [] });
+                f.children[0].children.push({ name: "iPhone", path: "" + p + "\\Mobile\\iPhone", children: [] });
+                f.children[0].children.push({ name: "Android", path: "" + p + "\\Mobile\\Android", children: [] });
+                f.children[0].children.push({ name: "WP", path: "" + p + "\\Mobile\\WP", children: [] });
+                d.push(f);
+            }
+            else {
+                var f = { name: p, path: "" + p, children: [] };
+                f.children.push({ name: "Sprint 1", path: "" + p + "\\Sprint 1", children: [] });
+                f.children.push({ name: "Sprint 2", path: "" + p + "\\Sprint 2", children: [] });
+                f.children.push({ name: "Sprint 3", path: "" + p + "\\Sprint 3", children: [] });
+                d.push(f);
+            }
             deferred.resolve(convertToTreeNodes(d));
         });
         //TODO - getClasification Node doesnt work as expected with areapath
@@ -150,7 +167,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 var d = data;
                 var t = { name: "States", children: [] };
                 for (var s in d.transitions) {
-                    t.children.push({ name: s });
+                    t.children.push({ name: s, config: s });
                 }
                 var t2 = [];
                 t2.push(t);
@@ -163,7 +180,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var deferred = $.Deferred();
         var client = WITClient.getClient();
         client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
-            var d = [{ name: "Priority", children: [{ name: "1" }, { name: "2" }, { name: "3" }, { name: "4" }] }];
+            var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
             deferred.resolve(convertToTreeNodes(d));
         });
         return deferred.promise();
@@ -174,6 +191,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         items.forEach(function (item) {
             var node = new TreeView.TreeNode(item.name);
             node.icon = item.icon;
+            node.config = { name: item.name, path: item.path };
             node.expanded = item.expanded;
             if (item.children && item.children.length > 0) {
                 node.addRange(convertToTreeNodes(item.children));

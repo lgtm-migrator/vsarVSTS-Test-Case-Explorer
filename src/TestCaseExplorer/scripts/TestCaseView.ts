@@ -17,28 +17,28 @@ export class TestCaseView {
     private _paneToggler: DetailsToggle.DetailsPaneToggler;
     private _grid: Grids.Grid;
 
-    public RefreshGrid(pivot: string, value: string) {
+    public RefreshGrid(pivot: string, value) {
 
         this._grid.setDataSource(null);
 
         switch (pivot) {
             case "Area path":
-                this.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value).then(result => {
+                this.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path).then(result => {
                     this._grid.setDataSource(result);
                 });
                 break;
             case "Iteration path":
-                this.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value).then(result => {
+                this.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path).then(result => {
                     this._grid.setDataSource(result);
                 });
                 break;
             case "Priority":
-                this.getTestCasesByPriority(value).then(result => {
+                this.getTestCasesByPriority(value.name).then(result => {
                     this._grid.setDataSource(result);
                 });
                 break;
             case "State":
-                this.getTestCasesByState(value).then(result => {
+                this.getTestCasesByState(value.name).then(result => {
                     this._grid.setDataSource(result);
                 });
                 break;
@@ -136,47 +136,47 @@ export class TestCaseView {
 
         this._paneToggler = paneToggler;
 
-    var menuItems: Menus.IMenuItemSpec[] = [
-        { id: "file", text: "New", icon: "icon-add-small" },
-        { separator: true },
-        { id: "clone", text: "Clone", noIcon: true },
-        { separator: true },
-        { id: "column_options", text: "Column Options", noIcon: true },
-        { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
-    ];
+        var menuItems: Menus.IMenuItemSpec[] = [
+            { id: "file", text: "New", icon: "icon-add-small" },
+            { separator: true },
+            { id: "clone", text: "Clone", noIcon: true },
+            { separator: true },
+            { id: "column_options", text: "Column Options", noIcon: true },
+            { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
+        ];
 
-    var tcv = this;
+        var tcv = this;
 
-    var menubarOptions = {
-        items: menuItems,
-        executeAction: function (args) {
-            var command = args.get_commandName();
-            switch (command) {
-                case "toggle":
-                    paneToggler.toggleDetailsPane()
+        var menubarOptions = {
+            items: menuItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                switch (command) {
+                    case "toggle":
+                        paneToggler.toggleDetailsPane()
                         menubar.updateCommandStates([{ id: command, toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
-                    break;
-                default:
-                    alert("Unhandled action: " + command);
-                    break;
+                        break;
+                    default:
+                        alert("Unhandled action: " + command);
+                        break;
+                }
             }
-        }
-    };
+        };
 
-    var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
-    menubar.updateCommandStates([{ id: "toggle", toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
+        menubar.updateCommandStates([{ id: "toggle", toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
 
-    var options = {
-        height: "1000px", // Explicit height is required for a Grid control
-        columns: [
-            { text: "Id", index: "id", width: 50 },
+        var options = {
+            height: "1000px", // Explicit height is required for a Grid control
+            columns: [
+                { text: "Id", index: "id", width: 50 },
                 { text: "Title", index: "title", width: 200 },
                 { text: "State", index: "state", width: 75 },
                 { text: "Assigned To", index: "assigned_to", width: 150 },
-            { text: "Priority", index: "priority", width: 50 },
+                { text: "Priority", index: "priority", width: 50 },
                 { text: "Automation status", index: "automation_status", width: 150 }
-        ],
-        draggable: true,
+            ],
+            draggable: true,
             droppable: true,
             openRowDetail: (index: number) => {
                 // Double clicking row or hitting enter key when the row is selected
@@ -186,15 +186,15 @@ export class TestCaseView {
                 alert(item.id);
             }
 
-    };
+        };
 
-    // Create the grid in a container element
+        // Create the grid in a container element
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
 
-    $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
+        $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
             var s = this._grid.getRowData(this._grid.getSelectedDataIndex()).id;
-        selectCallBack(s);
-    });
+            selectCallBack(s);
+        });
 
         this._grid.enableDragDrop();
 
