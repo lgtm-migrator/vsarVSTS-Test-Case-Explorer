@@ -19,7 +19,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             };
             var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
             treeview.onItemClick = function (node, nodeElement, e) {
-                callbackFunction(cbo.getText(), node.text);
+                callbackFunction(cbo.getText(), node.config);
             };
             var callbackFunction = callback;
             $("#treeview-Cbo-container").change(function () {
