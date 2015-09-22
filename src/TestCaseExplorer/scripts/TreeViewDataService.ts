@@ -179,32 +179,32 @@ export function getIconFromTestOutcome(outcome): string {
 
             //fake
             if (structure == Contracts.TreeStructureGroup.Areas) {
-                var f = { name: p , path: "\\" + p, children: [] };
+                var f = { name: p , path: "" + p, children: [] };
                 f.children.push(
-                    { name: "Mobile" , path: "\\" + p + "\\Mobile", children: [] }
+                    { name: "Mobile" , path: "" + p + "\\Mobile", children: [] }
                     );
                 f.children[0].children.push(
-                    { name: "iPhone" , path: "\\" + p + "\\Mobile\\iPhone", children: [] }
+                    { name: "iPhone" , path: "" + p + "\\Mobile\\iPhone", children: [] }
                     );
                 f.children[0].children.push(
-                    { name: "Android" , path: "\\" + p + "\\Mobile\\Android", children: [] }
+                    { name: "Android" , path: "" + p + "\\Mobile\\Android", children: [] }
                     );
                 f.children[0].children.push(
-                    { name: "WP" , path: "\\" + p + "\\Mobile\\WP", children: [] }
+                    { name: "WP" , path: "" + p + "\\Mobile\\WP", children: [] }
                     );
 
                 d.push(f);
             }
             else {
-                var f = { name: p , path: "\\" + p, children: [] };
+                var f = { name: p , path: "" + p, children: [] };
                 f.children.push(
-                    { name: "Sprint 1", path: "\\" + p + "\\Sprint 1", children: [] }
+                    { name: "Sprint 1", path: "" + p + "\\Sprint 1", children: [] }
                     );
                 f.children.push(
-                    { name: "Sprint 2" , path: "\\" + p + "\\Sprint 2", children: [] }
+                    { name: "Sprint 2" , path: "" + p + "\\Sprint 2", children: [] }
                     );
                 f.children.push(
-                    { name: "Sprint 3" , path: "\\" + p + "\\Sprint 3", children: [] }
+                    { name: "Sprint 3" , path: "" + p + "\\Sprint 3", children: [] }
                     );
                 d.push(f);
             }
