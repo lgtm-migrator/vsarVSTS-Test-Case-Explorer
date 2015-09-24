@@ -173,49 +173,12 @@ export function getIconFromTestOutcome(outcome): string {
         var deferred = $.Deferred<TreeView.TreeNode[]>();
 
         var client = WITClient.getClient();
-        client.getClassificationNode(VSS.getWebContext().project.name, structure, null, 7).then(function (data) {
-            var p = VSS.getWebContext().project.name
-            var d = [];
-
-            //fake
-            if (structure == Contracts.TreeStructureGroup.Areas) {
-                var f = { name: p , path: "" + p, children: [] };
-                f.children.push(
-                    { name: "Mobile" , path: "" + p + "\\Mobile", children: [] }
-                    );
-                f.children[0].children.push(
-                    { name: "iPhone" , path: "" + p + "\\Mobile\\iPhone", children: [] }
-                    );
-                f.children[0].children.push(
-                    { name: "Android" , path: "" + p + "\\Mobile\\Android", children: [] }
-                    );
-                f.children[0].children.push(
-                    { name: "WP" , path: "" + p + "\\Mobile\\WP", children: [] }
-                    );
-
-                d.push(f);
-            }
-            else {
-                var f = { name: p , path: "" + p, children: [] };
-                f.children.push(
-                    { name: "Sprint 1", path: "" + p + "\\Sprint 1", children: [] }
-                    );
-                f.children.push(
-                    { name: "Sprint 2" , path: "" + p + "\\Sprint 2", children: [] }
-                    );
-                f.children.push(
-                    { name: "Sprint 3" , path: "" + p + "\\Sprint 3", children: [] }
-                    );
-                d.push(f);
-            }
-
-            deferred.resolve(convertToTreeNodes(d));
+        client.getRootNodes(VSS.getWebContext().project.name,   11).then(function (data:Contracts.WorkItemClassificationNode[]) {
+  
+            deferred.resolve(convertToTreeNodes([data[structure]]));
 
         });
     
-        //TODO - getClasification Node doesnt work as expected with areapath
-
-  
         return deferred.promise();
     }
 
@@ -260,7 +223,13 @@ export function getIconFromTestOutcome(outcome): string {
     // Converts the source to TreeNodes
     function convertToTreeNodes(items): TreeView.TreeNode[] {
         var a: TreeView.TreeNode[] = [];
-        items.forEach(function (item) {
+        items.sort(function (a, b) {
+            if (a.name < b.name)
+                return -1;
+            if (a.name > b.name)
+                return 1;
+            return 0;
+        }).forEach(function (item) {
             var node = new TreeView.TreeNode(item.name);
             node.icon = item.icon;
             node.config = { name: item.name, path: item.path };

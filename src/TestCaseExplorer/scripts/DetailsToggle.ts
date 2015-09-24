@@ -45,14 +45,16 @@ export class DetailsPaneToggler {
         VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
             // Set value in user scope
             dataService.getValue("PanePosition", { scopeType: "User" }).then(function (savedPanePosition: any) {
-                if (savedPanePosition != null) {
-                    toggler._PanePosition = savedPanePosition
-                }
-                else {
-                    toggler._PanePosition = "off";
-                }
-                toggler._showWorkItemPane(toggler._PanePosition, null); //toggler._paneFilter.getSelectedItem().value);
-                deferred.resolve(toggler);
+                dataService.getValue("PreviousDetailsPaneWidth", { scopeType: "User" }).then(function (savedDetailsPaneWidth: number) {
+                    if (savedDetailsPaneWidth == null) {
+                        savedDetailsPaneWidth = 100;
+                    }
+                    if (savedPanePosition == null) {
+                        savedPanePosition = "off";
+                    }
+                    toggler.setTogglerAndPanesPosition(savedPanePosition, savedDetailsPaneWidth, null);
+                    deferred.resolve(toggler);
+                });
             });
         });
         return deferred.promise();
@@ -75,7 +77,7 @@ export class DetailsPaneToggler {
                 VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
                     // Set value in user scope
                     dataService.getValue("PreviousPaneOnPosition", { scopeType: "User" }).then(function (prevPanePosition: any) {
-                        if (prevPanePosition != null && prevPanePosition!="off" ){
+                        if (prevPanePosition != null && prevPanePosition != "off") {
                             toggler._previousPaneOnPosition = prevPanePosition;
                         }
                         else {
@@ -83,23 +85,13 @@ export class DetailsPaneToggler {
                         }
                         toggler._showWorkItemPane(toggler._previousPaneOnPosition, null); //toggler._paneFilter.getSelectedItem().value);
                     });
-                    dataService.getValue("PreviousDetailsPaneWidth", { scopeType: "User" }).then(function (savedDetailsPaneWidth: number) {
-                        if (savedDetailsPaneWidth != null) {
-                            toggler._previousPaneOnWidth = savedDetailsPaneWidth;
-                        }
-                        else {
-                            toggler._previousPaneOnWidth = 100;
-                        }
-                    });
 
                 });
-
-
             }
         }
-
     }
 
+  
     public _isTestCaseDetailsPaneOn = function () {
         if (this._PanePosition && this._PanePosition !== "off") {
             return true;
@@ -141,7 +133,14 @@ export class DetailsPaneToggler {
             // Set value in user scope
             dataService.setValue("PanePosition", position, { scopeType: "User" });
             dataService.setValue("SelectedPanel", pane, { scopeType: "User" });
-        });
+        });    
+        
+        this.setTogglerAndPanesPosition(position, this._previousPaneOnWidth, pane);
+
+      
+    };
+
+    public setTogglerAndPanesPosition(position:string, width:any, pane:string) {
 
         if (this._splitter == null) {
             this._splitter = <CommonControls.Splitter>Controls.Enhancement.getInstance(CommonControls.Splitter, $(".right-hub-splitter"));
@@ -149,8 +148,6 @@ export class DetailsPaneToggler {
         }
         if (position === "off") {
             this._$farRightPaneHubPivot.css("display", "none");
-
-          
 
             this._splitter.noSplit();
             //this._MasterForm.unbind();
@@ -162,29 +159,27 @@ export class DetailsPaneToggler {
             if (position === "right") {
                 this._splitter.horizontal();
                 this._splitter.split();
-                this._splitter.rightPane.width(this._previousPaneOnWidth);
             }
             else {
                 this._splitter.vertical();
                 this._splitter.split();
-                this._splitter.rightPane.width(this._previousPaneOnWidth);
-
-            }
-            if (pane === "TestHubView.paneMode_suites" || pane === "TestHubView.paneMode_results") {
-                // selectedTestCaseId = (this._testPointList.getSelectionCount() <= 1) ? selectedTestCaseId : 0;
-                // this._showAssociatedNodes(selectedTestCaseId, pane);
-            }
-            else {
-
-                //this._showWorkItem(selectedTestCaseId, true);
-            }
-
-
-
+            }    
+            
+            this._PanePosition = position;
+            this._previousPaneOnWidth = width;
+                
             this._$farRightPaneHubPivot.css("display", "block");
-
+            this._$farRightPaneHubPivot.css("width", width+ "px");
         }
-    };
+        if (pane === "TestHubView.paneMode_suites" || pane === "TestHubView.paneMode_results") {
+            // selectedTestCaseId = (this._testPointList.getSelectionCount() <= 1) ? selectedTestCaseId : 0;
+            // this._showAssociatedNodes(selectedTestCaseId, pane);
+        }
+        else {
+
+            //this._showWorkItem(selectedTestCaseId, true);
+        }
+    }
 
 }
 
