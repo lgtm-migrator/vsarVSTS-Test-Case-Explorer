@@ -11,7 +11,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 allowEdit: false,
                 source: cboSources
             });
-            cbo.setText(cboSources[0]);
             var treeOptions = {
                 width: 400,
                 height: "100%",
@@ -19,19 +18,38 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             };
             var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
             treeview.onItemClick = function (node, nodeElement, e) {
-                callbackFunction(cbo.getText(), node.config);
+                callback(cbo.getText(), node.config);
             };
-            var callbackFunction = callback;
+            //Hock up chnage for cbo to redraw treeview
             $("#treeview-Cbo-container").change(function () {
-                TreeViewDataService.getNodes(cbo.getText()).then(function (data) {
-                    treeview.rootNode.clear();
-                    treeview.rootNode.addRange(data);
-                    treeview._draw();
+                LoadTreeview(cbo.getText(), treeview);
+                VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+                    // Set value in user scope
+                    dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" }).then(function (selectedPivot) {
+                    });
+                });
+            });
+            //Initilaizer def value
+            VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+                // Set value in user scope
+                dataService.getValue("SelectedPivot", { scopeType: "User" }).then(function (selectedPivot) {
+                    if (selectedPivot == null || selectedPivot == "") {
+                        selectedPivot = cboSources[0];
+                    }
+                    cbo.setText(selectedPivot);
+                    LoadTreeview(cbo.getText(), treeview);
                 });
             });
         };
         return TreeviewView;
     })();
     exports.TreeviewView = TreeviewView;
+    function LoadTreeview(pivot, treeview) {
+        TreeViewDataService.getNodes(pivot).then(function (data) {
+            treeview.rootNode.clear();
+            treeview.rootNode.addRange(data);
+            treeview._draw();
+        });
+    }
 });
 //# sourceMappingURL=TreeViewView.js.map

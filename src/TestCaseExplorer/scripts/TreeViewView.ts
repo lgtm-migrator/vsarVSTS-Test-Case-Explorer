@@ -19,7 +19,7 @@ export class TreeviewView {
             allowEdit: false, 
             source: cboSources
         });
-        cbo.setText(cboSources[0]);
+
 
         var treeOptions = {
             width: 400,
@@ -29,17 +29,47 @@ export class TreeviewView {
 
         var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
         treeview.onItemClick = function (node, nodeElement, e) {
-            callbackFunction(cbo.getText(), node.config);
+            callback(cbo.getText(), node.config);
         };
 
-        var callbackFunction: TreeviewSelectedCallback = callback
+
+        //Hock up chnage for cbo to redraw treeview
         $("#treeview-Cbo-container").change(function () {
-            TreeViewDataService.getNodes(cbo.getText()).then(function (data) {
-                treeview.rootNode.clear();
-                treeview.rootNode.addRange( data);
-                
-                treeview._draw();
+            LoadTreeview(cbo.getText(), treeview);
+            VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+                // Set value in user scope
+                dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" }).then(function (selectedPivot: any) {
+                });
             });
+
+        });
+      
+      
+      
+
+        //Initilaizer def value
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+            // Set value in user scope
+            dataService.getValue("SelectedPivot", { scopeType: "User" }).then(function (selectedPivot: any) {
+                if (selectedPivot == null || selectedPivot=="") {
+                    selectedPivot = cboSources[0];
+                }
+                cbo.setText(selectedPivot);
+                LoadTreeview(cbo.getText(), treeview);
+
+            })
         });
     }
+
+    
+}
+
+function LoadTreeview(pivot:string, treeview:TreeView.TreeView) {
+    TreeViewDataService.getNodes(pivot).then(function (data) {
+        treeview.rootNode.clear();
+        treeview.rootNode.addRange(data);
+
+        treeview._draw();
+
+    });    
 }
