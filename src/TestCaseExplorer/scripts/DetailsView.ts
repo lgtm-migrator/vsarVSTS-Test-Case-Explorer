@@ -1,4 +1,5 @@
 ﻿/// <reference path='ref/jquery.d.ts' />
+/// <reference path='ref/jqueryui.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 
 import Controls = require("VSS/Controls");
@@ -7,6 +8,7 @@ import Grids = require("VSS/Controls/Grids");
 import CommonControls = require("VSS/Controls/Common");
 import Menus = require("VSS/Controls/Menus");
 
+import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 
 
@@ -21,13 +23,16 @@ interface PaneRefresh {
 export class DetailsView {
 
     public _selectedPane: PaneRefresh;
+    public _toggler: Toggler.DetailsPaneToggler;
 
-    public initialize() {
+    public initialize(paneToggler: Toggler.DetailsPaneToggler) {
         //var cboSources = ["Test plan", "Test suites", "Test results", "requirement",];
 
         //var cbo = Controls.create(CommonControls.Combo , $("#details-Cbo-container"), {
         //    source: cboSources
         //});
+        this._toggler = paneToggler;
+
 
         var menuItems: Menus.IMenuItemSpec[] = [
            
@@ -54,11 +59,21 @@ export class DetailsView {
             items: menuItems,
             executeAction: function (args) {
                 var command = args.get_commandName();
-                dv.ShowPanel(command);
+                switch (command) {
+                    case "right":
+                    case "bottom":
+                        dv._toggler.setPosition(command);
+                        menuItems[1].text = command;
+                        menubar.updateItems(menuItems);
+                        break;
+                    default:
+                        dv.ShowPanel(command);
+                        menuItems[0].text = command;
+                        menubar.updateItems(menuItems);
+                        break;
+                };
+
                 
-                    menuItems[0].text = command;
-                    
-                menubar.updateItems(menuItems);
             }
 
         };
@@ -214,6 +229,12 @@ export class DetailsView {
                      treeviewTestPlan._draw();
                  });
 
+             });
+
+             $("#droppable").droppable({
+                 drop: function (event, ui) {
+                     alert("Dropped");
+                 }
              });
          });
      }

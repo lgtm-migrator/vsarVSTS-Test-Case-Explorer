@@ -11,7 +11,7 @@ define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "s
         tc.updateTogle(t);
     });
     tv.initialize(RefreshGrid);
-    dv.initialize();
+    dv.initialize(paneToggler);
     function RefreshGrid(pivot, value) {
         tc.RefreshGrid(pivot, value);
     }

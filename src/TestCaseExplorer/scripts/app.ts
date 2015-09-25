@@ -23,7 +23,7 @@ paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(functi
 });
 
 tv.initialize(RefreshGrid);
-dv.initialize();
+dv.initialize(paneToggler);
 
 
 
