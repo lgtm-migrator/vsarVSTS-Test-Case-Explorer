@@ -81,7 +81,7 @@ export function getIconFromTestOutcome(outcome): string {
         var tstClient = TestClient.getClient();
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
 
-            var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }]);
+            var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
 
             var i=0 ;
             var noPlans = data.length;
@@ -175,7 +175,7 @@ export function getIconFromTestOutcome(outcome): string {
         var client = WITClient.getClient();
         client.getRootNodes(VSS.getWebContext().project.name,   11).then(function (data:Contracts.WorkItemClassificationNode[]) {
   
-            deferred.resolve(convertToTreeNodes([data[structure]]));
+            deferred.resolve(convertToTreeNodes([data[structure]], ""));
 
         });
     
@@ -200,7 +200,7 @@ export function getIconFromTestOutcome(outcome): string {
 
                 var t2 = [];
                 t2.push(t);
-                deferred.resolve(convertToTreeNodes(t2));
+                deferred.resolve(convertToTreeNodes(t2, ""));
             });
         });
 
@@ -212,16 +212,16 @@ export function getIconFromTestOutcome(outcome): string {
 
         var client = WITClient.getClient();
         client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
-            var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3",config:"3" }, { name: "4", config:"4"}] }];
+            var d = [{ name: "Priority", children: [{ name: "", config: "" }, { name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3",config:"3" }, { name: "4", config:"4"}] }];
 
-            deferred.resolve(convertToTreeNodes(d));
+            deferred.resolve(convertToTreeNodes(d, ""));
         });
 
         return deferred.promise();
     }
 
     // Converts the source to TreeNodes
-    function convertToTreeNodes(items): TreeView.TreeNode[] {
+    function convertToTreeNodes(items, path): TreeView.TreeNode[] {
         var a: TreeView.TreeNode[] = [];
         items.sort(function (a, b) {
             if (a.name < b.name)
@@ -232,11 +232,17 @@ export function getIconFromTestOutcome(outcome): string {
         }).forEach(function (item) {
             var node = new TreeView.TreeNode(item.name);
             node.icon = item.icon;
-            node.config = { name: item.name, path: item.path };
+            if (path == "") {
+                path = item.name;
+            }
+            else {
+                path = path + "\\" + item.name;
+            }
+            node.config = { name: item.name, path: path};
 
             node.expanded = item.expanded;
             if (item.children && item.children.length > 0) {
-                node.addRange(convertToTreeNodes(item.children));
+                node.addRange(convertToTreeNodes(item.children, path));
             }
             a.push(node);
         });
