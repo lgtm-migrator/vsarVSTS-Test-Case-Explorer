@@ -44,7 +44,7 @@ export class TestCaseView {
                 });
                 break;
             case "Test plan":
-                this.getTestCasesByTestPlan(50, 51).then(result => {
+                this.getTestCasesByTestPlan(value.testPlanId, value.suiteId).then(result => {
                     this._grid.setDataSource(result);
                 });
                 break;
