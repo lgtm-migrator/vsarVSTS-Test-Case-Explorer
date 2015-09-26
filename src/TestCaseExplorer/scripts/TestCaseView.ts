@@ -48,11 +48,6 @@ export class TestCaseView {
                     this._grid.setDataSource(result);
                 });
                 break;
-            case "Team":
-                //this.getTestCasesByTeam(value).then(result => {
-                //    this._grid.setDataSource(result);
-                //});
-                break;
         }
     }
 
@@ -189,6 +184,8 @@ export class TestCaseView {
             }
 
         };
+
+        $("#grid-title").text("Hello!");
 
         // Create the grid in a container element
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);

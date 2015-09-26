@@ -195,7 +195,9 @@ export function getIconFromTestOutcome(outcome): string {
 
                 var t = { name: "States", children: [] };
                 for (var s in d.transitions) {
-                    t.children.push({ name: s , config:s});
+                    if (s != "") {
+                        t.children.push({ name: s, config: s });
+                    }
                 }
 
                 var t2 = [];
@@ -212,7 +214,7 @@ export function getIconFromTestOutcome(outcome): string {
 
         var client = WITClient.getClient();
         client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
-            var d = [{ name: "Priority", children: [{ name: "", config: "" }, { name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3",config:"3" }, { name: "4", config:"4"}] }];
+            var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3",config:"3" }, { name: "4", config:"4"}] }];
 
             deferred.resolve(convertToTreeNodes(d, ""));
         });

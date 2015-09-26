@@ -12,7 +12,7 @@ export interface TreeviewSelectedCallback{ (type: string, value: string): void }
 
 export class TreeviewView {
     public initialize(callback: TreeviewSelectedCallback) {
-        var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan", "Team"];
+        var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
 
         var cbo = Controls.create(CommonControls.Combo, $("#treeview-Cbo-container"),  {
             mode: "drop",
