@@ -134,7 +134,7 @@ export function getIconFromTestOutcome(outcome): string {
     export function getTestPlanaAndSuites(planId:number, testPlanName:string): IPromise<TreeView.TreeNode[]> {
         // Get an instance of the client
         var deferred = $.Deferred<TreeView.TreeNode[]>();
-        planId = 546;
+        
         var tstClient = TestClient.getClient();
         tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
             var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null }), null, data);

@@ -16,6 +16,7 @@ export class TestCaseView {
 
     private _paneToggler: DetailsToggle.DetailsPaneToggler;
     private _grid: Grids.Grid;
+    private _menubar: Menus.MenuBar;
 
     public RefreshGrid(pivot: string, value) {
 
@@ -164,6 +165,7 @@ export class TestCaseView {
         };
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
+        this._menubar = menubar;
         menubar.updateCommandStates([{ id: "toggle", toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
 
         var options = {
@@ -203,7 +205,7 @@ export class TestCaseView {
     public updateTogle(paneToggler) {
         var menubar = <Menus.MenuBar>Controls.Enhancement.getInstance(Menus.MenuBar, $("#menu-container"));
 
-        menubar.updateCommandStates([{ id: "toggle", toggled: paneToggler._isTestCaseDetailsPaneOn() }]);
+        this._menubar.updateCommandStates([{ id: "toggle", toggled: paneToggler._isTestCaseDetailsPaneOn() }]);
     }
 }
 
