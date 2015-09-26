@@ -179,7 +179,7 @@ export class TestCaseView {
                 // Double clicking row or hitting enter key when the row is selected
                 // will cause this function to be executed
                 var item = this._grid.getRowData(index);
-
+                selectCallBack(item.id);
                 alert(item.id);
             }
 
@@ -191,7 +191,7 @@ export class TestCaseView {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
 
         $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
-            var s = this._grid.getRowData(this._grid.getSelectedDataIndex()).id;
+            var s = tcv._grid.getRowData(tcv._grid.getSelectedDataIndex()).id;
             selectCallBack(s);
         });
 

@@ -23,7 +23,7 @@ export function getNodes(param) {
             return getStates();
             break;
         case "Test plan":
-            return getTestPlans();
+            return getTestPlansWithSuite();
             break;
     }
 
@@ -74,6 +74,32 @@ export function getIconFromTestOutcome(outcome): string {
     return icon;
 }
 
+export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
+    // Get an instance of the client
+    var deferred = $.Deferred<TreeView.TreeNode[]>();
+
+    var tstClient = TestClient.getClient();
+    tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
+
+        var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
+
+        var i = 0;
+        var noPlans = data.length;
+        data.forEach(function (t) {
+            getTestPlanAndSuites(t.id, t.name).then(function (n) {
+                tRoot[0].addRange(n);
+                i++;
+                if (i >= noPlans) {
+                    tRoot[0].expanded = true;
+                    deferred.resolve(tRoot);
+                }
+            });
+        });
+
+
+    });
+    return deferred.promise();
+}
     export function getTestPlans(): IPromise<TreeView.TreeNode[]> {
         // Get an instance of the client
         var deferred = $.Deferred<TreeView.TreeNode[]>();
@@ -82,22 +108,14 @@ export function getIconFromTestOutcome(outcome): string {
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
 
             var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
-
-            var i=0 ;
-            var noPlans = data.length;
-            data.forEach(function (t) {
-                getTestPlanaAndSuites(t.id, t.name).then(function (n) {
-                    tRoot[0].addRange(n);
-                    i++;
-                    if (i >= noPlans) {
-                        tRoot[0].expanded = true;
-                        deferred.resolve(tRoot);
-                    }
-                });
-            });
-
             
+            data.forEach(function (t) {
+                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id:t.id, children: [] }], ""));
+            });
+            tRoot[0].expanded = true;
+            deferred.resolve(tRoot);
         });
+        
         return deferred.promise();
 }
 
@@ -131,7 +149,7 @@ export function getIconFromTestOutcome(outcome): string {
     }
 
 
-    export function getTestPlanaAndSuites(planId:number, testPlanName:string): IPromise<TreeView.TreeNode[]> {
+    export function getTestPlanAndSuites(planId:number, testPlanName:string): IPromise<TreeView.TreeNode[]> {
         // Get an instance of the client
         var deferred = $.Deferred<TreeView.TreeNode[]>();
         
@@ -240,6 +258,7 @@ export function getIconFromTestOutcome(outcome): string {
             else {
                 path = path + "\\" + item.name;
             }
+            node.id = item.id;
             node.config = { name: item.name, path: path};
 
             node.expanded = item.expanded;
