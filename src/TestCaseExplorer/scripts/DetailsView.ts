@@ -16,6 +16,7 @@ import TreeViewDataService = require("scripts/TreeViewDataService");
 interface PaneRefresh {
     initialize(): void,
     hide(): void,
+    show(): void;
     masterIdChanged(id: string): void
 }
 
@@ -23,14 +24,13 @@ interface PaneRefresh {
 export class DetailsView {
 
     public _selectedPane: PaneRefresh;
+    private _PaneLst: PaneRefresh[];
+
     public _toggler: Toggler.DetailsPaneToggler;
 
     public initialize(paneToggler: Toggler.DetailsPaneToggler) {
-        //var cboSources = ["Test plan", "Test suites", "Test results", "requirement",];
-
-        //var cbo = Controls.create(CommonControls.Combo , $("#details-Cbo-container"), {
-        //    source: cboSources
-        //});
+   
+        this._PaneLst = [];
         this._toggler = paneToggler;
 
 
@@ -63,45 +63,26 @@ export class DetailsView {
                     case "right":
                     case "bottom":
                         dv._toggler.setPosition(command);
-                        menuItems[1].text = command;
+                        menuItems[1].text = args.get_commandSource()._item.text;
                         menubar.updateItems(menuItems);
                         break;
                     default:
                         dv.ShowPanel(command);
-                        menuItems[0].text = command;
+                        menuItems[0].text = args.get_commandSource()._item.text;
                         menubar.updateItems(menuItems);
                         break;
                 };
-
-                
             }
-
         };
 
          menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#details-Cbo-container"), menubarOptions);
          var defaultMenuItem= menuItems[0].childItems[0];
          menuItems[0].text = menuItems[0].childItems[0].text;
+         menuItems[1].text = menuItems[1].childItems[0].text;
+
          menubar.updateItems(menuItems);
 
          dv.ShowPanel(defaultMenuItem.id);
-         
-
-        
-        
-        //$("#details-Cbo-container").change(function () {
-        //    switch (cbo.getText()) {
-        //        case "Test plan":
-        //            dv.ShowPanel("TestPlan");
-        //            break;
-        //        case "Test suites":
-        //            dv.ShowPanel("TestSuites");
-        //            break;
-        //        case "Test result":
-        //            dv.ShowPanel("TestResult");
-        //            break;
-        //    }
-
-        //});
     }
 
     public selectionChanged(id: string)
@@ -119,23 +100,29 @@ export class DetailsView {
 
         var pane: PaneRefresh;
 
-        switch (panel) {
-            case "TestPlan":
-                pane= new testPlanPane();
-                break;
-            case "TestResults":
-                pane = new testResultsPane();
-                break;
-            case "TestSuites":
-                pane = new partOfTestSuitesPane();
-                break;
+        if (this._PaneLst[panel] == null) {
+
+            switch (panel) {
+                case "TestPlan":
+                    pane = new testPlanPane();
+                    break;
+                case "TestResults":
+                    pane = new testResultsPane();
+                    break;
+                case "TestSuites":
+                    pane = new partOfTestSuitesPane();
+                    break;
+            }
+            pane.initialize();
+            this._PaneLst[panel] = pane;
+        } else {
+            pane = this._PaneLst[panel];
         }
 
         this._selectedPane = pane;
-        this._selectedPane.initialize();
+        this._selectedPane.show();
     }
 
-    
 }
 
 
@@ -145,8 +132,7 @@ export class DetailsView {
      private _grid;
 
      public initialize() {
-         $("#details-testSuites").css("display", "block");
-
+         
          var options = {
              height: "1000px", // Explicit height is required for a Grid control
              columns: [
@@ -177,7 +163,9 @@ export class DetailsView {
          this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestSuites"), options);
 
      }
-
+     public show() {
+         $("#details-testSuites").css("display", "block");
+     }
      public hide() {
          $("#details-testSuites").css("display", "none");
      }
@@ -194,50 +182,64 @@ export class DetailsView {
      }
  }
 
-
  class testPlanPane implements PaneRefresh {
+     private _cbo: CommonControls.Combo;
+     private _testPlans;
 
      public initialize() {
-         $("#details-TestPlan").css("display", "block");
-         TreeViewDataService.getTestPlans().then(function (data) {
+     
+        var tpp = this;
 
-             var cbo = Controls.create(CommonControls.Combo, $("#details-cboTestPlan"), {
-                 mode: "drop",
-                 allowEdit: false,
-                 source: data[0].children.map(function (i) { return { id: i.id, text: i.text }; })
-             });
+        this._cbo= Controls.create(CommonControls.Combo, $("#details-cboTestPlan"), {
+            mode: "drop",
+            allowEdit: false,
+        });
 
-             var treeOptionsTestPlan = {
-                 width: 400,
-                 height: "100%",
-                 nodes: null
-             };
+        TreeViewDataService.getTestPlans().then(function (data) {
+            tpp._testPlans = data[0].children;
+            
+            tpp._cbo.setSource(tpp._testPlans.map(function (i) {
+                return i.text;
+            }));
+            
+        });
 
-             var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
-             treeviewTestPlan.setDroppable(true);
+        var treeOptionsTestPlan = {
+            width: 400,
+            height: "100%",
+            nodes: null
+        };
 
-             treeviewTestPlan.onItemClick = function (node, nodeElement, e) {
-             };
+        var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
+        treeviewTestPlan.setDroppable(true);
+
+        treeviewTestPlan.onItemClick = function (node, nodeElement, e) {
+        };
 
 
-             $("#details-cboTestPlan").change(function () {
-                 TreeViewDataService.getTestPlanaAndSuites(parseInt(cbo.getId()), cbo.getText()).then(function (data) {
-                     treeviewTestPlan.rootNode.clear();
+        $("#details-cboTestPlan").change(function () {
+            
+            var tp = tpp._testPlans[tpp._cbo.getSelectedIndex()];
+            TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(function (data) {
+                treeviewTestPlan.rootNode.clear();
 
-                     treeviewTestPlan.rootNode.addRange(data);
+                treeviewTestPlan.rootNode.addRange(data);
+                treeviewTestPlan._draw();
+            });
+        });
 
-                     treeviewTestPlan._draw();
-                 });
-
-             });
-
-             $("#droppable").droppable({
-                 drop: function (event, ui) {
-                     alert("Dropped");
-                 }
-             });
-         });
+        $("#droppable").droppable({
+            drop: function (event, ui) {
+                alert("Dropped");
+            }
+        });
+         
      }
+
+     public show() {
+        $("#details-TestPlan").css("display", "block");
+        
+    }
      public hide() {
          $("#details-TestPlan").css("display", "none");
      }
@@ -252,7 +254,7 @@ class testResultsPane implements PaneRefresh {
     private _grid;
 
     public initialize() {
-        $("#details-TestResults").css("display", "block");
+      
 
         var options = {
             height: "1000px", // Explicit height is required for a Grid control
@@ -293,6 +295,9 @@ class testResultsPane implements PaneRefresh {
     }
     public hide() {
         $("#details-TestResults").css("display", "none");
+    }
+    public show() {
+        $("#details-TestResults").css("display", "block");
     }
 
     public masterIdChanged(id: string) {

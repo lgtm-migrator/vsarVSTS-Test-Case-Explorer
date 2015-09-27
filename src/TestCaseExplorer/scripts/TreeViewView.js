@@ -5,7 +5,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         function TreeviewView() {
         }
         TreeviewView.prototype.initialize = function (callback) {
-            var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan", "Team"];
+            var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
             var cbo = Controls.create(CommonControls.Combo, $("#treeview-Cbo-container"), {
                 mode: "drop",
                 allowEdit: false,
