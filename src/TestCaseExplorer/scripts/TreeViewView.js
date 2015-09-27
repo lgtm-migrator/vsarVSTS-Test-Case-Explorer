@@ -14,10 +14,12 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             var treeOptions = {
                 width: 400,
                 height: "100%",
+                clickSelects: true,
                 nodes: null
             };
             var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
             treeview.onItemClick = function (node, nodeElement, e) {
+                treeview.setSelectedNode(node);
                 callback(cbo.getText(), node.config);
             };
             //Hock up chnage for cbo to redraw treeview
