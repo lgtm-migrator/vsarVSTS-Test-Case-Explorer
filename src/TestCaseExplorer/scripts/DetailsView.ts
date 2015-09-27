@@ -79,8 +79,14 @@ export class DetailsView {
          var defaultMenuItem= menuItems[0].childItems[0];
          menuItems[0].text = menuItems[0].childItems[0].text;
          menuItems[1].text = menuItems[1].childItems[0].text;
-
+         
          menubar.updateItems(menuItems);
+
+         var cbo = Controls.create(CommonControls.ComboListDropPopup, $("#details-Cbo-Dummy"), {
+             mode: "drop",
+             allowEdit: false,
+             source:  ["Area path", "Iteration path", "Priority", "State", "Test plan"]
+         });
 
          dv.ShowPanel(defaultMenuItem.id);
     }

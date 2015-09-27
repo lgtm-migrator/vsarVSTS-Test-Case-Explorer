@@ -170,6 +170,7 @@ export class DetailsPaneToggler {
                 this._splitter.vertical();
                 this._splitter.split();
             }    
+            this._splitter.toggleExpanded(true) 
             this._splitter.resize(width);
             this._$farRightPaneHubPivot.css("display", "block");
         }
