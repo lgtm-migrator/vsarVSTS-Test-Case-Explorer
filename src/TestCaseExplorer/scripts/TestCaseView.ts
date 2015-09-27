@@ -21,31 +21,45 @@ export class TestCaseView {
     public RefreshGrid(pivot: string, value) {
 
         this._grid.setDataSource(null);
+        $("#grid-title").text("");
 
         switch (pivot) {
             case "Area path":
                 this.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path).then(result => {
                     this._grid.setDataSource(result);
+                    $("#grid-title").text("Test cases with area path: " + value.path);
                 });
                 break;
             case "Iteration path":
                 this.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path).then(result => {
                     this._grid.setDataSource(result);
+                    $("#grid-title").text("Test cases with iteration path: " + value.path);
                 });
                 break;
             case "Priority":
-                this.getTestCasesByPriority(value.name).then(result => {
+                var priority: string = "any"; 
+                if (value.name != "Priority") {
+                    priority = value.name;
+                }
+                this.getTestCasesByPriority(priority).then(result => {
                     this._grid.setDataSource(result);
+                    $("#grid-title").text("Test cases with priority: " + priority);
                 });
                 break;
             case "State":
-                this.getTestCasesByState(value.name).then(result => {
+                var state: string = "any";
+                if (value.name != "States") {
+                    state = value.name;
+                }
+                this.getTestCasesByState(state).then(result => {
                     this._grid.setDataSource(result);
+                    $("#grid-title").text("Test cases with state: " + state);
                 });
                 break;
             case "Test plan":
                 this.getTestCasesByTestPlan(value.testPlanId, value.suiteId).then(result => {
                     this._grid.setDataSource(result);
+                    $("#grid-title").text("Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")");
                 });
                 break;
         }
@@ -102,12 +116,24 @@ export class TestCaseView {
     }
 
     private getTestCasesByPriority(priority: string): IPromise<any> {
-        var wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [Microsoft.VSTS.Common.Priority] = " + priority + " ORDER BY [System.Id]";
+        var wiql: string;
+        if (priority == "any") {
+            wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case' ORDER BY [System.Id]";
+        }
+        else {
+            wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [Microsoft.VSTS.Common.Priority] = " + priority + " ORDER BY [System.Id]";
+        }
         return this.getTestCasesByWiql(wiql);
     }
 
     private getTestCasesByState(state: string): IPromise<any> {
-        var wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [System.State] = '" + state + "' ORDER BY [System.Id]";
+        var wiql: string;
+        if (state == "any") {
+            wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case' ORDER BY [System.Id]";
+        }
+        else {
+            wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [System.State] = '" + state + "' ORDER BY [System.Id]";
+        }
         return this.getTestCasesByWiql(wiql);
     }
 
@@ -132,7 +158,8 @@ export class TestCaseView {
 
         this._paneToggler = paneToggler;
 
-        var menuItems: Menus.IMenuItemSpec[] = [
+        //var menuItems: Menus.IMenuItemSpec[] = [
+        var menuItems: any[] = [
             { id: "file", text: "New", icon: "icon-add-small" },
             { separator: true },
             { id: "clone", text: "Clone", noIcon: true },
@@ -184,8 +211,6 @@ export class TestCaseView {
             }
 
         };
-
-        $("#grid-title").text("Hello!");
 
         // Create the grid in a container element
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
