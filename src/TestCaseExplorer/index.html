@@ -47,7 +47,9 @@
                                 <div class="filters">
                                     <div class="dropdown pivot-filter enhance testpoint-outcome-filter" title="Filter" id="23">
                                         <!--<span class="title">Filter</span>-->
-                                        <div id="grid-filter-cbo"></div>
+                                        <div id="grid-filter-cbo">
+                                            <div style="position:absolute;vertical-align:baseline; top:5px;" class="title">Filter</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -57,27 +59,40 @@
                     </div>
                     <div class="handleBar" ></div>
                     <div id="detailsPane" class="rightPane hotkey-section hotkey-section-3">
-                        <div class="hub-pivot far-right-pane-pivot" style="margin-left:10px;">
+                        <div class="left-hub-content">
+                            <div id="details-title" class="hub-title">Details </div>
+                            <div class="hub-pivot far-right-pane-pivot" style="margin-left:10px;">
 
-                            <div id="details-Cbo-container">
-                                <span class="title">Pane</span>
+                                <div class="dropdown pivot-filter enhance testpoint-outcome-filter" style="float:right; margin-top:6px;">
+                                    <div id="details-filterPane-container" style="display:inline-block">
+                                        <div style="position:absolute;top:12px;" class="title">Pane</div>
+                                    </div>
+
+                                    <div id="details-filterPosition-container" style="display:inline-block;margin-left:15px;">
+                                        <div style="position:absolute;top:12px;margin-left:-15px;" class="title">Position</div>
+                                    </div>
+                                </div>
                             </div>
-                            <span class="title">Dummy:</span>
-                            <div id="details-Cbo-Dummy">
-                                
-                            </div>
-                            <div id="detailPanels">
+
+
+                            <div id="detailPanels" style="margin-left:10px;">
+
                                 <div id="details-TestPlan" style="display:none">
-                                    Test plan: <div id="details-cboTestPlan"></div>
-
-                                    <div id="details-treeviewTestPlan" class="treeview"></div>
+                                    <div id="detailsMenu-container" class="toolbar" style="display:flex; flex-direction:row; padding-top:8px">
+    <div style="margin-right:10px">Test plan: </div>
+    <div id="details-cboTestPlan" style="flex:1"></div>
+                                    </div>
+                                        <div id="details-treeviewTestPlan" class="treeview" ></div>
+                                    
                                 </div>
                                 <div id="details-testSuites" style="display:none">
-                                    Test case  <b><span id="details-testCase"></span></b> exists in:<br />
+                                    <div id="detailsMenu-container" class="toolbar"></div>
+                                        Test case  <b><span id="details-testCase"></span></b> exists in:<br />
 
-                                    <div id="details-gridTestSuites"></div>
-                                </div>
+                                        <div id="details-gridTestSuites"></div>
+                                    </div>
                                 <div id="details-TestResults" style="display:none">
+                                    <div id="detailsMenu-container" class="toolbar"></div>
                                     Test results:
                                     Test case  <b><span id="details-testCase"></span></b> exists in:<br />
 
@@ -85,7 +100,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+                    </div>  
                     </div>
                 </div>
             </div>

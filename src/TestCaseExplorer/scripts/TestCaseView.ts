@@ -215,13 +215,45 @@ export class TestCaseView {
 
         };
 
-        var cbo = Controls.create(CommonControls.Combo, $("#grid-filter-cbo"), {
-        //var cbo = Controls.create(Navigation.PivotFilter, $("#grid-filter-cbo"), {
-            //behaviorType: "DropdownFilterBehavior",
-            mode: "drop",
-            allowEdit: false,
-            source: ["All", "Tests not associated with any requirements", "Tests present in multiple suites", "Orphaned tests", "Tests with requirements linking"]
-        });
+        //var cbo = Controls.create(CommonControls.Combo, $("#grid-filter-cbo"), {
+        ////var cbo = Controls.create(Navigation.PivotFilter, $("#grid-filter-cbo"), {
+        //    //behaviorType: "DropdownFilterBehavior",
+        //    mode: "drop",
+        //    allowEdit: false,
+        //    source: ["All", "Tests not associated with any requirements", "Tests present in multiple suites", "Orphaned tests", "Tests with requirements linking"]
+        //});
+
+        var menubarFilter: Menus.MenuBar = null;
+        var menuFilterItems: Menus.IMenuItemSpec[] = [
+
+            {
+                id: "root", text: "Select Pane ", childItems: [
+                    { id: "All", text: "All" },
+                    { id: "NoReq", text: "Tests not associated with any requirements"},
+                    { id: "TestResults", text: "Tests present in multiple suites" },
+                    { id: "TestResults", text: "Orphaned tests" },
+                    { id: "TestResults", text: "Tests with requirements linking" }
+                ]
+            },
+        ];
+
+        var menubarFilterOptions = {
+            items: menuFilterItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                switch (command) {
+              
+                    default:
+                        menuFilterItems[0].text = args.get_commandSource()._item.text;
+                        menubarFilter.updateItems(menuFilterItems);
+                        break;
+                };
+            }
+        };
+
+        menuFilterItems[0].text = menuFilterItems[0].childItems[0].text;
+        menubarFilter = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#grid-filter-cbo"), menubarFilterOptions);
+        
 
         //var pivotFilter = Controls.Enhancement.ensureEnhancement(Navigation.PivotFilter, $("#grid-filter-cbo"));
 

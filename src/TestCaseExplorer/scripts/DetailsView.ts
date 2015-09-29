@@ -34,61 +34,71 @@ export class DetailsView {
         this._toggler = paneToggler;
 
 
-        var menuItems: Menus.IMenuItemSpec[] = [
-           
+
+        var menuItemsPane: Menus.IMenuItemSpec[] = [
+
             {
                 id: "root", text: "Select Pane ", childItems: [
-                    { id: "TestPlan", text: "Test plan"},
+                    { id: "TestPlan", text: "Test plan" },
                     { id: "TestSuites", text: "Test suites", icon: "icon-commented-file" },
                     { id: "TestResults", text: "Test results" }
 
                 ]
             },
-            {
-                id: "rootPanePlace", text: "Select Position ", childItems: [
-                    { id: "right", text: "Right", },
-                    { id: "bottom", text: "Bottom"}
-                ]
-            },
+           
         ];
 
         var dv = this;
-        var menubar: Menus.MenuBar = null;
+        var menubarPane: Menus.MenuBar = null;
 
-        var menubarOptions = {
-            items: menuItems,
+        var menubarOptionsPane= {
+            items: menuItemsPane,
             executeAction: function (args) {
                 var command = args.get_commandName();
                 switch (command) {
-                    case "right":
-                    case "bottom":
-                        dv._toggler.setPosition(command);
-                        menuItems[1].text = args.get_commandSource()._item.text;
-                        menubar.updateItems(menuItems);
-                        break;
                     default:
                         dv.ShowPanel(command);
-                        menuItems[0].text = args.get_commandSource()._item.text;
-                        menubar.updateItems(menuItems);
+                        menuItemsPane[0].text = args.get_commandSource()._item.text;
+                        menubarPane.updateItems(menuItemsPane);
                         break;
                 };
             }
         };
+        menuItemsPane[0].text = menuItemsPane[0].childItems[0].text;
+        menubarPane = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#details-filterPane-container"), menubarOptionsPane);
 
-         menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#details-Cbo-container"), menubarOptions);
-         var defaultMenuItem= menuItems[0].childItems[0];
-         menuItems[0].text = menuItems[0].childItems[0].text;
-         menuItems[1].text = menuItems[1].childItems[0].text;
-         
-         menubar.updateItems(menuItems);
 
-         var cbo = Controls.create(CommonControls.ComboListDropPopup, $("#details-Cbo-Dummy"), {
-             mode: "drop",
-             allowEdit: false,
-             source:  ["Area path", "Iteration path", "Priority", "State", "Test plan"]
-         });
+        var menuItemsPosition: Menus.IMenuItemSpec[] = [
+            {
+                id: "rootPanePlace", text: "Select Position ", childItems: [
+                    { id: "right", text: "Right", },
+                    { id: "bottom", text: "Bottom" }
+                ]
+            },
+        ];
+        
+         var menubarPosition: Menus.MenuBar = null;
 
-         dv.ShowPanel(defaultMenuItem.id);
+         var menubarOptionsPosition = {
+             items: menuItemsPosition,
+             executeAction: function (args) {
+                 var command = args.get_commandName();
+                 switch (command) {
+                     case "right":
+                     case "bottom":
+                         dv._toggler.setPosition(command);
+                         menuItemsPosition[0].text = args.get_commandSource()._item.text;
+                         menubarPosition.updateItems(menuItemsPosition);
+                         break;
+                 };
+             }
+         };
+         menuItemsPosition[0].text = menuItemsPosition[0].childItems[0].text;
+
+         menubarPosition = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#details-filterPosition-container"), menubarOptionsPosition);
+
+
+         dv.ShowPanel(menuItemsPane[0].childItems[0].id);
     }
 
     public selectionChanged(id: string)
@@ -171,6 +181,7 @@ export class DetailsView {
      }
      public show() {
          $("#details-testSuites").css("display", "block");
+         $("#details-title").text("Associated test suites");
      }
      public hide() {
          $("#details-testSuites").css("display", "none");
@@ -179,7 +190,7 @@ export class DetailsView {
      public masterIdChanged(id: string)
      {
          var pane = this;
-
+         $("#details-title").text("Associated test suites for #" + id);
          $("#details-testCase").text(id);
 
          TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(function (data) {
@@ -243,7 +254,8 @@ export class DetailsView {
      }
 
      public show() {
-        $("#details-TestPlan").css("display", "block");
+         $("#details-TestPlan").css("display", "block");
+         $("#details-title").text("Test plans");
         
     }
      public hide() {
@@ -304,11 +316,13 @@ class testResultsPane implements PaneRefresh {
     }
     public show() {
         $("#details-TestResults").css("display", "block");
+        $("#details-title").text("Test results");
     }
 
     public masterIdChanged(id: string) {
         var pane = this;
 
+        $("#details-title").text("Test results for #" + id);
         $("#details-testCase").text(id);
 
         TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(function (data) {
