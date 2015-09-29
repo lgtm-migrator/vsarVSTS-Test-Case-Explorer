@@ -9,6 +9,9 @@ import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
 import TestClient = require("TFS/TestManagement/RestClient");
 import TestContracts = require("TFS/TestManagement/Contracts");
 import DetailsToggle = require("scripts/DetailsToggle");
+import CommonControls = require("VSS/Controls/Common");
+import Navigation = require("VSS/Controls/Navigation");
+//import CC = require("VSS/Controls/Combos");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
 
@@ -211,6 +214,22 @@ export class TestCaseView {
             }
 
         };
+
+        var cbo = Controls.create(CommonControls.Combo, $("#grid-filter-cbo"), {
+        //var cbo = Controls.create(Navigation.PivotFilter, $("#grid-filter-cbo"), {
+            //behaviorType: "DropdownFilterBehavior",
+            mode: "drop",
+            allowEdit: false,
+            source: ["All", "Tests not associated with any requirements", "Tests present in multiple suites", "Orphaned tests", "Tests with requirements linking"]
+        });
+
+        //var pivotFilter = Controls.Enhancement.ensureEnhancement(Navigation.PivotFilter, $("#grid-filter-cbo"));
+
+        //var cbo = Controls.create(CommonControls.ComboListDropPopup, $("#grid-filter-cbo"), {
+        //    mode: "drop",
+        //    allowEdit: false,
+        //    source: ["All", "Tests not associated with any requirements", "Tests present in multiple suites", "Orphaned tests", "Tests with requirements linking"]
+        //});
 
         // Create the grid in a container element
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
