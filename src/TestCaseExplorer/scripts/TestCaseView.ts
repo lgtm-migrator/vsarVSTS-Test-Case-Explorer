@@ -12,6 +12,7 @@ import DetailsToggle = require("scripts/DetailsToggle");
 import CommonControls = require("VSS/Controls/Common");
 import Navigation = require("VSS/Controls/Navigation");
 //import CC = require("VSS/Controls/Combos");
+import WorkItemServices = require("TFS/WorkItemTracking/Services");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
 

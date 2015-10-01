@@ -1,4 +1,4 @@
-// Type definitions for Microsoft Visual Studio Services v86.20150722.1903
+// Type definitions for Microsoft Visual Studio Services v87.20151001.0921
 // Project: http://www.visualstudio.com/integrate/extensions/overview
 // Definitions by: Microsoft <vsointegration@microsoft.com>
 
@@ -81,7 +81,7 @@ interface IAuthTokenManager<TToken> {
      * @param force Enables skipping cache and issue a brand new token.
      * @return Session token.
      */
-    getToken(appId?: string, name?: string, force?: boolean): IPromise<TToken>;
+    getToken(appId?: string, name?: string, force?: boolean, scoped?: boolean): IPromise<TToken>;
 
     /**
      * Fetch an app session token to use for the current user for the given application.
@@ -688,7 +688,7 @@ interface IContributedMenuSource {
     * @param context Menu-specific context information
     * @return Array of menu items or a promise for the array
     */
-    getMenuItems(context: any): IContributedMenuItem[]| IPromise<IContributedMenuItem[]>;
+    getMenuItems(context: any): IContributedMenuItem[] | IPromise<IContributedMenuItem[]>;
 
     /**
     * Handle a menu item from this menu source being clicked. This is only invoked when the
@@ -1399,7 +1399,7 @@ declare module VSS {
      * @param modules A single module path (string) or array of paths (string[])
      * @param callback Method called once the modules have been loaded.
      */
-    function require(modules: string[]| string, callback?: Function): void;
+    function require(modules: string[] | string, callback?: Function): void;
     /**
     * Register a callback that gets called once the initial setup/handshake has completed.
     * If the initial setup is already completed, the callback is invoked at the end of the current call stack.
@@ -1765,6 +1765,7 @@ declare module "VSS/Authentication/Contracts" {
         name: string;
         token: string;
         tokenType: DelegatedAppTokenType;
+        validTo: Date;
     }
     export var TypeInfo: {
         CustomerIntelligenceEvent: {
@@ -1833,7 +1834,6 @@ declare module "VSS/Common/Constants/Platform" {
     }
     export module WebPlatformFeatureFlags {
         var VisualStudioServicesContribution: string;
-        var VisualStudioServicesGallery: string;
         var ClientSideErrorLogging: string;
     }
 }
@@ -2556,6 +2556,174 @@ declare module "VSS/Common/Contracts/System" {
         };
     };
 }
+declare module "VSS/Common/Contracts/System.Data" {
+    /**
+     * Specifies SQL Server-specific data type of a field, property, for use in a System.Data.SqlClient.SqlParameter.
+     */
+    export enum SqlDbType {
+        /**
+         * A 64-bit signed integer.
+         */
+        BigInt = 0,
+        /**
+         * Array of type Byte. A fixed-length stream of binary data ranging between 1 and 8,000 bytes.
+         */
+        Binary = 1,
+        /**
+         * Boolean. An unsigned numeric value that can be 0, 1, or null.
+         */
+        Bit = 2,
+        /**
+         * String. A fixed-length stream of non-Unicode characters ranging between 1 and 8,000 characters.
+         */
+        Char = 3,
+        /**
+         * DateTime. Date and time data ranging in value from January 1, 1753 to December 31, 9999 to an accuracy of 3.33 milliseconds.
+         */
+        DateTime = 4,
+        /**
+         * Decimal. A fixed precision and scale numeric value between -10 38 -1 and 10 38 -1.
+         */
+        Decimal = 5,
+        /**
+         * Double. A floating point number within the range of -1.79E +308 through 1.79E +308.
+         */
+        Float = 6,
+        /**
+         * Array of type Byte. A variable-length stream of binary data ranging from 0 to 2 31 -1 (or 2,147,483,647) bytes.
+         */
+        Image = 7,
+        /**
+         * Int32. A 32-bit signed integer.
+         */
+        Int = 8,
+        /**
+         * Decimal. A currency value ranging from -2 63 (or -9,223,372,036,854,775,808) to 2 63 -1 (or +9,223,372,036,854,775,807) with an accuracy to a ten-thousandth of a currency unit.
+         */
+        Money = 9,
+        /**
+         * String. A fixed-length stream of Unicode characters ranging between 1 and 4,000 characters.
+         */
+        NChar = 10,
+        /**
+         * String. A variable-length stream of Unicode data with a maximum length of 2 30 - 1 (or 1,073,741,823) characters.
+         */
+        NText = 11,
+        /**
+         * String. A variable-length stream of Unicode characters ranging between 1 and 4,000 characters. Implicit conversion fails if the string is greater than 4,000 characters. Explicitly set the object when working with strings longer than 4,000 characters. Use System.Data.SqlDbType.NVarChar when the database column is nvarchar(max).
+         */
+        NVarChar = 12,
+        /**
+         * Single. A floating point number within the range of -3.40E +38 through 3.40E +38.
+         */
+        Real = 13,
+        /**
+         * Guid. A globally unique identifier (or GUID).
+         */
+        UniqueIdentifier = 14,
+        /**
+         * DateTime. Date and time data ranging in value from January 1, 1900 to June 6, 2079 to an accuracy of one minute.
+         */
+        SmallDateTime = 15,
+        /**
+         * Int16. A 16-bit signed integer.
+         */
+        SmallInt = 16,
+        /**
+         * Decimal. A currency value ranging from -214,748.3648 to +214,748.3647 with an accuracy to a ten-thousandth of a currency unit.
+         */
+        SmallMoney = 17,
+        /**
+         * String. A variable-length stream of non-Unicode data with a maximum length of 2 31 -1 (or 2,147,483,647) characters.
+         */
+        Text = 18,
+        /**
+         * Array of type System.Byte. Automatically generated binary numbers, which are guaranteed to be unique within a database. timestamp is used typically as a mechanism for version-stamping table rows. The storage size is 8 bytes.
+         */
+        Timestamp = 19,
+        /**
+         * Byte. An 8-bit unsigned integer.
+         */
+        TinyInt = 20,
+        /**
+         * Array of type Byte. A variable-length stream of binary data ranging between 1 and 8,000 bytes. Implicit conversion fails if the byte array is greater than 8,000 bytes. Explicitly set the object when working with byte arrays larger than 8,000 bytes.
+         */
+        VarBinary = 21,
+        /**
+         * String. A variable-length stream of non-Unicode characters ranging between 1 and 8,000 characters. Use System.Data.SqlDbType.VarChar when the database column is varchar(max).
+         */
+        VarChar = 22,
+        /**
+         * Object. A special data type that can contain numeric, string, binary, or date data as well as the SQL Server values Empty and Null, which is assumed if no other type is declared.
+         */
+        Variant = 23,
+        /**
+         * An XML value. Obtain the XML as a string using the System.Data.SqlClient.SqlDataReader.GetValue(System.Int32) method or System.Data.SqlTypes.SqlXml.Value property, or as an System.Xml.XmlReader by calling the System.Data.SqlTypes.SqlXml.CreateReader method.
+         */
+        Xml = 25,
+        /**
+         * A SQL Server user-defined type (UDT).
+         */
+        Udt = 29,
+        /**
+         * A special data type for specifying structured data contained in table-valued parameters.
+         */
+        Structured = 30,
+        /**
+         * Date data ranging in value from January 1,1 AD through December 31, 9999 AD.
+         */
+        Date = 31,
+        /**
+         * Time data based on a 24-hour clock. Time value range is 00:00:00 through 23:59:59.9999999 with an accuracy of 100 nanoseconds. Corresponds to a SQL Server time value.
+         */
+        Time = 32,
+        /**
+         * Date and time data. Date value range is from January 1,1 AD through December 31, 9999 AD. Time value range is 00:00:00 through 23:59:59.9999999 with an accuracy of 100 nanoseconds.
+         */
+        DateTime2 = 33,
+        /**
+         * Date and time data with time zone awareness. Date value range is from January 1,1 AD through December 31, 9999 AD. Time value range is 00:00:00 through 23:59:59.9999999 with an accuracy of 100 nanoseconds. Time zone value range is -14:00 through +14:00.
+         */
+        DateTimeOffset = 34,
+    }
+    export var TypeInfo: {
+        SqlDbType: {
+            enumValues: {
+                "BigInt": number;
+                "Binary": number;
+                "Bit": number;
+                "Char": number;
+                "DateTime": number;
+                "Decimal": number;
+                "Float": number;
+                "Image": number;
+                "Int": number;
+                "Money": number;
+                "NChar": number;
+                "NText": number;
+                "NVarChar": number;
+                "Real": number;
+                "UniqueIdentifier": number;
+                "SmallDateTime": number;
+                "SmallInt": number;
+                "SmallMoney": number;
+                "Text": number;
+                "Timestamp": number;
+                "TinyInt": number;
+                "VarBinary": number;
+                "VarChar": number;
+                "Variant": number;
+                "Xml": number;
+                "Udt": number;
+                "Structured": number;
+                "Date": number;
+                "Time": number;
+                "DateTime2": number;
+                "DateTimeOffset": number;
+            };
+        };
+    };
+}
 declare module "VSS/Context" {
     import Contracts_Platform = require("VSS/Common/Contracts/Platform");
     /**
@@ -2576,10 +2744,6 @@ declare module "VSS/Context" {
     export function getPageContext(): Contracts_Platform.PageContext;
 }
 declare module "VSS/Contributions/Contracts" {
-    export interface AppDataSetting {
-        key: string;
-        value: string;
-    }
     /**
      * An individual contribution made by an extension
      */
@@ -2630,19 +2794,6 @@ declare module "VSS/Contributions/Contracts" {
          * The extension-relative contribution id
          */
         relativeId: string;
-    }
-    /**
-     * A point to which extensions can make contributions
-     */
-    export interface ContributionPoint extends ContributionIdentifier {
-        /**
-         * Description of this contribution point
-         */
-        description: string;
-        /**
-         * Id of the contribution type of this point
-         */
-        type: string;
     }
     /**
      * Description about a property of a contribution type
@@ -2712,22 +2863,13 @@ declare module "VSS/Contributions/Contracts" {
         Object = 512,
     }
     /**
-     * Information about the provider of an extension
-     */
-    export interface ContributionProvider {
-        /**
-         * Name of the extension owner/provider
-         */
-        name: string;
-        /**
-         * Url of the extension owner/provider's website
-         */
-        website: string;
-    }
-    /**
      * A contribution type, given by a json schema
      */
     export interface ContributionType extends ContributionBase {
+        /**
+         * Controls whether or not contributions of this type have the type indexed for queries. This allows clients to find all extensions that have a contribution of this type.  NOTE: Only TrustedPartners are allowed to specify indexed contribution types.
+         */
+        indexed: boolean;
         /**
          * Friendly name of the contribution/type
          */
@@ -2797,23 +2939,6 @@ declare module "VSS/Contributions/Contracts" {
         Trusted = 2,
     }
     /**
-     * The state of an installed extension
-     */
-    export interface ExtensionInstallationState {
-        /**
-         * Whether or not the extension is currently enabled in a particular extension installation
-         */
-        enabled: boolean;
-        /**
-         * The time at which this installation was last updated
-         */
-        lastUpdated: Date;
-        /**
-         * Identifier of the user who last changed the installation state (install, enable, disable, etc.)
-         */
-        lastUpdatedBy: string;
-    }
-    /**
      * Base class for extension properties which are shared by the extension manifest and the extension model
      */
     export interface ExtensionManifest {
@@ -2842,91 +2967,6 @@ declare module "VSS/Contributions/Contracts" {
          */
         scopes: string[];
     }
-    /**
-     * Base class for extension properties which are shared by the extension manifest and the extension model
-     */
-    export interface ExtensionManifestOld {
-        /**
-         * Uri used as base for other relative uri's defined in extension
-         */
-        baseUri: string;
-        /**
-         * Dictionary of all contribution points keyed by contribution point id
-         */
-        contributionPoints: {
-            [key: string]: ContributionPoint;
-        };
-        /**
-         * Dictionary of all contributions (property bags) keyed by contribution point id
-         */
-        contributions: {
-            [key: string]: any[];
-        };
-        /**
-         * Dictionary of all contribution types keyed by contribution point type id
-         */
-        contributionTypes: {
-            [key: string]: any;
-        };
-        /**
-         * Description of the extension
-         */
-        description: string;
-        /**
-         * Url to the icon to use when displaying this extension
-         */
-        icon: string;
-        /**
-         * Friendly name of the extension
-         */
-        name: string;
-        /**
-         * Namespace identifier for an extension. For example, "vss.web". This serves as a prefix in references to this extension's contributions, contribution types, and contribution points.
-         */
-        namespace: string;
-        /**
-         * Information about the provider/owner of this extension
-         */
-        provider: ContributionProvider;
-        /**
-         * Version of this extension
-         */
-        version: string;
-        /**
-         * Url used to perform version checks for an extension
-         */
-        versionCheckUrl: string;
-    }
-    /**
-     * Represents a VSO "extension" which is a container for internal and 3rd party contributions and contribution points
-     */
-    export interface ExtensionOld extends ExtensionManifestOld {
-        /**
-         * Unique id for this extension (the same id is used for all versions of a single extension)
-         */
-        id: string;
-        /**
-         * Information about which store this extension is published and when/by-whom it was published
-         */
-        publishInfo: ExtensionPublishInfo;
-    }
-    /**
-     * Publishing information about an extension
-     */
-    export interface ExtensionPublishInfo {
-        /**
-         * When the extension was last updated
-         */
-        lastUpdated: Date;
-        /**
-         * Id of the user who published the extension
-         */
-        ownerId: string;
-        /**
-         * Store to which the extension is published
-         */
-        store: ExtensionStore;
-    }
     export enum ExtensionStateFlags {
         /**
          * No flags set
@@ -2954,37 +2994,6 @@ declare module "VSS/Contributions/Contracts" {
         VersionCheckError = 16,
     }
     /**
-     * Store into which extensions can be published
-     */
-    export interface ExtensionStore {
-        /**
-         * Type of extension store
-         */
-        extensionStoreType: ExtensionStoreType;
-        /**
-         * Unique identifier for this store
-         */
-        id: number;
-        /**
-         * Identifier for the target of the extension store. For a developer store, for example, this is the unique user id of the developer.
-         */
-        target: string;
-    }
-    export enum ExtensionStoreType {
-        /**
-         * Extension store type is unknown
-         */
-        Unknown = 0,
-        /**
-         * Store for builtin VSO extensions
-         */
-        BuiltIn = 1,
-        /**
-         * Store for an individual extension developer
-         */
-        Developer = 2,
-    }
-    /**
      * Represents a VSO extension along with its installation state
      */
     export interface InstalledExtension extends Extension {
@@ -3006,6 +3015,11 @@ declare module "VSS/Contributions/Contracts" {
          */
         lastUpdated: Date;
     }
+    export interface Scope {
+        description: string;
+        title: string;
+        value: string;
+    }
     /**
      * Information about the extension
      */
@@ -3024,9 +3038,6 @@ declare module "VSS/Contributions/Contracts" {
         version: string;
     }
     export var TypeInfo: {
-        AppDataSetting: {
-            fields: any;
-        };
         Contribution: {
             fields: any;
         };
@@ -3034,9 +3045,6 @@ declare module "VSS/Contributions/Contracts" {
             fields: any;
         };
         ContributionIdentifier: {
-            fields: any;
-        };
-        ContributionPoint: {
             fields: any;
         };
         ContributionPropertyDescription: {
@@ -3057,9 +3065,6 @@ declare module "VSS/Contributions/Contracts" {
                 "object": number;
             };
         };
-        ContributionProvider: {
-            fields: any;
-        };
         ContributionType: {
             fields: any;
         };
@@ -3078,19 +3083,7 @@ declare module "VSS/Contributions/Contracts" {
                 "trusted": number;
             };
         };
-        ExtensionInstallationState: {
-            fields: any;
-        };
         ExtensionManifest: {
-            fields: any;
-        };
-        ExtensionManifestOld: {
-            fields: any;
-        };
-        ExtensionOld: {
-            fields: any;
-        };
-        ExtensionPublishInfo: {
             fields: any;
         };
         ExtensionStateFlags: {
@@ -3103,20 +3096,13 @@ declare module "VSS/Contributions/Contracts" {
                 "versionCheckError": number;
             };
         };
-        ExtensionStore: {
-            fields: any;
-        };
-        ExtensionStoreType: {
-            enumValues: {
-                "unknown": number;
-                "builtIn": number;
-                "developer": number;
-            };
-        };
         InstalledExtension: {
             fields: any;
         };
         InstalledExtensionState: {
+            fields: any;
+        };
+        Scope: {
             fields: any;
         };
         SupportedExtension: {
@@ -3240,37 +3226,6 @@ declare module "VSS/Contributions/RestClient" {
         /**
          * [Preview API]
          *
-         * @param {string} appStoreId
-         * @param {string} appId
-         * @return IPromise<Contracts.ExtensionOld>
-         */
-        getApp(appStoreId: string, appId: string): IPromise<Contracts.ExtensionOld>;
-        /**
-         * [Preview API]
-         *
-         * @param {string} appStoreId
-         * @return IPromise<Contracts.ExtensionOld[]>
-         */
-        getApps(appStoreId: string): IPromise<Contracts.ExtensionOld[]>;
-        /**
-         * [Preview API]
-         *
-         * @param {Contracts.ExtensionManifestOld} app
-         * @param {string} appStoreId
-         * @return IPromise<Contracts.ExtensionOld>
-         */
-        publishApp(app: Contracts.ExtensionManifestOld, appStoreId: string): IPromise<Contracts.ExtensionOld>;
-        /**
-         * [Preview API]
-         *
-         * @param {string} appStoreId
-         * @param {string} appId
-         * @return IPromise<void>
-         */
-        removeApp(appStoreId: string, appId: string): IPromise<void>;
-        /**
-         * [Preview API]
-         *
          * @param {string} extensionId
          * @return IPromise<Contracts.InstalledExtension>
          */
@@ -3283,82 +3238,12 @@ declare module "VSS/Contributions/RestClient" {
          * @return IPromise<Contracts.InstalledExtension[]>
          */
         getInstalledExtensions(contributionIds?: string[], includeDisabledApps?: boolean): IPromise<Contracts.InstalledExtension[]>;
-        /**
-         * [Preview API]
-         *
-         * @param {Contracts.InstalledExtension} extensionToInstall
-         * @return IPromise<Contracts.InstalledExtension>
-         */
-        installExtension(extensionToInstall: Contracts.InstalledExtension): IPromise<Contracts.InstalledExtension>;
-        /**
-         * [Preview API]
-         *
-         * @param {string} extensionId
-         * @return IPromise<void>
-         */
-        unInstallExtension(extensionId: string): IPromise<void>;
-        /**
-         * [Preview API]
-         *
-         * @param {Contracts.InstalledExtension} extension
-         * @param {string} extensionId
-         * @return IPromise<Contracts.InstalledExtension>
-         */
-        updateInstalledExtension(extension: Contracts.InstalledExtension, extensionId?: string): IPromise<Contracts.InstalledExtension>;
-        /**
-         * [Preview API]
-         *
-         * @param {string} appId
-         * @param {string} key
-         * @return IPromise<Contracts.AppDataSetting>
-         */
-        getAppData(appId: string, key: string): IPromise<Contracts.AppDataSetting>;
-        /**
-         * [Preview API]
-         *
-         * @param {Contracts.AppDataSetting} setting
-         * @param {string} appId
-         * @param {string} key
-         * @return IPromise<Contracts.AppDataSetting>
-         */
-        updateAppData(setting: Contracts.AppDataSetting, appId: string, key: string): IPromise<Contracts.AppDataSetting>;
     }
     export class ContributionsHttpClient2 extends VSS_WebApi.VssHttpClient {
         constructor(rootRequestPath: string);
         /**
          * [Preview API]
          *
-         * @param {string} appStoreId
-         * @param {string} appId
-         * @return IPromise<Contracts.ExtensionOld>
-         */
-        getApp(appStoreId: string, appId: string): IPromise<Contracts.ExtensionOld>;
-        /**
-         * [Preview API]
-         *
-         * @param {string} appStoreId
-         * @return IPromise<Contracts.ExtensionOld[]>
-         */
-        getApps(appStoreId: string): IPromise<Contracts.ExtensionOld[]>;
-        /**
-         * [Preview API]
-         *
-         * @param {Contracts.ExtensionManifestOld} app
-         * @param {string} appStoreId
-         * @return IPromise<Contracts.ExtensionOld>
-         */
-        publishApp(app: Contracts.ExtensionManifestOld, appStoreId: string): IPromise<Contracts.ExtensionOld>;
-        /**
-         * [Preview API]
-         *
-         * @param {string} appStoreId
-         * @param {string} appId
-         * @return IPromise<void>
-         */
-        removeApp(appStoreId: string, appId: string): IPromise<void>;
-        /**
-         * [Preview API]
-         *
          * @param {string} extensionId
          * @return IPromise<Contracts.InstalledExtension>
          */
@@ -3371,45 +3256,6 @@ declare module "VSS/Contributions/RestClient" {
          * @return IPromise<Contracts.InstalledExtension[]>
          */
         getInstalledExtensions(contributionIds?: string[], includeDisabledApps?: boolean): IPromise<Contracts.InstalledExtension[]>;
-        /**
-         * [Preview API]
-         *
-         * @param {Contracts.InstalledExtension} extensionToInstall
-         * @return IPromise<Contracts.InstalledExtension>
-         */
-        installExtension(extensionToInstall: Contracts.InstalledExtension): IPromise<Contracts.InstalledExtension>;
-        /**
-         * [Preview API]
-         *
-         * @param {string} extensionId
-         * @return IPromise<void>
-         */
-        unInstallExtension(extensionId: string): IPromise<void>;
-        /**
-         * [Preview API]
-         *
-         * @param {Contracts.InstalledExtension} extension
-         * @param {string} extensionId
-         * @return IPromise<Contracts.InstalledExtension>
-         */
-        updateInstalledExtension(extension: Contracts.InstalledExtension, extensionId?: string): IPromise<Contracts.InstalledExtension>;
-        /**
-         * [Preview API]
-         *
-         * @param {string} appId
-         * @param {string} key
-         * @return IPromise<Contracts.AppDataSetting>
-         */
-        getAppData(appId: string, key: string): IPromise<Contracts.AppDataSetting>;
-        /**
-         * [Preview API]
-         *
-         * @param {Contracts.AppDataSetting} setting
-         * @param {string} appId
-         * @param {string} key
-         * @return IPromise<Contracts.AppDataSetting>
-         */
-        updateAppData(setting: Contracts.AppDataSetting, appId: string, key: string): IPromise<Contracts.AppDataSetting>;
     }
     export class ContributionsHttpClient extends ContributionsHttpClient3 {
         constructor(rootRequestPath: string);
@@ -3441,7 +3287,6 @@ declare module "VSS/Contributions/Services" {
         private _contributionsByTargetId;
         private _loadedContributionTargets;
         private _contributionQueryPromises;
-        private static _legacyContributionIdMap;
         /**
          * Private constructor - do not call.
          */
@@ -4618,6 +4463,7 @@ declare module "VSS/Controls/Common" {
          */
         _enhance(element: JQuery): void;
         ready(fn: any): void;
+        isReady(): boolean;
         setEnabled(value: any): void;
         getValue(): string;
         isEmpty(value: any): boolean;
@@ -4632,10 +4478,18 @@ declare module "VSS/Controls/Common" {
         focus(): void;
         selectText(collapseToEnd?: boolean): void;
         bindOnCopy(handler: any): void;
+        getWindow(): Window;
         private _resizeImageOnLoadComplete(url, loadCompleteCallback?);
         setFieldRequired(value: any): void;
         setUploadAttachmentHandler(handler: RichEditorAttachmentHandler): void;
         getTextAreaId(): any;
+        /**
+         * Checks whether the value of the control is changed or not and fires the CHANGE event if it has
+         *
+         * @param e
+         * @return
+         */
+        checkModified(e?: JQueryEventObject): any;
         private _pasteImage(url);
         private _getToolbar();
         private _createToolbar();
@@ -4752,13 +4606,6 @@ declare module "VSS/Controls/Common" {
          * launch the Url associated with a linkNode
          */
         private _processAndLaunchHref(linkNode, e?);
-        /**
-         * Checks whether the value of the control is changed or not
-         *
-         * @param e
-         * @return
-         */
-        private _checkModified(e?);
         private _executeCommand(commandInfo);
         /**
          * Creates a hyperlink in this window and selects the new link.
@@ -5713,640 +5560,6 @@ declare module "VSS/Controls/Common" {
         private _fireSelectionChanged(accept?);
     }
 }
-declare module "VSS/Controls/Data" {
-    import Grids = require("VSS/Controls/Grids");
-    export class FieldDataProvider {
-        static TREE_PATH_SEPERATER_CHAR: string;
-        static EVENT_NEW_ITEM: string;
-        static EVENT_REMOVED_ITEM: string;
-        static EVENT_UPDATE_ITEM: string;
-        private _events;
-        private _nodes;
-        private _idToNodeMap;
-        private _pathToNodeMap;
-        private _isTree;
-        private _options;
-        /**
-         * Populates the provider with the given items (nodes).
-         *
-         * @param nodes A collection of nodes in the following format:
-         *
-         *    Every node of the tree has the following format:
-         *    {
-         *         id:       unique id, string, required
-         *         parentId: parent id, string, required (may be null)
-         *         text:     text for the node
-         *         values:   node values, array, required
-         *         children: array of nodes, node, optional
-         *    }
-         *
-         *    Here is a sample declaration of grid items:
-         *
-         *    gridItems: [{
-         *        id: 0,
-         *        values: ["Root 1", "red", 100],
-         *        children: [{
-         *            id: 1,
-         *            values: ["Node 1-2", "green", 10],
-         *            children: [{
-         *                id: 2,
-         *                values: ["Leaf 1-2-1", "yellow", 70]
-         *            },
-         *            {
-         *                id: 3,
-         *                values: ["Leaf 1-2-2", "blue", 30]
-         *            }]
-         *        },
-         *        {
-         *            id: 4,
-         *            values: ["Root 2", "white", 50]
-         *        }]
-         *
-         *        "checked" is an array of tree item ids that must be initially checked in the grid.
-         *        If this parameter is not provided nothing is checked.
-         *
-         *
-         * @param options
-         * OPTIONAL: Object with the following structure:
-         *   {
-         *     allowEmpty: boolean: Indicates if empty values should be treated as valid or not.
-         *     sort: comparison function for nodes if sorting is required
-         *   }
-         *
-         */
-        constructor(nodes: any, options?: any);
-        /**
-         * Move the node to a new parent.
-         *
-         * @param node Node to be re-parented.
-         * @param newParent The new parent for the node.
-         */
-        reparentNode(node: any, newParent: any): void;
-        /**
-         * Return true if the value is valid
-         *
-         * @param value The value to check
-         * @return
-         */
-        isValidValue(value: string): boolean;
-        /**
-         * return true if the data represented is tree
-         *
-         * @return
-         */
-        isTree(): boolean;
-        /**
-         * get Nodes to use in the combo box
-         *
-         * @return
-         */
-        getNodes(): any;
-        /**
-         * Get a node by its text
-         *
-         * @param nodeText text of the node to lookup
-         * @return
-         */
-        getNode(nodeText: string): any;
-        /**
-         * Get the node associated with the id provided.
-         *
-         * @param nodeId id of the node
-         * @return
-         */
-        getNodeFromId(nodeId: string): any;
-        /**
-         * Update node in the tree.
-         *
-         * @param node Node to update.
-         * @return The updated node data
-         */
-        updateNode(node: any): any;
-        /**
-         * Gets the first root node of the payload.
-         */
-        getRootNode(): any;
-        /**
-         * Get the previous sibling node of the node identified by "id"
-         *
-         * @param id The id (Guid string) for the node
-         */
-        getPreviousSiblingNode(id: string): any;
-        /**
-         * Deletes the specified node from the source list and all cached indexes.
-         * Returns the removed node
-         *
-         * @param id The ID of the node in which to remove.
-         * @return
-         */
-        removeNode(id: any): any;
-        /**
-         * Add the provided node to the tree.
-         *
-         * @param node New node to add.
-         * @param parent The node to parent under
-         */
-        addNode(node: any, parent: any): any;
-        /**
-         * Returns a clone, or deep-copy, of the source collection.
-         */
-        cloneSource(): any[];
-        /**
-         *  Attach a handler for the EVENT_NEW_ITEM event.
-         *
-         * @param handler The handler to attach
-         */
-        attachNewItem(handler: IEventHandler): void;
-        /**
-         * Remove a handler for the EVENT_NEW_ITEM event
-         *
-         * @param handler The handler to remove
-         */
-        detachNewItem(handler: IEventHandler): void;
-        /**
-         * Attach a handler for the removed item event.
-         *
-         * @param handler
-         * The handler to attach.  This will be invoked with an argument in the following format:
-         *   {
-         *     workItemIndex: index,
-         *     treeSize: treeSize
-         *   }
-         *
-         */
-        attachRemovedItem(handler: IEventHandler): void;
-        /**
-         * Remove a handler for the removed item event.
-         *
-         * @param handler The handler to remove
-         */
-        detachRemovedItem(handler: IEventHandler): void;
-        /**
-         *  Attach a handler for the EVENT_UPDATE_ITEM event.
-         *
-         * @param handler The handler to attach
-         */
-        attachUpdateItem(handler: IEventHandler): void;
-        /**
-         * Remove a handler for the EVENT_UPDATE_ITEM event
-         *
-         * @param handler The handler to remove
-         */
-        detachUpdateItem(handler: IEventHandler): void;
-        /**
-         * Populate the mapping of path to associated node and id to node.
-         */
-        private _populateNodeMappings();
-        /**
-         * Sort the children of a node (possibly recursively)
-         *
-         * @param node The node whose children will be sorted
-         * @param recursive (optional)If true, then the sort will proceed recursively through descendents
-         * @param sort (optional) Comparison function for sorting the nodes.
-         *     If not supplied, the sort function from the options will be used.
-         */
-        private _sortChildren(node, recursive?, sort?);
-        /**
-         * Adds the specified node to all cached indexes.
-         *
-         * @param node The node in which to add.
-         * @param parent The parent of the node in which to add.
-         */
-        private _addNode(parent, node);
-        private _clearCache(node);
-        /**
-         * Cleans up the path removing any trailing \'s
-         *
-         * @param path Path to be cleaned up.
-         */
-        private _cleanupPath(path);
-        /**
-         * Gets a count of all the specified nodes' children, recursively.
-         *
-         * @param node The node whose children to count.
-         */
-        private _getChildrenCount(node);
-        /**
-         * Notifies listeners of NewItem
-         *
-         * @param args args
-         */
-        private _raiseNewItem(args?);
-        /**
-         * Notifies listeners of that a work item was removed.
-         *
-         * @param args args
-         */
-        private _raiseRemovedItem(args?);
-        /**
-         * Notifies listeners of updateItem
-         *
-         * @param args args
-         */
-        private _raiseUpdateItem(args?);
-    }
-    export class HierarchicalGridDataAdapter {
-        static _ITEM_ID_DATA_SOURCE_INDEX: number;
-        /**
-         * Binds a field data provider to a grid control.
-         */
-        static bindAdapter(adapterType: any, fieldDataProvider: any, grid: any, options?: any): any;
-        /**
-         * Clones the specified node and all its children, returning the cloned node.
-         *
-         * @param node The node to clone.
-         */
-        static cloneNode(node: any): any;
-        private _options;
-        private _expandStatesManager;
-        _flattenedItems: any;
-        _grid: Grids.Grid;
-        _expandStates: any[];
-        dataProvider: any;
-        fieldDataHelper: any;
-        /**
-         * Creates an adapter to provide data from a field data provider to a grid control.
-         *
-         * @param fieldDataProvider The field data provider that represents a tree graph of data.
-         * @param grid The grid control in which to bind to the data provider.
-         * @param options Options that may be used to customize the behavior of this provider.
-         */
-        constructor(fieldDataProvider: any, grid: any, options?: any);
-        /**
-         * Gets the grid that this adapter is associated with
-         *
-         * @return
-         */
-        getGrid(): Grids.Grid;
-        /**
-         * Refreshes the contents of the grid with the current contents of the field data provider.
-         *
-         * @param calculateOnly Indicates whether the refresh should update the bound grids' data
-         * source and expand states or should just rebuild all internal indexes.  When true, this function will
-         * only rebuild the internal indexes and caches without updating the bound grid.  This is sometimes useful when
-         * you need to recalculate indexes during a reparent but don't want to update the grid until the reparent has
-         * completed.
-         */
-        refresh(calculateOnly?: boolean): void;
-        /**
-         * Gets the node associated with the data index.
-         *
-         * @param dataIndex Data index of the node to lookup.
-         */
-        getNodeForDataIndex(dataIndex: number): any;
-        /**
-         * Gets the parent of the node associated with the data index.
-         *
-         * @param dataIndex Data index of the node to lookup.
-         * @return A grid row index for the parent node of the node in the specified dataIndex of the grid.
-         */
-        getParentNodeIndexForDataIndex(dataIndex: number): number;
-        /**
-         * Gets the data index for the specified node ID.
-         *
-         * @param node The node whose data index is to be retrieved.
-         */
-        getDataIndexFromNode(node: any): any;
-        /**
-         * Returns a clone, or deep-copy, of the source collection.
-         */
-        cloneSource(): any[];
-        /**
-         * Overridable wrapper for populateDataSource
-         */
-        _createDataSource(items: any, source: any, expandStates: any, level: any): void;
-        /**
-         * Constructs an array of values from the source row which is used
-         * by the Checklist grid control to managed the items checked/unchecked.
-         *
-         * @param sourceRow A row from the source data set.
-         */
-        _constructRow(sourceRow: any): any[];
-        /**
-         * Creates source data for the given items.
-         *
-         * @param items The structure defining the tree for the grid.
-         * See CheckboxSelectionGrid function for details about gridItems format.
-         * @param source Array of grid rows where every row is an array of values.
-         * @param expandStates Array of numbers of the same size as 'source' argument
-         *     containing number of children in the tree under every row recursively.
-         * @param checkedItems The table allows for fast lookup of checked item IDs.
-         * @param level Current level of the tree (1 is for the roots).
-         * @return Returns number of given items including their children recursively.
-         */
-        private _populateDataSource(items, source, expandStates, level);
-        /**
-         * Responds to a new item added to the data provider.
-         *
-         * @param node The node added to the data provider.
-         * @param parent The parent the specified node was added to.
-         */
-        private _addNewItem(node, parent);
-        /**
-         * Remove a work item from the grid.
-         *
-         * @param node The node removed from the data provider.
-         * @param parent The parent of the node removed.
-         * @param treeSize The total number of children of the node removed (including the node itself).
-         */
-        private _removeItem(node, parent, treeSize);
-        /**
-         * Update a work item in the grid.
-         *
-         * @param node The edited node from the data provider.
-         */
-        private _updateItem(node);
-        /**
-         * Updates the expand states to account for changes in the grid data.
-         *
-         * @param itemIndex Index of the item to start updating at.
-         * @param increment Number of items added or removed.  The expand states will be incremented by this value.
-         */
-        private _updateExpandStates(itemIndex, increment);
-        /**
-         * Moves the expand states for a node and all its children from oldNodeIndex to newNodeIndex.
-         *
-         * @param oldNodeIndex The source location of the node states to move.
-         * @param newNodeIndex The destination location of the node states ot move.
-         */
-        private _moveExpandStatesForNode(oldNodeIndex, newNodeIndex);
-    }
-    export class ChecklistDataAdapter extends HierarchicalGridDataAdapter {
-        static _CHECKBOX_COLUMN_INDEX: number;
-        static _LABEL_COLUMN_INDEX: number;
-        static _CHECK_CHANGED: string;
-        static CHECK_COLUMN_NAME: string;
-        private _checkedItems;
-        private _itemStates;
-        private _events;
-        private _disabledTooltip;
-        private _checkboxRangeRootId;
-        private _checkboxRangeBegin;
-        private _checkboxRangeEnd;
-        private _allEnabled;
-        private _blockedCheckIds;
-        private _disableChildren;
-        private _noCheckboxes;
-        private _onBeforeCheckChanged;
-        /**
-         * Description
-         *
-         * @param fieldDataProvider field Data Provider
-         * @param grid grid
-         * @param option options that could include
-         * allEnabled: if all checkboxes are enabled or disabled
-         * rootNodeId: the root element to display checkboxes under
-         * noColumn: whether to add the column for checkboxes to the grid
-         * disabledTooltip: the tooltip text to show on disabled checkboxes
-         *
-         */
-        constructor(fieldDataProvider: any, grid: any, options?: any);
-        /**
-         * Initializes the data provider and prepares it for use
-         * by the checklist selection grid.
-         *
-         * @param checkedItemIds A collection of item IDs representing the checked
-         * items.
-         */
-        initialize(checkedItemIds: any): void;
-        /**
-         * Determine if a row has a checkbox
-         *
-         * @param dataIndex index of the row to check
-         * @return
-         */
-        hasCheckBox(dataIndex: number): boolean;
-        /**
-         * Updates the checkbox range
-         *
-         * @param expandStates The expand states
-         */
-        updateCheckboxesRange(expandStates: any[]): void;
-        /**
-         * Returns the checkbox range start
-         */
-        getCheckboxRangeBegin(): number;
-        /**
-         * Returns the checkbox range end
-         */
-        getCheckboxRangeEnd(): number;
-        /**
-         * Determines whether the node is a leaf node
-         *
-         * @param node A tree node
-         * @return
-         */
-        isLeafNode(node: any): boolean;
-        /**
-         * Disables and blocks the checking operation for the provided data index
-         *
-         * @param id The id the row in the grid
-         */
-        blockCheck(id: string): void;
-        /**
-         * Ensures enablement of the checking operation for the provided data index
-         *
-         * @param id The id of the row in the grid
-         */
-        unblockCheck(id: string): void;
-        /**
-         * Sets the root of the check box range
-         *
-         * @param id Id of the node to be the root of check boxes
-         */
-        setCheckboxRangeRoot(id: string): void;
-        /**
-         * Gets the currently selected check boxes root id
-         *
-         * @return The id of the checkbox range root
-         */
-        getCheckboxRangeRoot(): number;
-        /**
-         * Attach a handler for the removed item event.
-         *
-         * @param handler function
-         */
-        attachCheckedItemsChanged(handler: IEventHandler): void;
-        /**
-         * Remove a handler for the removed item event.
-         *
-         * @param handler The handler to remove
-         */
-        detachCheckedItemsChanged(handler: IEventHandler): void;
-        /**
-         * OVERRIDE: create the datasource for the grid
-         */
-        _createDataSource(items: any, source: any, expandStates: any, level: any): void;
-        /**
-         * Sets the enabled state of the row
-         *
-         * @param id The item ID used to look up the item in the state cache.
-         * @param enabled The new state of the row.
-         */
-        setItemState(id: string, enabled: boolean): void;
-        /**
-         * Return Whether the item at the dataIndex is checked
-         *
-         * @param dataIndex index of item to check if checked
-         * @return
-         */
-        getItemChecked(dataIndex: number): boolean;
-        /**
-         * Set the title of the checkbox identified by a given item id
-         *
-         * @param id The item ID used to look up the item in the state cache.
-         * @param title The title to set.
-         */
-        setItemTitle(id: string, title: string): void;
-        /**
-         * Reset the title of the checkbox identified by a given item id
-         *
-         * @param id The item ID used to look up the item in the state cache.
-         */
-        resetItemTitle(id: string): void;
-        /**
-         * Allows accessing the list of grid items that are currently checked.
-         *
-         * @return Returns array of checked item ids.
-         */
-        getCheckedItemIds(): any[];
-        /**
-         * Updates checkbox related data for grid row with the new state (without touching the actual checkbox element).
-         *
-         * @param dataIndex The row index.
-         * @param state New state for the row's checkbox.
-         */
-        setCheckboxStateData(dataIndex: number, state: boolean): void;
-        /**
-         * Updates the check box state data for a given range of data indices
-         *
-         * @param startIndex Start Index of the range to set the state for
-         * @param endIndex End Index of the range to set the state for
-         * @param state State to set the checkboxes
-         */
-        setCheckboxRangeStateData(startIndex: number, endIndex: number, state: boolean): void;
-        /**
-         * Gets the checkbox state for the provided data index.
-         *
-         * @param dataIndex The data index to get the checkbox state for.
-         * @return True when the checkbox is checked and false otherwise.
-         */
-        getCheckboxState(dataIndex: number): boolean;
-        /**
-         * Determine whether the checkbox at the specified dataIndex is enabled
-         *
-         * @return
-         */
-        getItemEnabled(dataIndex: any): boolean;
-        /**
-         * Gets the branch-level checked state based on the state grid items.
-         *
-         * @return
-         */
-        getBranchCheckedState(): boolean;
-        /**
-         * OVERRIDE: Constructs an array of values from the source row which is used
-         * by the Checklist grid control to managed the items checked/unchecked.
-         *
-         * @param sourceRow A row from the source data set.
-         */
-        _constructRow(sourceRow: any): any[];
-        /**
-         * Gets the value used for the ID attribute of the checkbox DOM element at a given index
-         *
-         * @param dataIndex data index of the row
-         * @return A (unique) id for the checkbox
-         */
-        private _getCheckboxCellId(dataIndex);
-        /**
-         * Attempts to find the checkbox associated with a given dataIndex
-         *
-         * @param dataIndex data index of the row
-         * @return A jQuery object containing the checkbox for the given dataIndex (or an empty jQuery object if one doesn't exist.
-         */
-        private _findCheckbox(dataIndex);
-        /**
-         * create checkbox cell at specific row in a column
-         *
-         * @param dataIndex index of the row
-         * @param column column object
-         * @return The checkbox cell
-         */
-        private _createCheckboxCell(dataIndex, column);
-        /**
-         * The handler is invoked when a checkbox on a grid row is clicked.
-         *
-         * @param e jQuery event object.
-         */
-        private _onCheckboxClicked(e?);
-        private _setCheckedState($checkbox, dataIndex, checked);
-        /**
-         * Notifies listeners of that a work item was removed.
-         *
-         * @param args args
-         */
-        private _raiseCheckedItemsChanged(args?);
-        /**
-         * Sets the title of the checkbox to the default value
-         *
-         * @param $checkbox The jQuery object for the checkbox
-         */
-        private _setCheckboxDefaultTitle($checkbox);
-        /**
-         * Get the id of the row at the specified dataIndex
-         *
-         * @return
-         */
-        private _getIdFromDataIndex(dataIndex);
-        /**
-         * Get the dataIndex of the row for the specified item id
-         *
-         * @param id The item ID used to look up the item in the state cache.
-         * @return
-         */
-        private _getDataIndexFromId(id);
-    }
-    export interface ITableFormatter {
-        getTableFromSelectedItems(): string;
-    }
-    export class TabDelimitedTableFormatter implements ITableFormatter {
-        _options: any;
-        _grid: Grids.Grid;
-        constructor(grid: Grids.Grid, options?: any);
-        /**
-         * Iterates through the selected rows and builds a table containing the results.
-         *
-         * @return A tab-delimited plain-text table containing all rows and all columns in the current selection.
-         */
-        getTableFromSelectedItems(): string;
-        getFormattedColumnValue(column: any, value: string): string;
-    }
-    export class HtmlTableFormatter implements ITableFormatter {
-        private static HEADER_BACKGROUND_COLOR;
-        private static HEADER_COLOR;
-        private static FONT_SIZE;
-        private static FONT_FAMILY;
-        private static BORDER_COLLAPSE;
-        private static COLUMN_BORDER;
-        private static COLUMN_VERTICAL_ALIGN;
-        private static COLUMN_PADDING;
-        private static ROW_BACKGROUND_COLOR;
-        private static ROW_ALT_BACKGROUND_COLOR;
-        _options: any;
-        _grid: Grids.Grid;
-        constructor(grid: Grids.Grid, options?: any);
-        processColumns(columns: any[]): any[];
-        getTableFromSelectedItems(): string;
-        getFormattedColumnValue(column: any, value: string): string;
-        protected _getSelectedDataIndicesFromGrid(): number[];
-        /**
-         * Iterates through the selected rows and builds a HTML table containing the results.
-         *
-         * @return A HTML table containing all rows and all columns in the current selection.
-         */
-        _getJQTableFromSelectedItems(): JQuery;
-    }
-}
 declare module "VSS/Controls/EditableGrid" {
     import CommonControls = require("VSS/Controls/Common");
     import Controls = require("VSS/Controls");
@@ -6747,11 +5960,94 @@ declare module "VSS/Controls/FormInput" {
             [key: string]: Controls_Common.Combo;
         };
     }
+    export interface ExtendedInputDescriptor extends FormInput_Contracts.InputDescriptor {
+        /**
+         * A list of functions to be called when this input is deleted.
+         */
+        deleteCallbacks: (() => void)[];
+        /**
+         * A list of functions, all of which must return true for this input to be considered valid
+         */
+        dependencies: InputViewModelDelegate<boolean>[];
+        /**
+         * A list of functions to be called when the state of all dependencies of this input being satisfied changes.
+         */
+        dependenciesSatisfiedCallbacks: ((satisfied: boolean) => void)[];
+        /**
+         * Gets whether this input should be invisible until all of its dependencies are satisfied or not.
+         */
+        hideUntilSatisfied: boolean;
+        /**
+         * Gets whether this input is deletable.
+         */
+        isDeletable: boolean;
+        /**
+         * Gets whether this input should be invalidated when one of its dependency's value changes or not.
+         * Odd name is due to the fact that the default should be to invalidate (based on FormInput_Contracts.InputDescriptor).
+         */
+        noInvalidateOnDependencyChange: boolean;
+        /**
+         * Gets whether or not to display the valid icon for this input.
+         */
+        noValidIcon: boolean;
+        /**
+         * Information to use to validate this input's value
+         */
+        validation: ExtendedInputValidation;
+        /**
+         * A list of functions to be called when the value of this input is changed.
+         */
+        valueChangedCallbacks: InputViewModelDelegate<void>[];
+    }
+    export interface ExtendedInputValidation extends FormInput_Contracts.InputValidation {
+        /**
+         * A function called when checking input validity. Validation.isValid must be true for the input to be considered valid.
+         */
+        validateFunction: InputViewModelDelegate<Validation>;
+    }
+    export interface Validation {
+        /**
+         * True if input is valid, false otherwise.
+         */
+        isValid: boolean;
+        /**
+         * Error message if input is not valid
+         */
+        error: string;
+    }
+    export interface InputGroup {
+        $header: JQuery;
+        $table: JQuery;
+        memberCount: number;
+    }
+    export interface InputViewModelDelegate<T> {
+        (inputViewModel: InputViewModel): T;
+    }
     export class FormInputControl extends Controls.Control<FormInputControlOptions> {
+        private _$inputsContainer;
+        private _headerLabel;
+        private _comboControlMap;
+        private _inputGroups;
+        private _$inputIdToElements;
+        private _inputsViewModel;
         static createControl($container: JQuery, options: FormInputControlOptions): FormInputControl;
         initializeOptions(options?: any): void;
         initialize(): void;
+        deleteControl(): void;
+        private _createGroup(headerLabel);
+        addInputViewModel(inputViewModel: InputViewModel): void;
+        removeInputViewModel(inputViewModel: InputViewModel, removeFromInputsViewModel?: boolean): void;
+        showInputViewModel(inputViewModel: InputViewModel): void;
+        hideInputViewModel(inputViewModel: InputViewModel): void;
+        private _showHideInputViewModel(inputViewModel, show);
+        private _createDeleteButton(inputViewModel);
+        getGroupHeader(groupName?: string): JQuery;
+        getInputFieldById(id: string): JQuery;
+        createRowBeforeInput(id: string): JQuery;
+        createRowAfterInput(id: string): JQuery;
         private _createInputField(inputViewModel, $parent, comboControlMap);
+        private _textInputValueChanged(combo, inputViewModel);
+        private _radioInputValueChanged($radio, radioValue, inputViewModel);
         private static _fixLinkTargets(element);
         static getProgressIconForInput(inputId: string): JQuery;
         static getValidationIconForInput(inputId: string): JQuery;
@@ -6781,18 +6077,21 @@ declare module "VSS/Controls/FormInput" {
     export class InputsViewModel {
         private _inputViewModels;
         private _mapNameToInputViewModel;
-        private _mapNameIsADependent;
+        private _mapNameDependencyCount;
         protected _satisfiedDependentInputs: InputViewModel[];
         private _valuesChangedCallback;
         private _formInputViewModel;
         constructor(formInputViewModel: FormInputViewModel, inputDescriptors: FormInput_Contracts.InputDescriptor[], inputValues: {
-            [key: string]: string;
-        }, inputValidChangedCallback: any, valuesChangedCallback: any);
+            [key: string]: any;
+        }, inputValidChangedCallback: InputViewModelDelegate<void>, valuesChangedCallback: InputViewModelDelegate<void>);
+        addInputViewModel(inputDescriptor: ExtendedInputDescriptor, inputValue?: any, inputValidChangedCallback?: InputViewModelDelegate<void>, valuesChangedCallback?: InputViewModelDelegate<void>): InputViewModel;
+        removeInputViewModel(inputViewModel: InputViewModel): void;
         areDirty(): boolean;
         areValid(): boolean;
         getInputViewModels(): InputViewModel[];
+        getInputViewModelById(id: string): InputViewModel;
         getInputsAsDictionary(): {
-            [key: string]: any;
+            [inputId: string]: any;
         };
         allDependentsSatisfied(inputViewModel: InputViewModel): boolean;
         private _invalidateDependencies(changedInputViewModel);
@@ -6809,12 +6108,20 @@ declare module "VSS/Controls/FormInput" {
         private _selectedIndex;
         private _isValid;
         private _isDirty;
+        private _dependenciesSatisfied;
         private _validationError;
+        private _dependencies;
+        private _validityDelegate;
+        private _validityFollowers;
         private _blurCallback;
         private _inputValidChangedCallback;
-        private _valueChangedCallback;
+        private _valueChangedCallbacks;
         private _valuesChangedCallback;
-        constructor(inputDescriptor: FormInput_Contracts.InputDescriptor, inputValue: string, inputValidChangedCallback: any, blurCallback: any, valueChangedCallback: any, valuesChangedCallback: any);
+        private _dependenciesSatisfiedCallbacks;
+        private _deleteCallbacks;
+        private _suppressValidityChangeNotifications;
+        constructor(inputDescriptor: FormInput_Contracts.InputDescriptor, inputValue: any, inputValidChangedCallback: InputViewModelDelegate<void>, blurCallback: InputViewModelDelegate<void>, valueChangedCallbacks: InputViewModelDelegate<void>[], valuesChangedCallback: InputViewModelDelegate<void>, dependencies?: InputViewModelDelegate<boolean>[], dependenciesSatisfiedCallbacks?: ((satisfied: boolean) => void)[], deleteCallbacks?: (() => void)[]);
+        private _addFunctions(functions, adder);
         validate(): void;
         isDirty(): boolean;
         isValid(): boolean;
@@ -6826,14 +6133,30 @@ declare module "VSS/Controls/FormInput" {
         getValidationMessage(): string;
         getSelectedIndex(): number;
         setSelectedIndex(index: number): void;
-        getInputDescriptor(): FormInput_Contracts.InputDescriptor;
+        getInputDescriptor(): ExtendedInputDescriptor;
         getPossibleValueAtIndex(index: number): FormInput_Contracts.InputValue;
         setValue(value: any): void;
+        refresh(): void;
         dependsOn(inputValueId: string): boolean;
         invalidateValues(): void;
+        invalidateOnDependencyChange(): boolean;
         updateValues(values: FormInput_Contracts.InputValues): void;
         onBlur(): void;
         setStateIcon(): void;
+        suppressValidityChangeNotifications(suppress: boolean): void;
+        addValueChangedCallback(callback: InputViewModelDelegate<void>, addToFront?: boolean): void;
+        removeValueChangedCallback(callback: InputViewModelDelegate<void>): boolean;
+        setValidityDelegate(validityDelegate: InputViewModel): void;
+        addValidityFollower(follower: InputViewModel, addToFront?: boolean): void;
+        removeValidityFollower(follower: InputViewModel): void;
+        addDependency(dependency: InputViewModelDelegate<boolean>, addToFront?: boolean): void;
+        checkDependenciesSatisfied(): boolean;
+        getDependenciesSatisfied(): boolean;
+        private _dependenciesSatisfiedChange(satisfied);
+        inputDependenciesSatisfied(satisfied: boolean): boolean;
+        addDependenciesSatisfiedCallback(callback: (satisfied: boolean) => void, addToFront?: boolean): void;
+        deleteViewModel(): void;
+        addDeleteCallback(callback: () => void, addToFront?: boolean): void;
         private _invalidateValue();
         private _setValue(value, force);
         private _computeSelectedIndex();
@@ -6852,7 +6175,6 @@ declare module "VSS/Controls/FormInput" {
 }
 declare module "VSS/Controls/Grids" {
     import Controls = require("VSS/Controls");
-    import Data = require("VSS/Controls/Data");
     import Menus = require("VSS/Controls/Menus");
     import Search = require("VSS/Search");
     /**
@@ -6939,10 +6261,11 @@ declare module "VSS/Controls/Grids" {
         suppressRedraw?: boolean;
         keepSelection?: boolean;
         /**
+         * @privateapi
          * Type of the formatter which is used for retrieving the content from the grid
          * Used in beginTableFormat, called when triggering a copy action
          */
-        formatterType?: new (grid: GridO<any>, options?: any) => Data.ITableFormatter;
+        formatterType?: new (grid: GridO<any>, options?: any) => ITableFormatter;
     }
     export interface IGridContextMenu {
         /**
@@ -7064,6 +6387,74 @@ declare module "VSS/Controls/Grids" {
         row?: JQuery;
         dirty?: boolean;
         gutterRow?: any;
+    }
+    /**
+     * Base item for a grid source (represents a row)
+     */
+    export interface IGridSourceItem {
+    }
+    /**
+     * Contract for the grid source.
+     * Implementers should return source and expandStates arrays.
+     */
+    export interface IGridSource {
+        /**
+         * Grid to update the source
+         */
+        grid: Grid;
+        /**
+         * Gets the source which can be consumed by the grid
+         */
+        getSource(): any[];
+        /**
+         * Gets the expand states of the source
+         */
+        getExpandStates(): number[];
+        /**
+         * Updates the source of the grid
+         */
+        update(items: IGridSourceItem[]): any;
+    }
+    /**
+     * Default datasource implementation for the grid. It can be used for a flat list.
+     */
+    export class GridDefaultSource implements IGridSource {
+        grid: Grid;
+        protected _source: any[];
+        constructor(items: IGridSourceItem[]);
+        update(items: IGridSourceItem[]): void;
+        getSource(): any[];
+        getExpandStates(): number[];
+        protected _updateSource(items: IGridSourceItem[]): void;
+    }
+    /**
+     * Item contract for a hierarchical data source.
+     * It can either have its own properties to be shown in the grid or values array can be used.
+     * If values used, column.index should correspond to the index in the values.
+     */
+    export interface IGridHierarchyItem extends IGridSourceItem {
+        /**
+         * Values to be used by grid to display grid content. index: number should be used for columns if values are used.
+         */
+        values?: any[];
+        /**
+         * Children of this item
+         */
+        children?: IGridHierarchyItem[];
+        /**
+         * Determines whether this item should be displayed collapsed or not
+         */
+        collapsed?: boolean;
+    }
+    /**
+     * Hierarchical datasource implementation.
+     */
+    export class GridHierarchySource extends GridDefaultSource implements IGridSource {
+        private _expandStates;
+        constructor(items: IGridHierarchyItem[]);
+        getExpandStates(): any[];
+        protected _updateSource(items: IGridHierarchyItem[]): void;
+        private _prepareItems(items);
     }
     /**
      * @publicapi
@@ -7206,6 +6597,13 @@ declare module "VSS/Controls/Grids" {
         _rowIntersect(draggable: any, targetRowInfo: any): any;
         initializeDataSource(suppressRedraw?: boolean): void;
         /**
+         * Sets the source of the grid using GridSource object
+         *
+         * @param source GridSource object to set the grid source
+         * @publicapi
+         */
+        setDataSource(source: IGridSource): void;
+        /**
          * Sets the data source, expands states, columns and sort order of the grid
          *
          * @param source New source for the grid (See grid options for details)
@@ -7216,7 +6614,7 @@ declare module "VSS/Controls/Grids" {
          * @param suppressRedraw If true, grid is not redrawn after data source is set
          * @publicapi
          */
-        setDataSource(source?: any[], expandStates?: any[], columns?: IGridColumn[], sortOrder?: IGridSortOrder[], selectedIndex?: number, suppressRedraw?: boolean): void;
+        setDataSource(source?: any[], expandStates?: any[], columns?: IGridColumn[], sortOrder?: IGridSortOrder[], selectedIndex?: number, suppressRedraw?: boolean): any;
         _setColumnInfo(column: IGridColumn, index: number): void;
         /**
          * Gets the information about a row associated with the given data index
@@ -7569,7 +6967,7 @@ declare module "VSS/Controls/Grids" {
          * current selection is available to the client for processing.
          * @param errorCallback
          */
-        beginFormatTable(operationCompleteCallback: IResultCallback, errorCallback?: IErrorCallback, formatterType?: new (grid: GridO<TOptions>, options?: any) => Data.ITableFormatter, options?: any): void;
+        beginFormatTable(operationCompleteCallback: IResultCallback, errorCallback?: IErrorCallback, formatterType?: new (grid: GridO<TOptions>, options?: any) => ITableFormatter, options?: any): void;
         _createElement(): void;
         protected _addSpacingElements(): void;
         _createFocusElement(): JQuery;
@@ -7825,7 +7223,7 @@ declare module "VSS/Controls/Grids" {
         afterOnToggle(rowInfo: any): void;
         private _folderToggled(rowInfo);
         private _raiseToggleEvent(rowInfo, isExpanded);
-        copySelectedItems(formatterType?: new (grid: GridO<TOptions>, options?: any) => Data.ITableFormatter, copyAsHtml?: boolean, options?: any): void;
+        copySelectedItems(formatterType?: new (grid: GridO<TOptions>, options?: any) => ITableFormatter, copyAsHtml?: boolean, options?: any): void;
         _ensureRowDrawn(dataIndex: any): boolean;
         /**
          * Ensures that all data objects in the selection have been downloaded and are available to process.
@@ -7844,181 +7242,6 @@ declare module "VSS/Controls/Grids" {
         _dispose(): void;
     }
     export class Grid extends GridO<IGridOptions> {
-    }
-    export interface ICheckboxSelectionGridOptions extends IGridOptions {
-        selectAllLabel: string;
-        labelColumnIndex: number;
-    }
-    export class CheckboxSelectionGridO<TOptions extends ICheckboxSelectionGridOptions> extends GridO<TOptions> {
-        static enhancementTypeName: string;
-        static _DEFAULT_LABEL_COLUMN: number;
-        static _HEADER_CHECKBOX_ID: string;
-        private _labelColumnIndex;
-        private _selectAllLabel;
-        dataProvider: any;
-        gridAdapter: any;
-        /**
-         * Creates new Checkbox Selection Grid Control
-         *
-         * @param options The initialization options for the grid which have the following properties
-         *
-         *    "columns" is a required property containing the array of grid column descriptors that have the following structure:
-         *    {
-         *        text:      column header text, string, optional, default: "",
-         *        width:     width in pixels of the column, number, optional, default: 100,
-         *        canSortBy: true if the grid can be sorted by the column, boolean, optional, default: true
-         *    }
-         *    "selectAllLabel" is the text used as a label for select all check box
-         *    "labelColumnIndex" is the index of the column whose values to be used as labels for check boxes
-         *    "sort" is an optional comparison function that will be used to sort the data.
-         *         function (left, right) returns [0, 0, 0] depending on whether left is smaller, equal or larger than right.
-         *
-         *
-         * @return Returns the new Checkbox Selection Grid object.
-         */
-        constructor(options?: TOptions);
-        /**
-         * @param options
-         */
-        initializeOptions(options?: TOptions): void;
-        /**
-         * Populates the grid control with the given items
-         *
-         * @param gridItems This is an array of root nodes that recursively define the tree of the grid.
-         *
-         *    Every node of the tree has the following format:
-         *    {
-         *         id:       unique node id, number, required
-         *         values:   node values, array, required
-         *         children: array of nodes, node, optional
-         *    }
-         *
-         *    Here is a sample declaration of grid items:
-         *
-         *    gridItems: [{
-         *        id: 0,
-         *        values: ["Root 1", "red", 100],
-         *        children: [{
-         *            id: 1,
-         *            values: ["Node 1-2", "green", 10],
-         *            children: [{
-         *                id: 2,
-         *                values: ["Leaf 1-2-1", "yellow", 70]
-         *            },
-         *            {
-         *                id: 3,
-         *                values: ["Leaf 1-2-2", "blue", 30]
-         *            }]
-         *        },
-         *        {
-         *            id: 4,
-         *            values: ["Root 2", "white", 50]
-         *        }]
-         *
-         *        "checked" is an array of tree item ids that must be initially checked in the grid.
-         *        If this parameter is not provided nothing is checked.
-         *
-         *
-         * @param checkedItemIds
-         *     This is an array of tree item ids that must be initially checked in the grid.
-         *     If this parameter is not provided nothing is checked.
-         *
-         */
-        setGridItems(gridItems: any[], checkedItemIds: any[]): void;
-        /**
-         * Allows accessing the list of grid items that are currently checked.
-         *
-         * @return Returns array of checked item ids.
-         */
-        getCheckedItemIds(): any[];
-        /**
-         * OVERRIDE: Creates the element that represents content of a header cell.
-         *
-         * @param column Information about the header column that is being rendered.
-         * @return Returns jQuery element representing the requested header cell.
-         */
-        _drawHeaderCellValue(column: any): JQuery;
-        /**
-         * Sets row checkbox into the given state.
-         *
-         * @param dataIndex The row index.
-         * @param newState New state for the row's checkbox.
-         */
-        setCheckboxState(dataIndex: number, newState: boolean): void;
-        /**
-         * Updates checkbox related data for grid row with the new state (without touching the actual checkbox element).
-         *
-         * @param dataIndex The row index.
-         * @param state New state for the row's checkbox.
-         */
-        _setCheckboxStateData(dataIndex: number, state: boolean): void;
-        /**
-         * Prepares options for the base grid control.
-         *
-         * @param options Original options passed into the control.
-         * See CheckboxSelectionGrid function for details about options format.
-         */
-        private _updateOptions(options?);
-        /**
-         * OVERRIDE: Set the column that follows the checkbox one as the indent one.
-         */
-        _determineIndentIndex(): void;
-        /**
-         * Create a hidden Label to describe a control for screen readers
-         *
-         * @param controlId id of the control the label is attached to
-         * @param text label text
-         * @return
-         */
-        private _createLabel(controlId, text);
-        /**
-         * OVERRIDE: Creates the element that represents content of a content cell.
-         */
-        _drawCell(rowInfo: any, dataIndex: any, expandedState: any, level: any, column: any, indentIndex: any, columnOrder: any): any;
-        /**
-         * The handler is invoked when the header is checkbox is clicked.
-         *
-         * @param e
-         * @return
-         */
-        private _onHeaderCheckboxClicked(e?);
-        /**
-         * The handler is invoked when a checkbox on a grid row is clicked.
-         *
-         * @param e
-         * @return
-         */
-        private _onCheckboxClicked(e?);
-        /**
-         * Calculated the checkbox element ID used to locate individual checkboxes on the grid.
-         *
-         * @param dataIndex The row index of the grid cell.
-         * @param columnIndex The column index of the grid cell.
-         * @return Returns string representing a checkbox element ID.
-         */
-        private _createCheckboxId(dataIndex, columnIndex);
-        /**
-         * Sets header checkbox into the given state.
-         *
-         * @param checked The state to set for the header checkbox.
-         */
-        private _setHeaderCheckboxState(checked);
-        /**
-         * OVERRIDE: Calls the base method and checks for space bar key.
-         *
-         * @param e
-         * @return
-         */
-        _onKeyDown(e?: JQueryEventObject): any;
-        /**
-         * Trigger the selection of the selected row.
-         *
-         * @param e
-         * @return
-         */
-        private _onSpaceKey(e?);
-    }
-    export class CheckboxSelectionGrid extends CheckboxSelectionGridO<ICheckboxSelectionGridOptions> {
     }
     export class ListView extends Grid {
         static enhancementTypeName: string;
@@ -8085,6 +7308,46 @@ declare module "VSS/Controls/Grids" {
          *     Build the list of searchable columns.
          */
         private getSearchableColumns();
+    }
+    export interface ITableFormatter {
+        getTableFromSelectedItems(): string;
+    }
+    export class TabDelimitedTableFormatter implements ITableFormatter {
+        _options: any;
+        _grid: Grid;
+        constructor(grid: Grid, options?: any);
+        /**
+         * Iterates through the selected rows and builds a table containing the results.
+         *
+         * @return A tab-delimited plain-text table containing all rows and all columns in the current selection.
+         */
+        getTableFromSelectedItems(): string;
+        getFormattedColumnValue(column: any, value: string): string;
+    }
+    export class HtmlTableFormatter implements ITableFormatter {
+        private static HEADER_BACKGROUND_COLOR;
+        private static HEADER_COLOR;
+        private static FONT_SIZE;
+        private static FONT_FAMILY;
+        private static BORDER_COLLAPSE;
+        private static COLUMN_BORDER;
+        private static COLUMN_VERTICAL_ALIGN;
+        private static COLUMN_PADDING;
+        private static ROW_BACKGROUND_COLOR;
+        private static ROW_ALT_BACKGROUND_COLOR;
+        _options: any;
+        _grid: Grid;
+        constructor(grid: Grid, options?: any);
+        processColumns(columns: any[]): any[];
+        getTableFromSelectedItems(): string;
+        getFormattedColumnValue(column: any, value: string): string;
+        protected _getSelectedDataIndicesFromGrid(): number[];
+        /**
+         * Iterates through the selected rows and builds a HTML table containing the results.
+         *
+         * @return A HTML table containing all rows and all columns in the current selection.
+         */
+        _getJQTableFromSelectedItems(): JQuery;
     }
 }
 declare module "VSS/Controls/Hubs" {
@@ -8171,14 +7434,37 @@ declare module "VSS/Controls/Menus" {
         Toggled = 4,
     }
     export interface IMenuItemSpec {
+        /**
+         * Id of the menu item. Used to distinguish the menu item when action is executed or when changing command state of a menu item
+         */
         id?: string;
         contributionId?: string;
         rank?: number;
+        /**
+         * Display text of the menu item
+         */
         text?: string;
+        /**
+         * Text displayed when mouse is hovered on the menu item
+         */
         title?: string;
-        separator?: boolean;
-        disabled?: boolean;
+        /**
+         * Icon for the menu item
+         */
         icon?: string;
+        /**
+         * Determines whether the menu item is a separator or not. If specified along with text, menu item acts like a group text
+         * @defaultvalue false
+         */
+        separator?: boolean;
+        /**
+         * Determines whether the menu item is initially disabled or not
+         * @defaultvalue false
+         */
+        disabled?: boolean;
+        /**
+         * Children of this menu item
+         */
         childItems?: any;
         group?: string;
         arguments?: any;
@@ -8334,10 +7620,19 @@ declare module "VSS/Controls/Menus" {
     export interface MenuOptions extends MenuBaseOptions {
         suppressInitContributions: boolean;
         contributionIds: string[];
+        /**
+         * Items to be displayed in the menu
+         */
         items: IMenuItemSpec[];
+        /**
+         * Action executed when a menu item is clicked
+         */
         executeAction: Function;
         getContributionContext: Function;
     }
+    /**
+     * @publicapi
+     */
     export class Menu<TOptions extends MenuOptions> extends MenuBase<TOptions> {
         static enhancementTypeName: string;
         private _items;
@@ -8371,14 +7666,16 @@ declare module "VSS/Controls/Menus" {
         /**
          * Gets the item which has the specified id
          *
-         * @param tag Associated with the menu item
-         * @return
+         * @param id  Id associated with the menu item
+         * @return {MenuItem}
+         * @publicapi
          */
-        getItem(id: any): MenuItem;
+        getItem(id: string): MenuItem;
         /**
          * Gets an array of all menu items.
          *
-         * @return
+         * @return {MenuItem[]}
+         * @publicapi
          */
         getItems(): MenuItem[];
         /**
@@ -8388,7 +7685,13 @@ declare module "VSS/Controls/Menus" {
          * @return
          */
         getItemByTag(tag: string): MenuItem;
-        getCommandState(commandId: string, context: any): MenuItemState;
+        getCommandState(commandId: string, context?: any): MenuItemState;
+        /**
+         * Updates the command states of the items with the specified ids
+         *
+         * @param commands List of commands to update
+         * @publicapi
+         */
         updateCommandStates(commands: ICommand[]): void;
         updateItems(items: any): void;
         protected _updateItemsWithContributions(items: any, contributedMenuItems: IContributedMenuItem[]): void;
@@ -8506,6 +7809,10 @@ declare module "VSS/Controls/Menus" {
         private _getContributionContext();
     }
     export interface MenuOwnerOptions extends MenuOptions {
+        /**
+         * Determines whether icons are visible or not
+         * @defaultvalue true
+         */
         showIcon: boolean;
         markUnselectable: boolean;
         showTimeout: number;
@@ -8575,7 +7882,14 @@ declare module "VSS/Controls/Menus" {
         private _onResize(e?);
         private _onContextMenu(e?);
     }
+    /**
+     * @publicapi
+     */
     export interface MenuBarOptions extends MenuOwnerOptions {
+        /**
+         * Orientation of the menubar (horizontal or vertical)
+         * @defaultvalue "horizontal"
+         */
         orientation: string;
     }
     export class MenuBarO<TOptions extends MenuBarOptions> extends MenuOwner<TOptions> {
@@ -9177,6 +8491,35 @@ declare module "VSS/Controls/Navigation" {
         function detachFullScreenUrlUpdateEvent(handler: IEventHandler): void;
     }
 }
+declare module "VSS/Controls/PopupContent" {
+    import Controls = require("VSS/Controls");
+    export class PopupContentControl extends Controls.BaseControl {
+        private _$dropElement;
+        private _$contentContainer;
+        private _contentSet;
+        private _documentEventDelegate;
+        initialize(): void;
+        setContent(content: any): void;
+        show(): void;
+        hide(): void;
+        toggle(): void;
+        _enhance($dropElement: any): void;
+        private _decorate();
+        private _handleDocumentMouseDown(e);
+        _setPosition(): void;
+        _getDropElement(): JQuery;
+        private _onShow();
+        private _onHide();
+        _dispose(): void;
+    }
+    export class RichContentTooltip extends PopupContentControl {
+        private _$popupTag;
+        initializeOptions(options?: any): void;
+        initialize(): void;
+        _getPopupTooltipElement(): JQuery;
+        _setPosition(): void;
+    }
+}
 declare module "VSS/Controls/Search" {
     import Controls = require("VSS/Controls");
     import Search = require("VSS/Search");
@@ -9375,6 +8718,37 @@ declare module "VSS/Controls/TreeView" {
         _initRoot(): void;
         private _prepareCurrentItems();
     }
+    /**
+     * @publicapi
+     */
+    export interface ITreeOptions {
+        /**
+         * List of nodes used by TreeView for rendering. TreeView only accepts nodes of concrete type TreeNode. Existing node hierarchy needs to be converted to TreeNode before providing to TreeView, see samples for details.
+         */
+        nodes?: TreeNode[];
+        /**
+         * Determines whether icons of the nodes are visible or not
+         * @defaultvalue true
+         */
+        showIcons?: boolean;
+        /**
+         * Determines whether clicking a node expands/collapses the node or not (if the node has children)
+         * @defaultvalue false
+         */
+        clickToggles?: boolean;
+        /**
+         * Determines whether clicking a node selects the node or not
+         * @defaultvalue true
+         */
+        clickSelects?: boolean;
+        contextMenu?: any;
+        useEmptyFolderNodes?: boolean;
+        defaultEmptyFolderNodeText?: string;
+        styleFocusElement?: boolean;
+    }
+    /**
+     * @publicapi
+     */
     export class TreeNode {
         /**
          * @param text
@@ -9383,9 +8757,9 @@ declare module "VSS/Controls/TreeView" {
          * @return
          */
         static create(text: string, config?: any, children?: TreeNode[]): TreeNode;
-        id: number;
+        id: any;
         root: boolean;
-        text: any;
+        text: string;
         parent: TreeNode;
         children: TreeNode[];
         config: any;
@@ -9442,7 +8816,10 @@ declare module "VSS/Controls/TreeView" {
         private _ensureNodeId();
         private _sort(recursive, treeNodeComparer);
     }
-    export class TreeView extends Controls.BaseControl {
+    /**
+     * @publicapi
+     */
+    export class TreeViewO<TOptions extends ITreeOptions> extends Controls.Control<TOptions> {
         static _typeName: string;
         static NODE_DATA_NAME: string;
         static LEVEL_DATA_NAME: string;
@@ -9457,7 +8834,7 @@ declare module "VSS/Controls/TreeView" {
         _focusedNode: JQuery;
         private _popupMenu;
         rootNode: TreeNode;
-        _selectedNode: any;
+        _selectedNode: TreeNode;
         /**
          * Creates new Grid Control
          */
@@ -9468,19 +8845,35 @@ declare module "VSS/Controls/TreeView" {
         initializeOptions(options?: any): void;
         initialize(): void;
         _draw(): void;
-        _getNodeElement(node: any): JQuery;
         /**
-         * Get the node associated with the element
+         * Gets the DOM element associated with the specified node
+    
+         * @param node Node associated with the seeked DOM element
+         * @returns {JQuery}
+         */
+        _getNodeElement(node: TreeNode): JQuery;
+        /**
+         * Gets the node associated with the element
          *
          * @param $element The jQuery object wrapping the tree node's DOM element
-         * @return
+         * @returns {TreeNode}
          */
         _getNode($element: JQuery): TreeNode;
-        getSelectedNode(): any;
         /**
-         * @param suppressChangeEvent
+         * Gets the currently selected node
+         *
+         * @returns {TreeNode}
+         * @publicapi
          */
-        setSelectedNode(node: any, suppressChangeEvent?: boolean): void;
+        getSelectedNode(): TreeNode;
+        /**
+         * Sets the specified node as selected
+         
+         * @param node Node to be selected
+         * @param suppressChangeEvent If specified true, "selectionChanged" event will not fire
+         * @publicapi
+         */
+        setSelectedNode(node: TreeNode, suppressChangeEvent?: boolean): void;
         focus(): void;
         _expandNodeParents(node: any, suppressChangeEvent?: boolean): void;
         _updateSelections(): void;
@@ -9488,11 +8881,11 @@ declare module "VSS/Controls/TreeView" {
         /**
          * @param level
          */
-        _drawChildren(node: any, nodeElement: any, level?: number): void;
+        _drawChildren(node: TreeNode, nodeElement: any, level?: number): void;
         /**
          * @return
          */
-        _toggle(node: any, nodeElement: any, suppressChangeEvent?: boolean): any;
+        _toggle(node: TreeNode, nodeElement: any, suppressChangeEvent?: boolean): any;
         /**
          * Ensure the tree node's expansion state is set to a particular value
          *
@@ -9502,14 +8895,26 @@ declare module "VSS/Controls/TreeView" {
          * @return true = the node's expansion state was changed, false otherwise
          */
         _setNodeExpansion(node: TreeNode, nodeElement: JQuery, expand: boolean): boolean;
-        removeNode(node: any): void;
-        updateNode(node: any): void;
+        /**
+         * Removes the specified node from the tree
+         *
+         * @param node Node to be removed
+         * @publicapi
+         */
+        removeNode(node: TreeNode): void;
+        /**
+         * Update the specified node by refreshing the child nodes if anything is added or removed
+         *
+         * @param node Node to be updated
+         * @publicapi
+         */
+        updateNode(node: TreeNode): void;
         /**
          * @param e
          * @return
          */
-        onItemClick(node: any, nodeElement: any, e?: JQueryEventObject): any;
-        onShowPopupMenu(node: any, options?: any): void;
+        onItemClick(node: TreeNode, nodeElement: any, e?: JQueryEventObject): any;
+        onShowPopupMenu(node: TreeNode, options?: any): void;
         /**
          * Indicate whether the element that has focus should be styled differently.
          * The current focus element will be updated to match the new preference
@@ -9519,10 +8924,11 @@ declare module "VSS/Controls/TreeView" {
         enableFocusStyling(enabled: boolean): void;
         _setFocusElement(element: JQuery): void;
         /**
-         * Gets the node associated with the provided element.
+         * Gets the node associated with the provided DOM/JQuery element.
          *
          * @param element Element to get the node for.
-         * @return
+         * @return  {TreeNode}
+         * @publicapi
          */
         getNodeFromElement(element: any): TreeNode;
         private _drawNode(node, parentElement, level);
@@ -9581,6 +8987,8 @@ declare module "VSS/Controls/TreeView" {
         setDroppable(droppable: any): void;
         private _getFirstTabbableChild(nodeElement);
         private _setNodeElementExpandState(nodeElement, expand, hasChildren?);
+    }
+    export class TreeView extends TreeViewO<ITreeOptions> {
     }
     export class ComboTreeDropPopup extends CommonControls.ComboListDropPopup {
         dataSource: TreeDataSource;
@@ -9925,6 +9333,7 @@ declare module "VSS/DelegatedAuthorization/Contracts" {
         Confidential = 0,
         Public = 1,
         MediumTrust = 2,
+        FullTrust = 3,
     }
     export enum GrantType {
         None = 0,
@@ -10049,6 +9458,7 @@ declare module "VSS/DelegatedAuthorization/Contracts" {
                 "confidential": number;
                 "public": number;
                 "mediumTrust": number;
+                "fullTrust": number;
             };
         };
         GrantType: {
@@ -10490,6 +9900,35 @@ declare module "VSS/Diag" {
         static logInfo(message: string): void;
         static logVerbose(message: string): void;
     }
+    /**
+     * Performance telemetry.
+     */
+    export type PerformanceTelemetry = IDictionaryStringTo<number>;
+    /**
+     * Capture scenario-focused performance statistics, and display in major brower's dev tools, and send back to AI and CI.
+     */
+    export class Performance {
+        private _areaName;
+        private _scenario;
+        private _telemetryPosted;
+        constructor(areaName: string, scenario: string);
+        hasBeenPosted(): boolean;
+        getAreaName(): string;
+        getScenario(): string;
+        setPosted(telemetryPosted: boolean): void;
+        /**
+         *  Drop a performance mark.
+         */
+        mark(markName: string): void;
+        /**
+         * Returns telemetry to post or print.
+         */
+        getTelemetry(): PerformanceTelemetry;
+        /**
+         *  Log performance information.
+         */
+        log(): void;
+    }
 }
 declare module "VSS/Error" {
     /**
@@ -10498,10 +9937,6 @@ declare module "VSS/Error" {
     export function publishErrorToTelemetry(error: TfsError, immediate?: boolean): void;
 }
 declare module "VSS/ExtensionManagement/Contracts" {
-    export interface AppDataSetting {
-        key: string;
-        value: string;
-    }
     /**
      * An individual contribution made by an extension
      */
@@ -10552,19 +9987,6 @@ declare module "VSS/ExtensionManagement/Contracts" {
          * The extension-relative contribution id
          */
         relativeId: string;
-    }
-    /**
-     * A point to which extensions can make contributions
-     */
-    export interface ContributionPoint extends ContributionIdentifier {
-        /**
-         * Description of this contribution point
-         */
-        description: string;
-        /**
-         * Id of the contribution type of this point
-         */
-        type: string;
     }
     /**
      * Description about a property of a contribution type
@@ -10634,22 +10056,13 @@ declare module "VSS/ExtensionManagement/Contracts" {
         Object = 512,
     }
     /**
-     * Information about the provider of an extension
-     */
-    export interface ContributionProvider {
-        /**
-         * Name of the extension owner/provider
-         */
-        name: string;
-        /**
-         * Url of the extension owner/provider's website
-         */
-        website: string;
-    }
-    /**
      * A contribution type, given by a json schema
      */
     export interface ContributionType extends ContributionBase {
+        /**
+         * Controls whether or not contributions of this type have the type indexed for queries. This allows clients to find all extensions that have a contribution of this type.  NOTE: Only TrustedPartners are allowed to specify indexed contribution types.
+         */
+        indexed: boolean;
         /**
          * Friendly name of the contribution/type
          */
@@ -10719,23 +10132,6 @@ declare module "VSS/ExtensionManagement/Contracts" {
         Trusted = 2,
     }
     /**
-     * The state of an installed extension
-     */
-    export interface ExtensionInstallationState {
-        /**
-         * Whether or not the extension is currently enabled in a particular extension installation
-         */
-        enabled: boolean;
-        /**
-         * The time at which this installation was last updated
-         */
-        lastUpdated: Date;
-        /**
-         * Identifier of the user who last changed the installation state (install, enable, disable, etc.)
-         */
-        lastUpdatedBy: string;
-    }
-    /**
      * Base class for extension properties which are shared by the extension manifest and the extension model
      */
     export interface ExtensionManifest {
@@ -10764,91 +10160,6 @@ declare module "VSS/ExtensionManagement/Contracts" {
          */
         scopes: string[];
     }
-    /**
-     * Base class for extension properties which are shared by the extension manifest and the extension model
-     */
-    export interface ExtensionManifestOld {
-        /**
-         * Uri used as base for other relative uri's defined in extension
-         */
-        baseUri: string;
-        /**
-         * Dictionary of all contribution points keyed by contribution point id
-         */
-        contributionPoints: {
-            [key: string]: ContributionPoint;
-        };
-        /**
-         * Dictionary of all contributions (property bags) keyed by contribution point id
-         */
-        contributions: {
-            [key: string]: any[];
-        };
-        /**
-         * Dictionary of all contribution types keyed by contribution point type id
-         */
-        contributionTypes: {
-            [key: string]: any;
-        };
-        /**
-         * Description of the extension
-         */
-        description: string;
-        /**
-         * Url to the icon to use when displaying this extension
-         */
-        icon: string;
-        /**
-         * Friendly name of the extension
-         */
-        name: string;
-        /**
-         * Namespace identifier for an extension. For example, "vss.web". This serves as a prefix in references to this extension's contributions, contribution types, and contribution points.
-         */
-        namespace: string;
-        /**
-         * Information about the provider/owner of this extension
-         */
-        provider: ContributionProvider;
-        /**
-         * Version of this extension
-         */
-        version: string;
-        /**
-         * Url used to perform version checks for an extension
-         */
-        versionCheckUrl: string;
-    }
-    /**
-     * Represents a VSO "extension" which is a container for internal and 3rd party contributions and contribution points
-     */
-    export interface ExtensionOld extends ExtensionManifestOld {
-        /**
-         * Unique id for this extension (the same id is used for all versions of a single extension)
-         */
-        id: string;
-        /**
-         * Information about which store this extension is published and when/by-whom it was published
-         */
-        publishInfo: ExtensionPublishInfo;
-    }
-    /**
-     * Publishing information about an extension
-     */
-    export interface ExtensionPublishInfo {
-        /**
-         * When the extension was last updated
-         */
-        lastUpdated: Date;
-        /**
-         * Id of the user who published the extension
-         */
-        ownerId: string;
-        /**
-         * Store to which the extension is published
-         */
-        store: ExtensionStore;
-    }
     export enum ExtensionStateFlags {
         /**
          * No flags set
@@ -10876,37 +10187,6 @@ declare module "VSS/ExtensionManagement/Contracts" {
         VersionCheckError = 16,
     }
     /**
-     * Store into which extensions can be published
-     */
-    export interface ExtensionStore {
-        /**
-         * Type of extension store
-         */
-        extensionStoreType: ExtensionStoreType;
-        /**
-         * Unique identifier for this store
-         */
-        id: number;
-        /**
-         * Identifier for the target of the extension store. For a developer store, for example, this is the unique user id of the developer.
-         */
-        target: string;
-    }
-    export enum ExtensionStoreType {
-        /**
-         * Extension store type is unknown
-         */
-        Unknown = 0,
-        /**
-         * Store for builtin VSO extensions
-         */
-        BuiltIn = 1,
-        /**
-         * Store for an individual extension developer
-         */
-        Developer = 2,
-    }
-    /**
      * Represents a VSO extension along with its installation state
      */
     export interface InstalledExtension extends Extension {
@@ -10928,6 +10208,11 @@ declare module "VSS/ExtensionManagement/Contracts" {
          */
         lastUpdated: Date;
     }
+    export interface Scope {
+        description: string;
+        title: string;
+        value: string;
+    }
     /**
      * Information about the extension
      */
@@ -10946,9 +10231,6 @@ declare module "VSS/ExtensionManagement/Contracts" {
         version: string;
     }
     export var TypeInfo: {
-        AppDataSetting: {
-            fields: any;
-        };
         Contribution: {
             fields: any;
         };
@@ -10956,9 +10238,6 @@ declare module "VSS/ExtensionManagement/Contracts" {
             fields: any;
         };
         ContributionIdentifier: {
-            fields: any;
-        };
-        ContributionPoint: {
             fields: any;
         };
         ContributionPropertyDescription: {
@@ -10979,9 +10258,6 @@ declare module "VSS/ExtensionManagement/Contracts" {
                 "object": number;
             };
         };
-        ContributionProvider: {
-            fields: any;
-        };
         ContributionType: {
             fields: any;
         };
@@ -11000,19 +10276,7 @@ declare module "VSS/ExtensionManagement/Contracts" {
                 "trusted": number;
             };
         };
-        ExtensionInstallationState: {
-            fields: any;
-        };
         ExtensionManifest: {
-            fields: any;
-        };
-        ExtensionManifestOld: {
-            fields: any;
-        };
-        ExtensionOld: {
-            fields: any;
-        };
-        ExtensionPublishInfo: {
             fields: any;
         };
         ExtensionStateFlags: {
@@ -11025,20 +10289,13 @@ declare module "VSS/ExtensionManagement/Contracts" {
                 "versionCheckError": number;
             };
         };
-        ExtensionStore: {
-            fields: any;
-        };
-        ExtensionStoreType: {
-            enumValues: {
-                "unknown": number;
-                "builtIn": number;
-                "developer": number;
-            };
-        };
         InstalledExtension: {
             fields: any;
         };
         InstalledExtensionState: {
+            fields: any;
+        };
+        Scope: {
             fields: any;
         };
         SupportedExtension: {
@@ -11164,6 +10421,14 @@ declare module "VSS/ExtensionManagement/RestClient" {
         /**
          * [Preview API]
          *
+         * @param {string} extensionId
+         * @param {string} version
+         * @return IPromise<Contracts.Scope[]>
+         */
+        getScopes(extensionId: string, version: string): IPromise<Contracts.Scope[]>;
+        /**
+         * [Preview API]
+         *
          * @return IPromise<string>
          */
         getToken(): IPromise<string>;
@@ -11280,6 +10545,14 @@ declare module "VSS/ExtensionManagement/RestClient" {
          * @return IPromise<Contracts.InstalledExtension>
          */
         updateInstalledExtension(extension: Contracts.InstalledExtension, extensionId?: string): IPromise<Contracts.InstalledExtension>;
+        /**
+         * [Preview API]
+         *
+         * @param {string} extensionId
+         * @param {string} version
+         * @return IPromise<Contracts.Scope[]>
+         */
+        getScopes(extensionId: string, version: string): IPromise<Contracts.Scope[]>;
         /**
          * [Preview API]
          *
@@ -11850,6 +11123,10 @@ declare module "VSS/Gallery/Contracts" {
          * The catgeory is unlike other filters. It is AND'd with the other filters instead of being a seperate query.
          */
         Category = 5,
+        /**
+         * Certain contribution types may be indexed to allow for query by type. User defined types can't be indexed at the moment.
+         */
+        ContributionType = 6,
     }
     export enum ExtensionQueryFlags {
         /**
@@ -11880,6 +11157,10 @@ declare module "VSS/Gallery/Contracts" {
          * Excluding non-validated extensions will remove any extension versions that either are in the process of being validated or have failed validation.
          */
         ExcludeNonValidated = 32,
+        /**
+         * AllAttributes is designed to be a mask that defines all sub-elements of the extension should be returned.
+         */
+        AllAttributes = 31,
     }
     /**
      * This is the set of extensions that matched a supplied query through the filters given.
@@ -11964,7 +11245,7 @@ declare module "VSS/Gallery/Contracts" {
          */
         BuiltIn = 2,
         /**
-         * This extension has been validated by the service. The extension meets the requirements specified. This attribute is reserved and can't be supplied by the Extension Developers. Validation is a process that ensures that all contributions are well formed. They meet the requirements defined by the contribution type they are extending. Note this attribute will be updated asynchronously as the extension is validated by the developer of the contribution type. There will be restricted access to the extension while this process is performed.  @TODO: Link to extension verification requirements.
+         * This extension has been validated by the service. The extension meets the requirements specified. This attribute is reserved and can't be supplied by the Extension Developers. Validation is a process that ensures that all contributions are well formed. They meet the requirements defined by the contribution type they are extending. Note this attribute will be updated asynchronously as the extension is validated by the developer of the contribution type. There will be restricted access to the extension while this process is performed.
          */
         Validated = 4,
         /**
@@ -12153,6 +11434,7 @@ declare module "VSS/Gallery/Contracts" {
                 "private": number;
                 "id": number;
                 "category": number;
+                "contributionType": number;
             };
         };
         ExtensionQueryFlags: {
@@ -12164,6 +11446,7 @@ declare module "VSS/Gallery/Contracts" {
                 "includeSharedAccounts": number;
                 "includeVersionProperties": number;
                 "excludeNonValidated": number;
+                "allAttributes": number;
             };
         };
         ExtensionQueryResult: {
@@ -13827,6 +13110,9 @@ declare module "VSS/Identities/Picker/Services" {
         static DefaultUserImage: string;
         static DefaultVsoGroupImage: string;
         static DefaultAadGroupImage: string;
+        static VisualStudioDirectory: string;
+        static AzureActiveDirectory: string;
+        static SourceDirectory: string;
         /**
         *   Currently supports only AAD and Source (AAD for AAD-backed accounts, and IMS for MSA accounts/on-premise TFS)
         **/
@@ -14928,6 +14214,7 @@ declare module "VSS/SDK/Services/ExtensionData" {
         * @param documentOptions The scope in which the value is stored - default value is account-wide
         */
         deleteDocument(collectionName: string, id: string, documentOptions?: IDocumentOptions): IPromise<void>;
+        private _checkDocument(document);
         private _checkDocumentOptions(documentOptions);
     }
 }
@@ -15935,6 +15222,7 @@ declare module "VSS/Telemetry/Contracts" {
         name: string;
         token: string;
         tokenType: DelegatedAppTokenType;
+        validTo: Date;
     }
     export var TypeInfo: {
         CustomerIntelligenceEvent: {
@@ -15985,6 +15273,7 @@ declare module "VSS/Telemetry/RestClient" {
     export function getClient(): CustomerIntelligenceHttpClient2;
 }
 declare module "VSS/Telemetry/Services" {
+    import Diag = require("VSS/Diag");
     /**
     * Event data that can be published
     */
@@ -16020,6 +15309,13 @@ declare module "VSS/Telemetry/Services" {
     * @param immediate If true, make ajax calls to publish the event immediately. Otherwise queue the event and send in delayed batches.
     */
     export function publishEvent(eventData: TelemetryEventData, immediate?: boolean): void;
+    /**
+     * Publish performance data to the CustomerIntelligence service and App Insights.
+     *
+     * @param performanceData Performance data to publish.
+     * @param immediate If true, make ajax calls to publish the event immediately. Otherwise, queue the event and send in delayed batches.
+     */
+    export function publishPerformance(performanceData: Diag.Performance, immediate?: boolean): void;
 }
 declare module "VSS/Utils/Array" {
     /**
@@ -16419,7 +15715,7 @@ declare module "VSS/Utils/Date" {
         * @param ignoreTimeZone
         * @return
         */
-    export function parseLocale(value: string, formats?: string[]| string, ignoreTimeZone?: boolean): Date;
+    export function parseLocale(value: string, formats?: string[] | string, ignoreTimeZone?: boolean): Date;
     /**
         * @param date The Date object to format
         * @param format Date string format
@@ -17754,6 +17050,7 @@ declare module "VSS/WebApi/RestClient" {
         * @returns Q Promise for the response
         */
         _beginRequest<T>(requestParams: VssApiResourceRequestParams, useAjaxResult?: boolean): IPromise<T>;
+        private _autoNegotiateApiVersion(location, requestedVersion);
         private _beginRequestToResolvedUrl<T>(requestUrl, apiVersion, requestParams, deferred, useAjaxResult);
         /**
         * Issue a request to a VSS REST endpoint and makes sure the result contains jqXHR. Use spread to access jqXHR.
@@ -18828,6 +18125,7 @@ declare module "TFS/Build/Contracts" {
         branches: string[];
         daysToKeep: number;
         deleteBuildRecord: boolean;
+        deleteTestResults: boolean;
     }
     export interface Schedule {
         branchFilters: string[];
@@ -21004,6 +20302,10 @@ declare module "TFS/Dashboards/Contracts" {
         url: string;
         widgets: WidgetResponse[];
     }
+    export enum DashboardScope {
+        Collection_User = 0,
+        Project_Team = 1,
+    }
     /**
      * Widget data
      */
@@ -21012,13 +20314,34 @@ declare module "TFS/Dashboards/Contracts" {
          * Refers to unique identifier of a feature artifact. Used for pinning+unpinning a specific artifact.
          */
         artifactId: string;
+        configurationContributionId: string;
+        contentUri: string;
+        contributionId: string;
         id: string;
+        isEnabled: boolean;
+        isNameConfigurable: boolean;
+        loadingImageUrl: string;
         name: string;
         position: WidgetPosition;
-        settings: {
-            [key: string]: string;
-        };
+        settings: string;
         size: WidgetSize;
+        typeId: string;
+    }
+    /**
+     * For V1, this is just a pool of definitions describing our possible Widget Configurations.
+     */
+    export interface WidgetConfigurationMetadata {
+        /**
+         * The id of the underlying contribution defining the supplied Widget.
+         */
+        contributionId: string;
+        /**
+         * Contribution target IDs
+         */
+        targets: string[];
+        /**
+         * Dev-facing name of this kind of widget configuration. Each widget must use a unique value here.
+         */
         typeId: string;
     }
     /**
@@ -21030,6 +20353,14 @@ declare module "TFS/Dashboards/Contracts" {
          */
         allowedSizes: WidgetSize[];
         /**
+         * The id of the underlying contribution defining the supplied Widget custom configuration UI. Null if custom configuration UI is not available.
+         */
+        configurationContributionId: string;
+        /**
+         * Indicates if the widget requires configuration before being added to dashboard.
+         */
+        configurationRequired: boolean;
+        /**
          * Uri for the WidgetFactory to get the widget
          */
         contentUri: string;
@@ -21038,6 +20369,10 @@ declare module "TFS/Dashboards/Contracts" {
          */
         contributionId: string;
         /**
+         * Optional default settings to be copied into widget settings
+         */
+        defaultSettings: string;
+        /**
          * Summary information describing the widget.
          */
         description: string;
@@ -21045,6 +20380,10 @@ declare module "TFS/Dashboards/Contracts" {
          * Widgets can be disabled by the app store.  We'll need to gracefully handle for: - persistence (Allow) - Requests (Tag as disabled, and provide context)
          */
         isEnabled: boolean;
+        /**
+         * Opt-out boolean that indicates if the widget supports widget name/title configuration. Widgets ignoring the name should set it to false in the manifest.
+         */
+        isNameConfigurable: boolean;
         /**
          * Opt-out boolean indicating if the widget is hidden from the catalog.  For V1, only "pull" model widgets can be provided from the catalog.
          */
@@ -21061,6 +20400,10 @@ declare module "TFS/Dashboards/Contracts" {
          * Resource for a preview image in the widget Catalog.
          */
         previewImageUrl: string;
+        /**
+         * Data contract required for the widget to function and to work in its container.
+         */
+        supportedScopes: WidgetScope[];
         /**
          * Dev-facing name of this kind of widget. Each widget must use a unique value here.
          */
@@ -21079,11 +20422,11 @@ declare module "TFS/Dashboards/Contracts" {
      */
     export interface WidgetResponse extends Widget {
         _links: any;
-        contentUri: string;
-        contributionId: string;
-        isEnabled: boolean;
-        loadingImageUrl: string;
         url: string;
+    }
+    export enum WidgetScope {
+        Collection_User = 0,
+        Project_Team = 1,
     }
     export interface WidgetSize {
         columnSpan: number;
@@ -21112,7 +20455,16 @@ declare module "TFS/Dashboards/Contracts" {
         DashboardResponse: {
             fields: any;
         };
+        DashboardScope: {
+            enumValues: {
+                "collection_User": number;
+                "project_Team": number;
+            };
+        };
         Widget: {
+            fields: any;
+        };
+        WidgetConfigurationMetadata: {
             fields: any;
         };
         WidgetMetadata: {
@@ -21127,6 +20479,12 @@ declare module "TFS/Dashboards/Contracts" {
         WidgetResponse: {
             fields: any;
         };
+        WidgetScope: {
+            enumValues: {
+                "collection_User": number;
+                "project_Team": number;
+            };
+        };
         WidgetSize: {
             fields: any;
         };
@@ -21134,6 +20492,127 @@ declare module "TFS/Dashboards/Contracts" {
             fields: any;
         };
     };
+}
+declare module "TFS/Dashboards/Controls" {
+    import Contracts_Platform = require("VSS/Common/Contracts/Platform");
+    import Contracts = require("TFS/Dashboards/Contracts");
+    import Dashboards_UIContracts = require("TFS/Dashboards/UIContracts");
+    export module DashboardContributions {
+        var WidgetCatalogDialog: string;
+        var AddWidgetButton: string;
+        var DashboardGrid: string;
+    }
+    export interface IWidgetCatalogDialog {
+    }
+    export interface WidgetCatalogDialogOptions {
+        /**
+         *  when the ok is clicked on the catalog, widgets chosen is provided back to the caller.
+         */
+        onOkCallback: (widget: Contracts.Widget[]) => void;
+        /**
+         *  the data contract that the catalog will use to populate with widgets to add to a dashboard.
+         */
+        scope: Contracts.WidgetScope;
+    }
+    /**
+    * Control showing the widget catalog dialog control
+    */
+    export module WidgetCatalogDialog {
+        var contributionId: string;
+        /**
+        * Create an instance of the widget catalog dialog control
+        *
+        * @param $container Container element to create the widget catalog dialog control in (dialog is appended to this element)
+        * @param options widget catalog dialog control options
+        * @param webContext Optional web context to scope the control to
+        */
+        function create($container: JQuery, options?: WidgetCatalogDialogOptions, webContext?: Contracts_Platform.WebContext): IPromise<IWidgetCatalogDialog>;
+    }
+    export interface IAddWidgetButton {
+    }
+    export interface AddWidgetButtonOptions {
+        /**
+         *  method that handles the widget button click event
+         */
+        clickHandler: (eventObject: JQueryEventObject) => void;
+        /**
+         *  method that handles the hover in event for the widget button
+         */
+        hoverInHandler?: (eventObject: JQueryEventObject) => void;
+        /**
+         *  method that handles the hover out event for the widget button
+         */
+        hoverOutHandler?: (eventObject: JQueryEventObject) => void;
+    }
+    export module AddWidgetButton {
+        var contributionId: string;
+        /**
+        * Create an instance of the widget catalog dialog control
+        *
+        * @param $container Container element to create the widget catalog dialog control in (dialog is appended to this element)
+        * @param options widget catalog dialog control options
+        * @param webContext Optional web context to scope the control to
+        */
+        function create($container: JQuery, options?: AddWidgetButtonOptions, webContext?: Contracts_Platform.WebContext): IPromise<IAddWidgetButton>;
+    }
+    export interface IDashboardGrid {
+        /**
+         * Add a widget into the dashboard
+         */
+        addWidget(widget: Contracts.Widget): any;
+        /**
+         * Add multiple widgets to the dashboard.
+         */
+        addWidgets(widget: Contracts.Widget[]): any;
+        /**
+        * Update widget state by providing its settings
+        */
+        refreshWidgetSettings(widget: Contracts.Widget, settings: Dashboards_UIContracts.ISettings): any;
+    }
+    export interface IDashboardPermissions {
+        /**
+         *{ boolean } canEdit - have the permission to edit the dashboard. THis includes drag and drop and saving the dashboard.
+         */
+        canEdit: boolean;
+    }
+    export interface DashboardGridOptions {
+        /**
+        * Unique identifier for a dashboard
+        */
+        id: string;
+        /**
+        * key to identify dashboard storage model.  This is used in concert with the scope to decide how to store the dashboard.
+        */
+        storageKey: string;
+        /**
+        * contract associated with the permission and storage model for the dashboard.
+        */
+        scope: Contracts.DashboardScope;
+        /**
+         * permissions container for the dashboard.
+         */
+        dashboardPermission: IDashboardPermissions;
+        /**
+         * Dashboard's Widgets
+         */
+        initialWidgets?: Contracts.Widget[];
+        /**
+         * Call the configuration for a WidgetHost
+         * @param widgetHost - The widgethost that contain the widsget to configure
+         */
+        configureWidget(widgetHost: Dashboards_UIContracts.IWidgetHost): void;
+    }
+    export module DashboardGrid {
+        var contributionId: string;
+        /**
+        * Create an instance of the dashboard grid control
+        *
+        * @param $container Container element to create the dashboard grid control
+        * @param options dashboard grid control options
+        * @param webContext Optional web context to scope the control to
+        */
+        function create($container: JQuery, options?: DashboardGridOptions, webContext?: Contracts_Platform.WebContext): IPromise<IDashboardGrid>;
+    }
 }
 declare module "TFS/Dashboards/RestClient" {
     import Contracts = require("TFS/Dashboards/Contracts");
@@ -21144,97 +20623,97 @@ declare module "TFS/Dashboards/RestClient" {
          * [Preview API]
          *
          * @param {Contracts.DashboardGroupEntry} entry
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardGroupEntryResponse>
          */
-        createDashboard(entry: Contracts.DashboardGroupEntry, project: string, groupId: string): IPromise<Contracts.DashboardGroupEntryResponse>;
+        createDashboard(entry: Contracts.DashboardGroupEntry, groupId: string, project?: string): IPromise<Contracts.DashboardGroupEntryResponse>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
+         * @param {string} project - Project ID or project name
          * @return IPromise<void>
          */
-        deleteDashboard(project: string, groupId: string, dashboardId: string): IPromise<void>;
+        deleteDashboard(groupId: string, dashboardId: string, project?: string): IPromise<void>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardResponse>
          */
-        getDashboard(project: string, groupId: string, dashboardId: string): IPromise<Contracts.DashboardResponse>;
+        getDashboard(groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
         /**
          * [Preview API]
          *
          * @param {Contracts.Dashboard} dashboard
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardResponse>
          */
-        replaceDashboard(dashboard: Contracts.Dashboard, project: string, groupId: string, dashboardId: string): IPromise<Contracts.DashboardResponse>;
+        replaceDashboard(dashboard: Contracts.Dashboard, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardGroupResponse>
          */
-        getDashboardGroup(project: string, groupId: string): IPromise<Contracts.DashboardGroupResponse>;
+        getDashboardGroup(groupId: string, project?: string): IPromise<Contracts.DashboardGroupResponse>;
         /**
          * [Preview API]
          *
          * @param {Contracts.DashboardGroup} group
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardGroupResponse>
          */
-        replaceDashboardGroup(group: Contracts.DashboardGroup, project: string, groupId: string): IPromise<Contracts.DashboardGroupResponse>;
+        replaceDashboardGroup(group: Contracts.DashboardGroup, groupId: string, project?: string): IPromise<Contracts.DashboardGroupResponse>;
         /**
          * [Preview API]
          *
          * @param {Contracts.Widget} widget
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.WidgetResponse>
          */
-        createWidget(widget: Contracts.Widget, project: string, groupId: string, dashboardId: string): IPromise<Contracts.WidgetResponse>;
+        createWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.WidgetResponse>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
          * @param {string} widgetId
+         * @param {string} project - Project ID or project name
          * @return IPromise<void>
          */
-        deleteWidget(project: string, groupId: string, dashboardId: string, widgetId: string): IPromise<void>;
+        deleteWidget(groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<void>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
          * @param {string} widgetId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.WidgetResponse>
          */
-        getWidget(project: string, groupId: string, dashboardId: string, widgetId: string): IPromise<Contracts.WidgetResponse>;
+        getWidget(groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
         /**
          * [Preview API]
          *
          * @param {Contracts.Widget} widget
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
          * @param {string} widgetId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.WidgetResponse>
          */
-        updateWidget(widget: Contracts.Widget, project: string, groupId: string, dashboardId: string, widgetId: string): IPromise<Contracts.WidgetResponse>;
+        updateWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
         /**
          * [Preview API]
          *
@@ -21243,11 +20722,12 @@ declare module "TFS/Dashboards/RestClient" {
          */
         getWidgetMetadata(typeId: string): IPromise<Contracts.WidgetMetadataResponse>;
         /**
-         * [Preview API]
+         * [Preview API] Returns available widgets in alphabetical order.
          *
+         * @param {Contracts.WidgetScope} scope
          * @return IPromise<Contracts.WidgetTypesResponse>
          */
-        getWidgetTypes(): IPromise<Contracts.WidgetTypesResponse>;
+        getWidgetTypes(scope: Contracts.WidgetScope): IPromise<Contracts.WidgetTypesResponse>;
     }
     export class DashboardHttpClient2 extends VSS_WebApi.VssHttpClient {
         constructor(rootRequestPath: string);
@@ -21255,97 +20735,97 @@ declare module "TFS/Dashboards/RestClient" {
          * [Preview API]
          *
          * @param {Contracts.DashboardGroupEntry} entry
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardGroupEntryResponse>
          */
-        createDashboard(entry: Contracts.DashboardGroupEntry, project: string, groupId: string): IPromise<Contracts.DashboardGroupEntryResponse>;
+        createDashboard(entry: Contracts.DashboardGroupEntry, groupId: string, project?: string): IPromise<Contracts.DashboardGroupEntryResponse>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
+         * @param {string} project - Project ID or project name
          * @return IPromise<void>
          */
-        deleteDashboard(project: string, groupId: string, dashboardId: string): IPromise<void>;
+        deleteDashboard(groupId: string, dashboardId: string, project?: string): IPromise<void>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardResponse>
          */
-        getDashboard(project: string, groupId: string, dashboardId: string): IPromise<Contracts.DashboardResponse>;
+        getDashboard(groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
         /**
          * [Preview API]
          *
          * @param {Contracts.Dashboard} dashboard
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardResponse>
          */
-        replaceDashboard(dashboard: Contracts.Dashboard, project: string, groupId: string, dashboardId: string): IPromise<Contracts.DashboardResponse>;
+        replaceDashboard(dashboard: Contracts.Dashboard, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.DashboardResponse>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardGroupResponse>
          */
-        getDashboardGroup(project: string, groupId: string): IPromise<Contracts.DashboardGroupResponse>;
+        getDashboardGroup(groupId: string, project?: string): IPromise<Contracts.DashboardGroupResponse>;
         /**
          * [Preview API]
          *
          * @param {Contracts.DashboardGroup} group
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.DashboardGroupResponse>
          */
-        replaceDashboardGroup(group: Contracts.DashboardGroup, project: string, groupId: string): IPromise<Contracts.DashboardGroupResponse>;
+        replaceDashboardGroup(group: Contracts.DashboardGroup, groupId: string, project?: string): IPromise<Contracts.DashboardGroupResponse>;
         /**
          * [Preview API]
          *
          * @param {Contracts.Widget} widget
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.WidgetResponse>
          */
-        createWidget(widget: Contracts.Widget, project: string, groupId: string, dashboardId: string): IPromise<Contracts.WidgetResponse>;
+        createWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, project?: string): IPromise<Contracts.WidgetResponse>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
          * @param {string} widgetId
+         * @param {string} project - Project ID or project name
          * @return IPromise<void>
          */
-        deleteWidget(project: string, groupId: string, dashboardId: string, widgetId: string): IPromise<void>;
+        deleteWidget(groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<void>;
         /**
          * [Preview API]
          *
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
          * @param {string} widgetId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.WidgetResponse>
          */
-        getWidget(project: string, groupId: string, dashboardId: string, widgetId: string): IPromise<Contracts.WidgetResponse>;
+        getWidget(groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
         /**
          * [Preview API]
          *
          * @param {Contracts.Widget} widget
-         * @param {string} project - Project ID or project name
          * @param {string} groupId
          * @param {string} dashboardId
          * @param {string} widgetId
+         * @param {string} project - Project ID or project name
          * @return IPromise<Contracts.WidgetResponse>
          */
-        updateWidget(widget: Contracts.Widget, project: string, groupId: string, dashboardId: string, widgetId: string): IPromise<Contracts.WidgetResponse>;
+        updateWidget(widget: Contracts.Widget, groupId: string, dashboardId: string, widgetId: string, project?: string): IPromise<Contracts.WidgetResponse>;
         /**
          * [Preview API]
          *
@@ -21354,11 +20834,12 @@ declare module "TFS/Dashboards/RestClient" {
          */
         getWidgetMetadata(typeId: string): IPromise<Contracts.WidgetMetadataResponse>;
         /**
-         * [Preview API]
+         * [Preview API] Returns available widgets in alphabetical order.
          *
+         * @param {Contracts.WidgetScope} scope
          * @return IPromise<Contracts.WidgetTypesResponse>
          */
-        getWidgetTypes(): IPromise<Contracts.WidgetTypesResponse>;
+        getWidgetTypes(scope: Contracts.WidgetScope): IPromise<Contracts.WidgetTypesResponse>;
     }
     export class DashboardHttpClient extends DashboardHttpClient3 {
         constructor(rootRequestPath: string);
@@ -21370,142 +20851,125 @@ declare module "TFS/Dashboards/RestClient" {
      */
     export function getClient(): DashboardHttpClient2;
 }
-declare module "TFS/Dashboards/Widget" {
-    import Controls = require("VSS/Controls");
+declare module "TFS/Dashboards/UIContracts" {
     import TFS_Dashboards_Contracts = require("TFS/Dashboards/Contracts");
     /**
-     * Constants that are used by the grid to place widgets
-     */
-    export class WidgetConstants {
-        /**
-        * Cell width of the grid that is used to draw the widgets, this includes the border around the widget (i.e. this is the size of the div, border included)
-        */
-        static cellWidth: number;
-        /**
-        * Cell height of the grid that is used to draw the widgets, this includes the border around the widget (i.e. this is the size of the div, border included)
-        */
-        static cellHeight: number;
-        /**
-        * Cell gutter width between the cells that is used to draw the widget, this excludes the border around the widget (i.e. this is distance between widgets)
-        */
-        static cellMarginWidth: number;
-        /**
-        * Cell gutter height between the cells that is used to draw the widget, this excludes the border around the widget  (i.e. this is distance between widgets)
-        */
-        static cellMarginHeight: number;
-    }
-    export interface IWidgetHost {
-        notifyLoadSucceeded(): void;
-        notifyLoadFailed(error: string): void;
-        notifyLoadFailedDetailed(error: WidgetErrorDetails): void;
-    }
-    export interface WidgetOptions {
-        widgetContext: WidgetContext;
-    }
-    export class WidgetErrorType {
-        static RestCall: string;
-        static RestAuthentication: string;
-        static Render: string;
-    }
-    export interface WidgetErrorDetails {
-        errorType: string;
-        message: string;
-        widgetName: string;
-    }
-    /**
-     * Utility class that convert size for widget
-     */
-    export class WidgetSizeConverter {
-        static borderSize: number;
-        /**
-        * Calculates 1x1 widget width, not including border.
-        */
-        static getWidgetWidth(): number;
-        /**
-        * Calculates 1x1 widget height, not including border.
-        */
-        static getWidgetHeight(): number;
-        /**
-        * Calculates widget gutter width, including border
-        */
-        static getWidgetMarginWidth(): number;
-        /**
-        * Calculates widget gutter height, including border
-        */
-        static getWidgetMarginHeight(): number;
-        /**
-        * Calculates a dimension in pixels, given widget cell size and grid dimensions
-        * @returns size in pixels
-        */
-        static calculatePixelSize(cellCount: any, gridCellSize: any, gridMarginSize: any): number;
-        /**
-        * Converts widget column size into pixels
-        * @returns pixel width
-        */
-        static columnsToPixelWidth(columnCount: number): number;
-        /**
-        * Converts widget row size into pixels
-        * @returns pixel height
-        */
-        static rowsToPixelHeight(rowCount: number): number;
-    }
-    /**
-    * Exposes state for a particular Widget.
-    * Provides API for interactions from that widget.
-    * Decouples the detailed representation of the REST API from widget implementers.
+    * Type of error returned by a widget to the server.
+    * TODO: this list should be properly flushed out for public use.
     */
-    export class WidgetContext {
-        private _widget;
-        private _widgetHost;
+    export enum WidgetErrorType {
         /**
-        * method that returns widget context information from the host
-        * @param {Controls.BaseControl} widgetControl
-        * @return WidgetContext
+        * Server Side Error when making a REST API Call for data (e.g. bad request, invalid or empty data etc)
         */
-        static getInstance(widgetControl: Controls.BaseControl): WidgetContext;
+        RestCall = 0,
         /**
-        * instantiates the WidgetContext. If you don't have a widget object, call getInstance().
+        * Auth issues when connecting to an API.
         */
-        constructor(widget: TFS_Dashboards_Contracts.Widget, widgetHost: IWidgetHost);
+        RestAuthentication = 1,
         /**
-        * Get size of this widget.
-        * @returns WidgetSize
+        * Failures when rendering the widget, due to issues while working with the dom.
         */
-        getSize(): TFS_Dashboards_Contracts.WidgetSize;
+        Render = 2,
+    }
+    /**
+    * Provides detailed representation for an error in the widget that is sent to the host by the widget.
+    */
+    export interface IWidgetErrorDetails {
         /**
-        * Get Name of this particular widget
-        * @returns string
+        * Type of error thrown by the widget. Refer to WidgetErrorType for details.
         */
-        getName(): string;
+        errorType: WidgetErrorType;
         /**
-        * Get TypeId of this widget
-        * @returns string
+        * notify the widget host that this widget failed and provide any errors to be displayed on the error overlay.
         */
-        getTypeId(): string;
+        message: string;
         /**
-        * Get settings of this widget
-        * @returns IDictionaryStringTo<string>
+        * notify the widget host that this widget failed and provide any errors to be displayed on the error overlay.
         */
-        getSettings(): IDictionaryStringTo<string>;
+        widgetName: string;
         /**
-        * Get feature supplied identification of this widget.
-        * @returns string
+        * VS Code associated with an error to present on the error overlay experience. It is optional.
         */
-        getPinningId(): string;
+        errorCode?: string;
+    }
+    /**
+    * Provides API for interactions with the widget hosting container.
+    */
+    export interface IWidgetHost {
         /**
         * Notify the widget host that this widget finished loading and is ready to display
         */
-        notifyLoadSucceeded(): void;
+        notifyLoadSucceeded: () => void;
         /**
         * notify the widget host that this widget failed and provide any errors to be displayed on the error overlay.
-        * @param {string} error - Information provided by the widget on failure for user facing diagnostics.
         */
-        notifyLoadFailed(error: string): void;
+        notifyLoadFailed: (error: string) => void;
         /**
         * notify the widget host that this widget failed and provide any errors to be displayed on the error overlay.
-        * @param {WidgetErrorDetails} error - Information provided by the widget on failure for user facing diagnostics.
         */
-        notifyLoadFailedDetailed(error: WidgetErrorDetails): void;
+        notifyLoadFailedDetailed: (error: IWidgetErrorDetails) => void;
+        /**
+        *
+        */
+        getWidget: () => TFS_Dashboards_Contracts.WidgetResponse;
+        /**
+         * User register to this call back to do what they want to the new settings
+         * @param {ISettings} settings : Complete list of settings (changed or not)
+         */
+        refreshCallBack: (settings: ISettings) => void;
+        /**
+         * Call from the configuration framework to notify that some settings has been changed. This will
+         * call the client callback to have this one refresh the way he wants (complete refresh or partial).
+         * @param {string} setting - All settings
+         */
+        refresh(settings: ISettings): void;
+    }
+    export interface IGeneralSettings {
+        WidgetName: string;
+    }
+    export interface ISettings {
+        generalSettings: IGeneralSettings;
+        customSettings: string;
+    }
+    /**
+    * Exposes state for a particular Widget. Decouples the detailed representation of the REST API from widget implementers.
+    */
+    export interface IWidgetState {
+        /**
+        * Get size of this widget.
+        */
+        getSize: () => TFS_Dashboards_Contracts.WidgetSize;
+        /**
+        * Get Name of this particular widget
+        */
+        getName: () => string;
+        /**
+        * Get TypeId of this widget
+        */
+        getTypeId: () => string;
+        /**
+        * Get settings of this widget
+        */
+        getSettings: () => string;
+        /**
+        * Get feature supplied identification of this widget.
+        * TODO: this method interface needs to be deprecated as part of the public contract or promoted with a clearer detail on public contract.
+        */
+        getPinningId: () => string;
+    }
+    /**
+    * Interface representing the context of a widget, with access to its state as well as interactivity with the host.
+    */
+    export interface IWidgetContext extends IWidgetState, IWidgetHost {
+    }
+    /**
+    * Init payload container, which allows us to avoid unintentional param collisions.
+    */
+    export interface WidgetOptions {
+        /**
+        * context of a widget, with access to its state as well as interactivity with the host.
+        */
+        widgetContext: IWidgetContext;
     }
 }
 declare module "TFS/Discussion/Contracts" {
@@ -21839,6 +21303,10 @@ declare module "TFS/DistributedTask/Contracts" {
         eventType: string;
         pool: TaskAgentPool;
     }
+    export interface AgentQueueEvent {
+        eventType: string;
+        queue: TaskAgentQueue;
+    }
     export interface AgentRefreshMessage {
         agentId: number;
         timeout: any;
@@ -21958,6 +21426,7 @@ declare module "TFS/DistributedTask/Contracts" {
      * Represents an endpoint which may be used by an orchestration job.
      */
     export interface ServiceEndpoint {
+        administratorsGroup: VSS_Common_Contracts.IdentityRef;
         /**
          * Gets or sets the authorization data for talking to the endpoint.
          */
@@ -21973,6 +21442,7 @@ declare module "TFS/DistributedTask/Contracts" {
          * Gets or Sets description of endpoint
          */
         description: string;
+        groupScopeId: string;
         /**
          * Gets or sets the identifier of this endpoint.
          */
@@ -21981,6 +21451,7 @@ declare module "TFS/DistributedTask/Contracts" {
          * Gets or sets the friendly name of the endpoint.
          */
         name: string;
+        readersGroup: VSS_Common_Contracts.IdentityRef;
         /**
          * Gets or sets the type of the endpoint.
          */
@@ -22081,6 +21552,11 @@ declare module "TFS/DistributedTask/Contracts" {
         name: string;
         scope: string;
     }
+    export interface TaskAgentQueue {
+        id: number;
+        name: string;
+        pool: TaskAgentPoolReference;
+    }
     export interface TaskAgentReference {
         /**
          * Gets the identifier of the agent.
@@ -22106,6 +21582,14 @@ declare module "TFS/DistributedTask/Contracts" {
     export enum TaskAgentStatus {
         Offline = 1,
         Online = 2,
+    }
+    export interface TaskAttachment {
+        _links: any;
+        createdOn: Date;
+        lastChangedBy: string;
+        lastChangedOn: Date;
+        name: string;
+        type: string;
     }
     export interface TaskDefinition {
         agentExecution: TaskExecution;
@@ -22415,6 +21899,9 @@ declare module "TFS/DistributedTask/Contracts" {
         AgentPoolEvent: {
             fields: any;
         };
+        AgentQueueEvent: {
+            fields: any;
+        };
         AgentRefreshMessage: {
             fields: any;
         };
@@ -22490,6 +21977,9 @@ declare module "TFS/DistributedTask/Contracts" {
         TaskAgentPoolReference: {
             fields: any;
         };
+        TaskAgentQueue: {
+            fields: any;
+        };
         TaskAgentReference: {
             fields: any;
         };
@@ -22501,6 +21991,9 @@ declare module "TFS/DistributedTask/Contracts" {
                 "offline": number;
                 "online": number;
             };
+        };
+        TaskAttachment: {
+            fields: any;
         };
         TaskDefinition: {
             fields: any;
@@ -22792,6 +22285,34 @@ declare module "TFS/DistributedTask/TaskAgentRestClient" {
         /**
          * [Preview API]
          *
+         * @param {Contracts.TaskAgentQueue} queue
+         * @return IPromise<Contracts.TaskAgentQueue>
+         */
+        createQueue(queue: Contracts.TaskAgentQueue): IPromise<Contracts.TaskAgentQueue>;
+        /**
+         * [Preview API]
+         *
+         * @param {number} queueId
+         * @return IPromise<void>
+         */
+        deleteQueue(queueId: number): IPromise<void>;
+        /**
+         * [Preview API]
+         *
+         * @param {number} queueId
+         * @return IPromise<Contracts.TaskAgentQueue>
+         */
+        getQueue(queueId: number): IPromise<Contracts.TaskAgentQueue>;
+        /**
+         * [Preview API]
+         *
+         * @param {string} queueName
+         * @return IPromise<Contracts.TaskAgentQueue[]>
+         */
+        getQueues(queueName?: string): IPromise<Contracts.TaskAgentQueue[]>;
+        /**
+         * [Preview API]
+         *
          * @param {number} poolId
          * @return IPromise<VSS_Common_Contracts.IdentityRef[]>
          */
@@ -23035,6 +22556,34 @@ declare module "TFS/DistributedTask/TaskAgentRestClient" {
          */
         updatePool(pool: Contracts.TaskAgentPool, poolId: number): IPromise<Contracts.TaskAgentPool>;
         /**
+         * [Preview API]
+         *
+         * @param {Contracts.TaskAgentQueue} queue
+         * @return IPromise<Contracts.TaskAgentQueue>
+         */
+        createQueue(queue: Contracts.TaskAgentQueue): IPromise<Contracts.TaskAgentQueue>;
+        /**
+         * [Preview API]
+         *
+         * @param {number} queueId
+         * @return IPromise<void>
+         */
+        deleteQueue(queueId: number): IPromise<void>;
+        /**
+         * [Preview API]
+         *
+         * @param {number} queueId
+         * @return IPromise<Contracts.TaskAgentQueue>
+         */
+        getQueue(queueId: number): IPromise<Contracts.TaskAgentQueue>;
+        /**
+         * [Preview API]
+         *
+         * @param {string} queueName
+         * @return IPromise<Contracts.TaskAgentQueue[]>
+         */
+        getQueues(queueName?: string): IPromise<Contracts.TaskAgentQueue[]>;
+        /**
          * @param {number} poolId
          * @return IPromise<VSS_Common_Contracts.IdentityRef[]>
          */
@@ -23138,6 +22687,42 @@ declare module "TFS/DistributedTask/TaskRestClient" {
     import VSS_WebApi = require("VSS/WebApi/RestClient");
     export class TaskHttpClient3 extends VSS_WebApi.VssHttpClient {
         constructor(rootRequestPath: string);
+        /**
+         * [Preview API]
+         *
+         * @param {string} scopeIdentifier - The project GUID to scope the request
+         * @param {string} hubName - The name of the server hub: "build" for the Build server or "rm" for the Release Management server
+         * @param {string} planId
+         * @param {string} type
+         * @return IPromise<TFS_DistributedTask_Contracts.TaskAttachment[]>
+         */
+        getPlanAttachments(scopeIdentifier: string, hubName: string, planId: string, type: string): IPromise<TFS_DistributedTask_Contracts.TaskAttachment[]>;
+        /**
+         * [Preview API]
+         *
+         * @param {string} content
+         * @param {string} scopeIdentifier - The project GUID to scope the request
+         * @param {string} hubName - The name of the server hub: "build" for the Build server or "rm" for the Release Management server
+         * @param {string} planId
+         * @param {string} timelineId
+         * @param {string} recordId
+         * @param {string} type
+         * @param {string} name
+         * @return IPromise<TFS_DistributedTask_Contracts.TaskAttachment>
+         */
+        createAttachment(content: string, scopeIdentifier: string, hubName: string, planId: string, timelineId: string, recordId: string, type: string, name: string): IPromise<TFS_DistributedTask_Contracts.TaskAttachment>;
+        /**
+         * [Preview API]
+         *
+         * @param {string} scopeIdentifier - The project GUID to scope the request
+         * @param {string} hubName - The name of the server hub: "build" for the Build server or "rm" for the Release Management server
+         * @param {string} planId
+         * @param {string} timelineId
+         * @param {string} recordId
+         * @param {string} type
+         * @return IPromise<TFS_DistributedTask_Contracts.TaskAttachment[]>
+         */
+        getAttachments(scopeIdentifier: string, hubName: string, planId: string, timelineId: string, recordId: string, type: string): IPromise<TFS_DistributedTask_Contracts.TaskAttachment[]>;
         /**
          * [Preview API]
          *
@@ -23400,6 +22985,17 @@ declare module "TFS/DistributedTask/TaskRestClient" {
 }
 declare module "TFS/TestManagement/Contracts" {
     import VSS_Common_Contracts = require("VSS/WebApi/Contracts");
+    export interface AggregatedResultsByPivot {
+        count: number;
+        duration: any;
+        pivot: string;
+    }
+    export interface AggregatedTestResults {
+        duration: any;
+        resultsByPivot: AggregatedResultsByPivot[];
+        self: ShallowReference;
+        totalTests: number;
+    }
     export enum AttachmentType {
         GeneralAttachment = 0,
         AfnStrip = 1,
@@ -23432,6 +23028,69 @@ declare module "TFS/TestManagement/Contracts" {
         modules: ModuleCoverage[];
         state: string;
     }
+    /**
+     * Represents the build configuration (platform, flavor) and coverage data for the build
+     */
+    export interface CodeCoverageData {
+        /**
+         * Flavor of build for which data is retrieved/published
+         */
+        buildFlavor: string;
+        /**
+         * Platform of build for which data is retrieved/published
+         */
+        buildPlatform: string;
+        /**
+         * List of coverage data for the build
+         */
+        coverageStats: CodeCoverageStatistics[];
+    }
+    /**
+     * Represents the code coverage statistics for a particular coverage label (modules, statements, blocks, etc.)
+     */
+    export interface CodeCoverageStatistics {
+        /**
+         * Covered units
+         */
+        covered: number;
+        /**
+         * Delta of coverage
+         */
+        delta: number;
+        /**
+         * Is delta valid
+         */
+        isDeltaAvailable: boolean;
+        /**
+         * Label of coverage data ("Blocks", "Statements", "Modules", etc.)
+         */
+        label: string;
+        /**
+         * Position of label
+         */
+        position: number;
+        /**
+         * Total units
+         */
+        total: number;
+    }
+    /**
+     * Represents the code coverage summary results Used to publish or retrieve code coverage summary against a build
+     */
+    export interface CodeCoverageSummary {
+        /**
+         * Uri of build for which data is retrieved/published
+         */
+        build: ShallowReference;
+        /**
+         * List of coverage data and details for the build
+         */
+        coverageData: CodeCoverageData[];
+        /**
+         * Uri of build against which difference in coverage is computed
+         */
+        deltaBuild: ShallowReference;
+    }
     export enum CoverageQueryFlags {
         /**
          * If set, the Coverage.Modules property will be populated.
@@ -23452,6 +23111,31 @@ declare module "TFS/TestManagement/Contracts" {
         linesCovered: number;
         linesNotCovered: number;
         linesPartiallyCovered: number;
+    }
+    export interface CustomTestField {
+        fieldName: string;
+        value: any;
+    }
+    export interface CustomTestFieldDefinition {
+        fieldId: number;
+        fieldName: string;
+        fieldType: CustomTestFieldType;
+        scope: CustomTestFieldScope;
+    }
+    export enum CustomTestFieldScope {
+        None = 0,
+        TestRun = 1,
+        TestResult = 2,
+        System = 4,
+        All = 7,
+    }
+    export enum CustomTestFieldType {
+        Bit = 2,
+        Int = 8,
+        Float = 6,
+        Guid = 14,
+        DateTime = 4,
+        String = 12,
     }
     /**
      * This is a temporary class to provide the details for the test run environment.
@@ -23531,6 +23215,7 @@ declare module "TFS/TestManagement/Contracts" {
         revision: number;
     }
     export interface RunCreateModel {
+        additionalTestFields: CustomTestField[];
         automated: boolean;
         build: ShallowReference;
         buildDropLocation: string;
@@ -23646,6 +23331,7 @@ declare module "TFS/TestManagement/Contracts" {
         stream: string;
     }
     export interface TestCaseResult {
+        additionalFields: CustomTestField[];
         afnStripId: number;
         area: ShallowReference;
         associatedBugs: ShallowReference[];
@@ -23676,6 +23362,7 @@ declare module "TFS/TestManagement/Contracts" {
         resolutionStateId: number;
         revision: number;
         runBy: VSS_Common_Contracts.IdentityRef;
+        stackTrace: string;
         startedDate: Date;
         state: string;
         testCase: ShallowReference;
@@ -23717,6 +23404,7 @@ declare module "TFS/TestManagement/Contracts" {
     export interface TestCaseResultIdentifier {
     }
     export interface TestCaseResultUpdateModel {
+        additionalFields: CustomTestField[];
         associatedWorkItems: number[];
         automatedTestTypeId: string;
         comment: string;
@@ -23729,6 +23417,7 @@ declare module "TFS/TestManagement/Contracts" {
         owner: VSS_Common_Contracts.IdentityRef;
         resolutionState: string;
         runBy: VSS_Common_Contracts.IdentityRef;
+        stackTrace: string;
         startedDate: string;
         state: string;
         testCasePriority: string;
@@ -23737,6 +23426,18 @@ declare module "TFS/TestManagement/Contracts" {
     export interface TestEnvironment {
         environmentId: string;
         environmentName: string;
+    }
+    export interface TestInsightDetails {
+        count: number;
+        previousBuild: ShallowReference;
+        self: ShallowReference;
+        testResults: ShallowReference[];
+    }
+    export interface TestInsights {
+        existingFailures: TestInsightDetails;
+        fixedTests: TestInsightDetails;
+        newFailures: TestInsightDetails;
+        self: ShallowReference;
     }
     export interface TestIterationDetailsModel {
         actionResults: TestActionResultModel[];
@@ -23818,12 +23519,20 @@ declare module "TFS/TestManagement/Contracts" {
         url: string;
         workItemProperties: any[];
     }
+    export interface TestReport {
+        aggregatedResults: AggregatedTestResults;
+        build: ShallowReference;
+        self: ShallowReference;
+        teamProject: ShallowReference;
+        testInsights: TestInsights;
+    }
     export interface TestResolutionState {
         id: number;
         name: string;
         project: ShallowReference;
     }
     export interface TestResultCreateModel {
+        additionalFields: CustomTestField[];
         area: ShallowReference;
         associatedWorkItems: number[];
         automatedTestId: string;
@@ -23842,6 +23551,7 @@ declare module "TFS/TestManagement/Contracts" {
         owner: VSS_Common_Contracts.IdentityRef;
         resolutionState: string;
         runBy: VSS_Common_Contracts.IdentityRef;
+        stackTrace: string;
         startedDate: string;
         state: string;
         testCase: ShallowReference;
@@ -23865,6 +23575,7 @@ declare module "TFS/TestManagement/Contracts" {
         value: string;
     }
     export interface TestRun {
+        additionalFields: CustomTestField[];
         build: ShallowReference;
         buildConfiguration: BuildConfiguration;
         comment: string;
@@ -24020,6 +23731,12 @@ declare module "TFS/TestManagement/Contracts" {
         webUrl: string;
     }
     export var TypeInfo: {
+        AggregatedResultsByPivot: {
+            fields: any;
+        };
+        AggregatedTestResults: {
+            fields: any;
+        };
         AttachmentType: {
             enumValues: {
                 "generalAttachment": number;
@@ -24044,6 +23761,15 @@ declare module "TFS/TestManagement/Contracts" {
         BuildCoverage: {
             fields: any;
         };
+        CodeCoverageData: {
+            fields: any;
+        };
+        CodeCoverageStatistics: {
+            fields: any;
+        };
+        CodeCoverageSummary: {
+            fields: any;
+        };
         CoverageQueryFlags: {
             enumValues: {
                 "modules": number;
@@ -24053,6 +23779,31 @@ declare module "TFS/TestManagement/Contracts" {
         };
         CoverageStatistics: {
             fields: any;
+        };
+        CustomTestField: {
+            fields: any;
+        };
+        CustomTestFieldDefinition: {
+            fields: any;
+        };
+        CustomTestFieldScope: {
+            enumValues: {
+                "none": number;
+                "testRun": number;
+                "testResult": number;
+                "system": number;
+                "all": number;
+            };
+        };
+        CustomTestFieldType: {
+            enumValues: {
+                "bit": number;
+                "int": number;
+                "float": number;
+                "guid": number;
+                "dateTime": number;
+                "string": number;
+            };
         };
         DtlEnvironmentDetails: {
             fields: any;
@@ -24148,6 +23899,12 @@ declare module "TFS/TestManagement/Contracts" {
         TestEnvironment: {
             fields: any;
         };
+        TestInsightDetails: {
+            fields: any;
+        };
+        TestInsights: {
+            fields: any;
+        };
         TestIterationDetailsModel: {
             fields: any;
         };
@@ -24161,6 +23918,9 @@ declare module "TFS/TestManagement/Contracts" {
             fields: any;
         };
         TestPoint: {
+            fields: any;
+        };
+        TestReport: {
             fields: any;
         };
         TestResolutionState: {
@@ -24257,11 +24017,45 @@ declare module "TFS/TestManagement/RestClient" {
          * [Preview API]
          *
          * @param {string} project - Project ID or project name
+         * @param {number} buildId
+         * @param {number} deltaBuildId
+         * @return IPromise<Contracts.CodeCoverageSummary>
+         */
+        getCodeCoverageSummary(project: string, buildId: number, deltaBuildId?: number): IPromise<Contracts.CodeCoverageSummary>;
+        /**
+         * [Preview API] http://(tfsserver):8080/tfs/DefaultCollection/_apis/test/CodeCoverage?buildId=10 Request: Json of code coverage summary
+         *
+         * @param {Contracts.CodeCoverageData} coverageData
+         * @param {string} project - Project ID or project name
+         * @param {number} buildId
+         * @return IPromise<void>
+         */
+        updateCodeCoverageSummary(coverageData: Contracts.CodeCoverageData, project: string, buildId: number): IPromise<void>;
+        /**
+         * [Preview API]
+         *
+         * @param {string} project - Project ID or project name
          * @param {number} runId
          * @param {number} flags
          * @return IPromise<Contracts.TestRunCoverage[]>
          */
         getTestRunCodeCoverage(project: string, runId: number, flags: number): IPromise<Contracts.TestRunCoverage[]>;
+        /**
+         * [Preview API]
+         *
+         * @param {Contracts.CustomTestFieldDefinition[]} newFields
+         * @param {string} project - Project ID or project name
+         * @return IPromise<Contracts.CustomTestFieldDefinition[]>
+         */
+        addCustomFields(newFields: Contracts.CustomTestFieldDefinition[], project: string): IPromise<Contracts.CustomTestFieldDefinition[]>;
+        /**
+         * [Preview API]
+         *
+         * @param {string} project - Project ID or project name
+         * @param {Contracts.CustomTestFieldScope} scopeFilter
+         * @return IPromise<Contracts.CustomTestFieldDefinition[]>
+         */
+        queryCustomFields(project: string, scopeFilter: Contracts.CustomTestFieldScope): IPromise<Contracts.CustomTestFieldDefinition[]>;
         /**
          * [Preview API]
          *
@@ -24670,11 +24464,45 @@ declare module "TFS/TestManagement/RestClient" {
          * [Preview API]
          *
          * @param {string} project - Project ID or project name
+         * @param {number} buildId
+         * @param {number} deltaBuildId
+         * @return IPromise<Contracts.CodeCoverageSummary>
+         */
+        getCodeCoverageSummary(project: string, buildId: number, deltaBuildId?: number): IPromise<Contracts.CodeCoverageSummary>;
+        /**
+         * [Preview API] http://(tfsserver):8080/tfs/DefaultCollection/_apis/test/CodeCoverage?buildId=10 Request: Json of code coverage summary
+         *
+         * @param {Contracts.CodeCoverageData} coverageData
+         * @param {string} project - Project ID or project name
+         * @param {number} buildId
+         * @return IPromise<void>
+         */
+        updateCodeCoverageSummary(coverageData: Contracts.CodeCoverageData, project: string, buildId: number): IPromise<void>;
+        /**
+         * [Preview API]
+         *
+         * @param {string} project - Project ID or project name
          * @param {number} runId
          * @param {number} flags
          * @return IPromise<Contracts.TestRunCoverage[]>
          */
         getTestRunCodeCoverage(project: string, runId: number, flags: number): IPromise<Contracts.TestRunCoverage[]>;
+        /**
+         * [Preview API]
+         *
+         * @param {Contracts.CustomTestFieldDefinition[]} newFields
+         * @param {string} project - Project ID or project name
+         * @return IPromise<Contracts.CustomTestFieldDefinition[]>
+         */
+        addCustomFields(newFields: Contracts.CustomTestFieldDefinition[], project: string): IPromise<Contracts.CustomTestFieldDefinition[]>;
+        /**
+         * [Preview API]
+         *
+         * @param {string} project - Project ID or project name
+         * @param {Contracts.CustomTestFieldScope} scopeFilter
+         * @return IPromise<Contracts.CustomTestFieldDefinition[]>
+         */
+        queryCustomFields(project: string, scopeFilter: Contracts.CustomTestFieldScope): IPromise<Contracts.CustomTestFieldDefinition[]>;
         /**
          * [Preview API]
          *
@@ -25150,12 +24978,14 @@ declare module "TFS/VersionControl/Contracts" {
     export interface GitCommitDiffs {
         aheadCount: number;
         allChangesIncluded: boolean;
+        baseCommit: string;
         behindCount: number;
         changeCounts: {
             [key: number]: number;
         };
         changes: GitChange[];
         commonCommit: string;
+        targetCommit: string;
     }
     export interface GitCommitRef {
         _links: any;
@@ -25200,6 +25030,10 @@ declare module "TFS/VersionControl/Contracts" {
          * Git object id
          */
         objectId: string;
+        /**
+         * Git object id
+         */
+        originalObjectId: string;
     }
     export interface GitItemDescriptor {
         /**
@@ -25797,6 +25631,7 @@ declare module "TFS/VersionControl/Contracts" {
         collectionId: string;
         hasMoreChanges: boolean;
         policyOverride: TfvcPolicyOverrideInfo;
+        teamProjectIds: string[];
         workItems: AssociatedWorkItem[];
     }
     export interface TfvcChangesetRef {
@@ -26678,6 +26513,17 @@ declare module "TFS/VersionControl/GitRestClient" {
          */
         getPullRequestReviewers(repositoryId: string, pullRequestId: number, project?: string): IPromise<Contracts.IdentityRefWithVote[]>;
         /**
+         * [Preview API] Query pull requests by project
+         *
+         * @param {string} project - Project ID or project name
+         * @param {Contracts.GitPullRequestSearchCriteria} searchCriteria
+         * @param {number} maxCommentLength
+         * @param {number} skip
+         * @param {number} top
+         * @return IPromise<Contracts.GitPullRequest[]>
+         */
+        getPullRequestsByProject(project: string, searchCriteria: Contracts.GitPullRequestSearchCriteria, maxCommentLength?: number, skip?: number, top?: number): IPromise<Contracts.GitPullRequest[]>;
+        /**
          * [Preview API] Create a git pull request
          *
          * @param {Contracts.GitPullRequest} gitPullRequestToCreate
@@ -27153,6 +26999,17 @@ declare module "TFS/VersionControl/GitRestClient" {
          * @return IPromise<Contracts.GitPullRequest>
          */
         updatePullRequest(gitPullRequestToUpdate: Contracts.GitPullRequest, repositoryId: string, pullRequestId: number, project?: string): IPromise<Contracts.GitPullRequest>;
+        /**
+         * [Preview API] Query pull requests by project
+         *
+         * @param {string} project - Project ID or project name
+         * @param {Contracts.GitPullRequestSearchCriteria} searchCriteria
+         * @param {number} maxCommentLength
+         * @param {number} skip
+         * @param {number} top
+         * @return IPromise<Contracts.GitPullRequest[]>
+         */
+        getPullRequestsByProject(project: string, searchCriteria: Contracts.GitPullRequestSearchCriteria, maxCommentLength?: number, skip?: number, top?: number): IPromise<Contracts.GitPullRequest[]>;
         /**
          * [Preview API] Retrieve a pull request work items
          *
@@ -27942,6 +27799,11 @@ declare module "TFS/WorkItemTracking/Contracts" {
     }
     export interface ReportingWorkItemRevisionsBatch extends StreamedBatch<WorkItem> {
     }
+    export interface ReportingWorkItemRevisionsFilter {
+        fields: string[];
+        includeIdentityRef: boolean;
+        types: string[];
+    }
     export interface StreamedBatch<T> {
         isLastBatch: boolean;
         nextLink: string;
@@ -28206,6 +28068,9 @@ declare module "TFS/WorkItemTracking/Contracts" {
             fields: any;
         };
         ReportingWorkItemRevisionsBatch: {
+            fields: any;
+        };
+        ReportingWorkItemRevisionsFilter: {
             fields: any;
         };
         StreamedBatch: {
@@ -28541,10 +28406,11 @@ declare module "TFS/WorkItemTracking/RestClient" {
          * [Preview API]
          *
          * @param {string} project - Project ID or project name
+         * @param {string[]} types
          * @param {number} watermark
          * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
          */
-        getReportingLinks(project?: string, watermark?: number): IPromise<Contracts.ReportingWorkItemLinksBatch>;
+        getReportingLinks(project?: string, types?: string[], watermark?: number): IPromise<Contracts.ReportingWorkItemLinksBatch>;
         /**
          * [Preview API] Gets the work item relation types.
          *
@@ -28563,19 +28429,21 @@ declare module "TFS/WorkItemTracking/RestClient" {
          *
          * @param {string} project - Project ID or project name
          * @param {string[]} fields
+         * @param {string[]} types
          * @param {number} watermark
+         * @param {boolean} includeIdentityRef
          * @return IPromise<Contracts.ReportingWorkItemRevisionsBatch>
          */
-        readReportingRevisionsGet(project?: string, fields?: string[], watermark?: number): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
+        readReportingRevisionsGet(project?: string, fields?: string[], types?: string[], watermark?: number, includeIdentityRef?: boolean): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
         /**
          * [Preview API]
          *
-         * @param {string[]} fieldsList
+         * @param {Contracts.ReportingWorkItemRevisionsFilter} filter
          * @param {string} project - Project ID or project name
          * @param {number} watermark
          * @return IPromise<Contracts.ReportingWorkItemRevisionsBatch>
          */
-        readReportingRevisionsPost(fieldsList: string[], project?: string, watermark?: number): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
+        readReportingRevisionsPost(filter: Contracts.ReportingWorkItemRevisionsFilter, project?: string, watermark?: number): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
         /**
          * [Preview API] Returns a single work item
          *
@@ -28884,10 +28752,11 @@ declare module "TFS/WorkItemTracking/RestClient" {
          * [Preview API]
          *
          * @param {string} project - Project ID or project name
+         * @param {string[]} types
          * @param {number} watermark
          * @return IPromise<Contracts.ReportingWorkItemLinksBatch>
          */
-        getReportingLinks(project?: string, watermark?: number): IPromise<Contracts.ReportingWorkItemLinksBatch>;
+        getReportingLinks(project?: string, types?: string[], watermark?: number): IPromise<Contracts.ReportingWorkItemLinksBatch>;
         /**
          * Gets the work item relation types.
          *
@@ -28904,19 +28773,21 @@ declare module "TFS/WorkItemTracking/RestClient" {
          *
          * @param {string} project - Project ID or project name
          * @param {string[]} fields
+         * @param {string[]} types
          * @param {number} watermark
+         * @param {boolean} includeIdentityRef
          * @return IPromise<Contracts.ReportingWorkItemRevisionsBatch>
          */
-        readReportingRevisionsGet(project?: string, fields?: string[], watermark?: number): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
+        readReportingRevisionsGet(project?: string, fields?: string[], types?: string[], watermark?: number, includeIdentityRef?: boolean): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
         /**
          * [Preview API]
          *
-         * @param {string[]} fieldsList
+         * @param {Contracts.ReportingWorkItemRevisionsFilter} filter
          * @param {string} project - Project ID or project name
          * @param {number} watermark
          * @return IPromise<Contracts.ReportingWorkItemRevisionsBatch>
          */
-        readReportingRevisionsPost(fieldsList: string[], project?: string, watermark?: number): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
+        readReportingRevisionsPost(filter: Contracts.ReportingWorkItemRevisionsFilter, project?: string, watermark?: number): IPromise<Contracts.ReportingWorkItemRevisionsBatch>;
         /**
          * Returns a single work item
          *
@@ -29027,6 +28898,44 @@ declare module "TFS/WorkItemTracking/RestClient" {
      * @return WorkItemTrackingHttpClient2
      */
     export function getClient(): WorkItemTrackingHttpClient2;
+}
+declare module "TFS/WorkItemTracking/Services" {
+    import Contracts_Platform = require("VSS/Common/Contracts/Platform");
+    /**
+    * Host service for opening the work item form
+    */
+    export interface IWorkItemFormNavigationService {
+        /**
+        * Open the specified work item. The host page will display the work item in a dialog,
+        * or it may update the current page view, depending on the current page.
+        *
+        * @param workItemId The id of the work item to open
+        * @param openInNewTab If true, open the work item in a new tab
+        */
+        openWorkItem(workItemId: number, openInNewTab?: boolean): any;
+        /**
+        * Open a new work item of the specified type. The host page will display the new work item in a dialog,
+        * or it may update the current page view, depending on the current page.
+        *
+        * @param workItemTypeName The name of the work item type to open
+        * @param initialValues (Optional) A dictionary of any initial field values to set after opening the new work item.
+        */
+        openNewWorkItem(workItemTypeName: string, initialValues?: {
+            [fieldName: string]: any;
+        }): any;
+    }
+    /**
+    * Host service for opening the work item form
+    */
+    export module WorkItemFormNavigationService {
+        var contributionId: string;
+        /**
+        * Get an instance of the host work item service
+        *
+        * @param webContext Optional web context to scope the service to
+        */
+        function getService(webContext?: Contracts_Platform.WebContext): IPromise<IWorkItemFormNavigationService>;
+    }
 }
 declare module "TFS/WorkItemTracking/UIContracts" {
     import WitContracts = require("TFS/WorkItemTracking/Contracts");
@@ -29861,4 +29770,3 @@ declare module "TFS/Work/RestClient" {
      */
     export function getClient(): WorkHttpClient2;
 }
-
