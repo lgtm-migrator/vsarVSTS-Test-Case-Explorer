@@ -95,7 +95,7 @@ export class TestCaseView {
             wiql += f + ", ";
         });
         wiql = wiql.substr(0, wiql.lastIndexOf(", "));
-        wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case' "+ (wiqlWhere=="" ? "":  " AND " + wiqlWhere ) + " ORDER BY [System.Id]";
+        wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP 'Test Case Category'  "+ (wiqlWhere=="" ? "":  " AND " + wiqlWhere ) + " ORDER BY [System.Id]";
          
 
         workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
