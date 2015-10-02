@@ -12,6 +12,7 @@ import DetailsToggle = require("scripts/DetailsToggle");
 import CommonControls = require("VSS/Controls/Common");
 import Navigation = require("VSS/Controls/Navigation");
 //import CC = require("VSS/Controls/Combos");
+import WorkItemServices = require("TFS/WorkItemTracking/Services");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
 
@@ -166,9 +167,9 @@ export class TestCaseView {
         this._fields = ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"];
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
-            { id: "file", text: "New", icon: "icon-add-small" },
+            { id: "new-testcase", text: "New", icon: "icon-add-small" },
             { separator: true },
-            { id: "clone", text: "Clone", noIcon: true },
+            { id: "clone-testcase", text: "Clone", noIcon: true },
             { separator: true },
             { id: "column_options", text: "Column Options", noIcon: true },
             { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
@@ -185,6 +186,13 @@ export class TestCaseView {
                         paneToggler.toggleDetailsPane()
                         menubar.updateCommandStates([{ id: command, toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
                         break;
+                    case "new-testcase":
+                        WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
+                            // TODO: pass additional default values from pivot
+                            workItemService.openNewWorkItem("Test Case");
+                            // TODO: refresh grid after add
+                        });
+                       break;
                     default:
                         alert("Unhandled action: " + command);
                         break;
@@ -216,7 +224,10 @@ export class TestCaseView {
                 // will cause this function to be executed
                 var item = this._grid.getRowData(index);
                 selectCallBack(item.id);
-                alert(item.id);
+                WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
+                    workItemService.openWorkItem(item.id);
+                    // TODO: refresh grid after update
+                });
             }
 
         };

@@ -627,6 +627,7 @@ var XDM;
 var VSS;
 (function (VSS) {
     VSS.VssSDKVersion = 0.1;
+    VSS.VssSDKRestVersion = "2.0";
     var htmlElement;
     var webContext;
     var hostPageContext;
@@ -668,8 +669,7 @@ var VSS;
      */
     function init(options) {
         initOptions = options || {};
-        // Back-compat support for setupModuleLoader - remove this option after M85
-        usingPlatformScripts = initOptions.usePlatformScripts || initOptions.setupModuleLoader;
+        usingPlatformScripts = initOptions.usePlatformScripts;
         usingPlatformStyles = initOptions.usePlatformStyles;
         // Run this after current execution path is complete - allows objects to get initialized
         window.setTimeout(function () {
@@ -679,7 +679,6 @@ var VSS;
             };
             parentChannel.invokeRemoteMethod("initialHandshake", "VSS.HostControl", [appHandshakeData]).then(function (handshakeData) {
                 hostPageContext = handshakeData.pageContext;
-                hostPageContext.serviceInstanceId = null; // need to remove id from context, so we recognize that call is coming from a different service.
                 webContext = hostPageContext.webContext;
                 initialConfiguration = handshakeData.initialConfig || {};
                 initialContribution = handshakeData.contribution;
@@ -808,11 +807,14 @@ var VSS;
     * @param context Optional context information to use when obtaining the service instance
     */
     function getService(contributionId, context) {
-        if (typeof context === "undefined") {
-            context = {
-                webContext: getWebContext(),
-                extensionContext: getExtensionContext()
-            };
+        if (!context) {
+            context = {};
+        }
+        if (!context["webContext"]) {
+            context["webContext"] = getWebContext();
+        }
+        if (!context["extensionContext"]) {
+            context["extensionContext"] = getExtensionContext();
         }
         return getServiceContribution(contributionId).then(function (serviceContribution) {
             return serviceContribution.getInstance(serviceContribution.id, context);
@@ -827,7 +829,13 @@ var VSS;
     function getServiceContribution(contributionId) {
         var deferred = XDM.createDeferred();
         VSS.ready(function () {
-            parentChannel.invokeRemoteMethod("getServiceContribution", "vss.hostManagement", [contributionId]).then(deferred.resolve, deferred.reject);
+            parentChannel.invokeRemoteMethod("getServiceContribution", "vss.hostManagement", [contributionId]).then(function (contribution) {
+                var serviceContribution = contribution;
+                serviceContribution.getInstance = function (objectId, context) {
+                    return getBackgroundContributionInstance(contribution, objectId, context);
+                };
+                deferred.resolve(serviceContribution);
+            }, deferred.reject);
         });
         return deferred.promise;
     }
@@ -840,11 +848,35 @@ var VSS;
     function getServiceContributions(targetContributionId) {
         var deferred = XDM.createDeferred();
         VSS.ready(function () {
-            parentChannel.invokeRemoteMethod("getServiceContributions", "vss.hostManagement", [targetContributionId]).then(deferred.resolve, deferred.reject);
+            parentChannel.invokeRemoteMethod("getContributionsForTarget", "vss.hostManagement", [targetContributionId]).then(function (contributions) {
+                var serviceContributions = [];
+                contributions.forEach(function (contribution) {
+                    var serviceContribution = contribution;
+                    serviceContribution.getInstance = function (objectId, context) {
+                        return getBackgroundContributionInstance(contribution, objectId, context);
+                    };
+                    serviceContributions.push(serviceContribution);
+                });
+                deferred.resolve(serviceContributions);
+            }, deferred.reject);
         });
         return deferred.promise;
     }
     VSS.getServiceContributions = getServiceContributions;
+    /**
+    * Create an instance of a registered object within the given contribution in the host's frame
+    *
+    * @param contribution The contribution to get an object from
+    * @param objectId Optional id of the registered object (the contribution's id property is used by default)
+    * @param contextData Optional context to use when getting the object.
+    */
+    function getBackgroundContributionInstance(contribution, objectId, contextData) {
+        var deferred = XDM.createDeferred();
+        VSS.ready(function () {
+            parentChannel.invokeRemoteMethod("getBackgroundContributionInstance", "vss.hostManagement", [contribution, objectId, contextData]).then(deferred.resolve, deferred.reject);
+        });
+        return deferred.promise;
+    }
     /**
     * Register an object (instance or factory method) that this extension exposes to the host frame.
     *
@@ -962,16 +994,60 @@ var VSS;
             if (contributionPaths) {
                 for (var p in contributionPaths) {
                     if (contributionPaths.hasOwnProperty(p)) {
+                        // Add the contribution path
                         newConfig.paths[p] = hostRootUri + contributionPaths[p].value;
+                        // Look for other path mappings that fall under the contribution path (e.g. "bundles")
+                        var configPaths = hostPageContext.moduleLoaderConfig.paths;
+                        if (configPaths) {
+                            var contributionRoot = p + "/";
+                            var rootScriptPath = combinePaths(hostRootUri, hostPageContext.moduleLoaderConfig.baseUrl);
+                            for (var pathKey in configPaths) {
+                                if (startsWith(pathKey, contributionRoot)) {
+                                    var pathValue = configPaths[pathKey];
+                                    if (!pathValue.match("^https?://")) {
+                                        if (pathValue[0] === "/") {
+                                            pathValue = combinePaths(hostRootUri, pathValue);
+                                        }
+                                        else {
+                                            pathValue = combinePaths(rootScriptPath, pathValue);
+                                        }
+                                    }
+                                    newConfig.paths[pathKey] = pathValue;
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+        // requireJS public api doesn't support reading the current config, so save it off for use by our internal host control.
+        window.__vssModuleLoaderConfig = newConfig;
         scripts.push({ content: "require.config(" + JSON.stringify(newConfig) + ");" });
         addScriptElements(scripts, 0, function () {
             loaderConfigured = true;
             triggerReady();
         });
+    }
+    function startsWith(rootString, startSubstring) {
+        if (rootString && rootString.length >= startSubstring.length) {
+            return rootString.substr(0, startSubstring.length).localeCompare(startSubstring) === 0;
+        }
+        return false;
+    }
+    function combinePaths(path1, path2) {
+        var result = path1 || "";
+        if (result[result.length - 1] !== "/") {
+            result += "/";
+        }
+        if (path2) {
+            if (path2[0] === "/") {
+                result += path2.substr(1);
+            }
+            else {
+                result += path2;
+            }
+        }
+        return result;
     }
     function extendLoaderPaths(source, target, pathTranslator) {
         if (source.paths) {
@@ -1059,18 +1135,6 @@ var VSS;
         }
         return url;
     }
-    function translateLoaderConfigUrl(url, rootUrl, baseUrl) {
-        var lcUrl = (url || "").toLowerCase();
-        if (lcUrl.substr(0, 2) !== "//" && lcUrl.substr(0, 5) !== "http:" && lcUrl.substr(0, 6) !== "https:") {
-            if (lcUrl[0] === "/") {
-                url = rootUrl + url;
-            }
-            else {
-                url = baseUrl + "/" + url;
-            }
-        }
-        return url;
-    }
     function triggerReady() {
         var _this = this;
         isReady = true;
@@ -1083,3 +1147,4 @@ var VSS;
         }
     }
 })(VSS || (VSS = {}));
+
