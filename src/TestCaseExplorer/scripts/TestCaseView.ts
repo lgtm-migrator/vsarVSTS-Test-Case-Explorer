@@ -20,6 +20,8 @@ export class TestCaseView {
     private _paneToggler: DetailsToggle.DetailsPaneToggler;
     private _grid: Grids.Grid;
     private _menubar: Menus.MenuBar;
+    private _fields: string[];
+     
 
     public RefreshGrid(pivot: string, value) {
 
@@ -75,20 +77,25 @@ export class TestCaseView {
         var deferred = $.Deferred<any[]>();
         var workItemClient = WorkItemClient.getClient();
 
-        workItemClient.getWorkItems(workItemIds, ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"]).then(result => {
-            var dataSource = [];
-            result.forEach(workItem => {
-                dataSource.push({ id: workItem.id, title: workItem.fields["System.Title"], state: workItem.fields["System.State"], assigned_to: workItem.fields["System.AssignedTo"], priority: workItem.fields["Microsoft.VSTS.Common.Priority"], automation_status: workItem.fields["Microsoft.VSTS.TCM.AutomationStatus"] });
-            });
-            deferred.resolve(dataSource);
+        workItemClient.getWorkItems(workItemIds, this._fields).then(result => {
+
+            deferred.resolve(result.map(function (i) { return i.fields;}));
         });
 
         return deferred.promise();
     }
 
-    private getTestCasesByWiql(wiql: string): IPromise<any> {
+    private getTestCasesByWiql(fields:string[] , wiqlWhere: string): IPromise<any> {
         var deferred = $.Deferred<any[]>();
         var workItemClient = WorkItemClient.getClient();
+
+        var wiql: string = "SELECT ";
+        fields.forEach(function (f) {
+            wiql += f + ", ";
+        });
+        wiql = wiql.substr(0, wiql.lastIndexOf(", "));
+        wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case' "+ (wiqlWhere=="" ? "":  " AND " + wiqlWhere ) + " ORDER BY [System.Id]";
+         
 
         workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
             var ids = result.workItems.map(function (item) {
@@ -114,30 +121,26 @@ export class TestCaseView {
                 break;
         }
 
-        var wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [" + typeField + "] UNDER '" + path + "' ORDER BY [System.Id]";
-        return this.getTestCasesByWiql(wiql);
+        var wiqlWhere = "[" + typeField + "] UNDER '" + path + "'";
+        return this.getTestCasesByWiql(["System.Id"], wiqlWhere);
     }
 
     private getTestCasesByPriority(priority: string): IPromise<any> {
-        var wiql: string;
-        if (priority == "any") {
-            wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case' ORDER BY [System.Id]";
+        var wiqlWhere: string;
+        if (priority != "any") {
+            wiqlWhere = "[Microsoft.VSTS.Common.Priority] = " + priority
         }
-        else {
-            wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [Microsoft.VSTS.Common.Priority] = " + priority + " ORDER BY [System.Id]";
-        }
-        return this.getTestCasesByWiql(wiql);
+
+        return this.getTestCasesByWiql(["System.Id"], wiqlWhere);
     }
 
     private getTestCasesByState(state: string): IPromise<any> {
-        var wiql: string;
-        if (state == "any") {
-            wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case' ORDER BY [System.Id]";
+        var wiqlWhere: string;
+        if (state != "any") {
+            wiqlWhere = "[System.State] = '" + state + "'";
         }
-        else {
-            wiql = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] = 'Test Case'  AND  [System.State] = '" + state + "' ORDER BY [System.Id]";
-        }
-        return this.getTestCasesByWiql(wiql);
+
+        return this.getTestCasesByWiql(["System.Id"] , wiqlWhere);
     }
 
     private getTestCasesByTestPlan(planId: number, suiteId: number): IPromise<any> {
@@ -160,7 +163,7 @@ export class TestCaseView {
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
 
         this._paneToggler = paneToggler;
-
+        this._fields = ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"];
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
             { id: "file", text: "New", icon: "icon-add-small" },
@@ -195,14 +198,17 @@ export class TestCaseView {
 
         var options = {
             height: "1000px", // Explicit height is required for a Grid control
-            columns: [
-                { text: "Id", index: "id", width: 50 },
-                { text: "Title", index: "title", width: 200 },
-                { text: "State", index: "state", width: 75 },
-                { text: "Assigned To", index: "assigned_to", width: 150 },
-                { text: "Priority", index: "priority", width: 50 },
-                { text: "Automation status", index: "automation_status", width: 150 }
-            ],
+            columns: this._fields.map(function (f) {
+                return { text: f.substring(f.lastIndexOf(".")+1), index:f};
+            })
+            //    { text: "Id", index: "id", width: 50 },
+            //    { text: "Title", index: "title", width: 200 },
+            //    { text: "State", index: "state", width: 75 },
+            //    { text: "Assigned To", index: "assigned_to", width: 150 },
+            //    { text: "Priority", index: "priority", width: 50 },
+            //    { text: "Automation status", index: "automation_status", width: 150 }
+        //]
+            ,
             draggable: true,
             droppable: true,
             openRowDetail: (index: number) => {
@@ -224,17 +230,14 @@ export class TestCaseView {
         //});
 
         var menubarFilter: Menus.MenuBar = null;
-        var menuFilterItems: Menus.IMenuItemSpec[] = [
+        var menuFilterItems: Navigation.IPivotFilterItem[] = [
 
-            {
-                id: "root", text: "Select Pane ", childItems: [
                     { id: "All", text: "All" },
                     { id: "NoReq", text: "Tests not associated with any requirements"},
                     { id: "TestResults", text: "Tests present in multiple suites" },
                     { id: "TestResults", text: "Orphaned tests" },
                     { id: "TestResults", text: "Tests with requirements linking" }
-                ]
-            },
+            
         ];
 
         var menubarFilterOptions = {
@@ -251,9 +254,10 @@ export class TestCaseView {
             }
         };
 
-        menuFilterItems[0].text = menuFilterItems[0].childItems[0].text;
-        menubarFilter = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#grid-filter-cbo"), menubarFilterOptions);
+      //  menuFilterItems[0].text = menuFilterItems[0].childItems[0].text;
+        //menubarFilter = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#grid-filter-cbo"), menubarFilterOptions);
         
+        var pivCbo = Controls.create<Navigation.PivotFilter, any>(Navigation.PivotFilter, $("#grid-filter-cbo"), menubarFilterOptions);
 
         //var pivotFilter = Controls.Enhancement.ensureEnhancement(Navigation.PivotFilter, $("#grid-filter-cbo"));
 
