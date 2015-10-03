@@ -151,9 +151,9 @@ export class TestCaseView {
                 // Double clicking row or hitting enter key when the row is selected
                 // will cause this function to be executed
                 var item = this._grid.getRowData(index);
-                selectCallBack(item.id);
+                selectCallBack(item["System.Id"]);
                 WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
-                    workItemService.openWorkItem(item.id);
+                    workItemService.openWorkItem(item["System.Id"]);
                     // TODO: refresh grid after update
                 });
             }
