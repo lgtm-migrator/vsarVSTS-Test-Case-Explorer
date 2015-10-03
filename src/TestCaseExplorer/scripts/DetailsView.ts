@@ -13,7 +13,7 @@ import TreeViewDataService = require("scripts/TreeViewDataService");
 
 
 
-interface PaneRefresh {
+interface IPaneRefresh {
     initialize(): void,
     hide(): void,
     show(): void;
@@ -23,8 +23,8 @@ interface PaneRefresh {
 
 export class DetailsView {
 
-    public _selectedPane: PaneRefresh;
-    private _PaneLst: PaneRefresh[];
+    public _selectedPane: IPaneRefresh;
+    private _PaneLst: IPaneRefresh[];
 
     public _toggler: Toggler.DetailsPaneToggler;
 
@@ -114,7 +114,7 @@ export class DetailsView {
             this._selectedPane.hide();
         }
 
-        var pane: PaneRefresh;
+        var pane: IPaneRefresh;
 
         if (this._PaneLst[panel] == null) {
 
@@ -142,7 +142,7 @@ export class DetailsView {
 }
 
 
- class partOfTestSuitesPane implements PaneRefresh
+ class partOfTestSuitesPane implements IPaneRefresh
     {
 
      private _grid;
@@ -199,7 +199,7 @@ export class DetailsView {
      }
  }
 
- class testPlanPane implements PaneRefresh {
+ class testPlanPane implements IPaneRefresh {
      private _cbo: CommonControls.Combo;
      private _testPlans;
 
@@ -268,7 +268,7 @@ export class DetailsView {
      }
  }
 
-class testResultsPane implements PaneRefresh {
+class testResultsPane implements IPaneRefresh {
     private _grid;
 
     public initialize() {
