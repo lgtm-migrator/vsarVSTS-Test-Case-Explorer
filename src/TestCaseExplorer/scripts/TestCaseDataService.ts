@@ -47,7 +47,7 @@ export class wiqlFilter implements ITestCaseFilter {
 }
 
 
-export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string): IPromise < any > {
+export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string, recursive:boolean): IPromise < any > {
     var typeField: string;
     switch(structureType) {
         case WorkItemContracts.TreeNodeStructureType.Area:
@@ -58,7 +58,7 @@ export function getTestCasesByProjectStructure(structureType: WorkItemContracts.
             break;
     }
 
-    var wiqlWhere = "[" + typeField + "] UNDER '" + path + "'";
+    var wiqlWhere = "[" + typeField + "] " + ( recursive ? "UNDER" : "=") + " '" + path + "'";
     return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
@@ -80,7 +80,7 @@ export function getTestCasesByState(state: string): IPromise < any > {
         return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
-export function getTestCasesByTestPlan(planId: number, suiteId: number): IPromise < any > {
+export function getTestCasesByTestPlan(planId: number, suiteId: number, recursive:boolean): IPromise < any > {
     var deferred = $.Deferred<any[]>();
     var testClient = TestClient.getClient();
 

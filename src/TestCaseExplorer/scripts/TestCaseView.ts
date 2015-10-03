@@ -31,7 +31,8 @@ export class TestCaseView {
     private _menubar: Menus.MenuBar;
     private _fields: string[];
     private _data: any[];     
-    private _waitControl:StatusIndicator.WaitControl;
+    private _waitControl: StatusIndicator.WaitControl;
+    private _showRecursive: boolean;
 
     public RefreshGrid(pivot: string, value) {
 
@@ -43,12 +44,12 @@ export class TestCaseView {
 
         switch (pivot) {
             case "Area path":
-                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path);
+                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path, this._showRecursive);
                 title = "Test cases with area path: " + value.path;
                 
                 break;
             case "Iteration path":
-                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path);
+                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path, this._showRecursive);
                 title = "Test cases with iteration path: " + value.path;
                 break;
             case "Priority":
@@ -68,7 +69,7 @@ export class TestCaseView {
                 title = "Test cases with state: " + state;
                 break;
             case "Test plan":
-                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId);
+                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId,  this._showRecursive);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
                 break;
         }
@@ -92,9 +93,13 @@ export class TestCaseView {
         var view = this;
 
         this._paneToggler = paneToggler;
+        this._showRecursive = false;
+
         this._fields = ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"];
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
+            { id: "show-recursive", text: "Recursive", icon: "child-node-icon" },
+            { separator: true },
             { id: "new-testcase", text: "New", icon: "icon-add-small" },
             { separator: true },
             { id: "clone-testcase", text: "Clone", noIcon: true },
@@ -103,16 +108,19 @@ export class TestCaseView {
             { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
         ];
 
-        var tcv = this;
-
+  
         var menubarOptions = {
             items: menuItems,
             executeAction: function (args) {
                 var command = args.get_commandName();
                 switch (command) {
+                    case "show-recursive":
+                        view._showRecursive = !view._showRecursive
+                        menubar.updateCommandStates([{ id: command, toggled: view._showRecursive }]);
+                        break;
                     case "toggle":
                         paneToggler.toggleDetailsPane()
-                        menubar.updateCommandStates([{ id: command, toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
+                        menubar.updateCommandStates([{ id: command, toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
                         break;
                     case "new-testcase":
                         WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
@@ -130,7 +138,7 @@ export class TestCaseView {
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
         this._menubar = menubar;
-        menubar.updateCommandStates([{ id: "toggle", toggled: tcv._paneToggler._isTestCaseDetailsPaneOn() }]);
+        menubar.updateCommandStates([{ id: "toggle", toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
 
         var options = {
             height: "1000px", // Explicit height is required for a Grid control
@@ -230,7 +238,7 @@ export class TestCaseView {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
 
         $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
-            var s = tcv._grid.getRowData(tcv._grid.getSelectedDataIndex()).id;
+            var s = view._grid.getRowData(view._grid.getSelectedDataIndex()).id;
             selectCallBack(s);
         });
 

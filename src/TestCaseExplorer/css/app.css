@@ -10,6 +10,11 @@
     width:150px;
 }
 
+#child-node-icon::before {
+    position: relative;
+    content: url('/img/Child-node-icon.png');
+    
+}
 
 #testmanagement-view-left-pane{
     margin-left:16px;

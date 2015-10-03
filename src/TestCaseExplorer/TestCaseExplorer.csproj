@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="css\app.css" />
-    <Content Include="img\Child node icon.png" />
+    <Content Include="img\Child-node-icon.png" />
     <Content Include="img\Short_Icon.jpg" />
     <Content Include="img\Wide_Icon.jpg" />
     <Content Include="index.html" />
