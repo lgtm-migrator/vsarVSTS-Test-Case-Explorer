@@ -14,15 +14,31 @@ export interface ITestCaseFilter {
 }
 
 export class orphanTestCasesFilter implements ITestCaseFilter {
-    private _listTC:number[]
+    private _listTC:any[]
     public initialize(): IPromise<any>{
-        var deferred = $.Deferred<any>();
 
+        var deferred = $.Deferred<any>();
+        var workItemClient = WorkItemClient.getClient();
+
+        var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP 'Test Case Category') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [Source].[System.Id] mode(DoesNotContain)"
+        wiqlOrphaneTC = wiqlOrphaneTC.replace("@project", "'" + VSS.getWebContext().project.name + "'");
+        
+        workItemClient.queryByWiql({ query: wiqlOrphaneTC }, VSS.getWebContext().project.name).then(result => {
+            if (result.queryResultType== 1) {
+                this._listTC = result.workItems.map(i=> { return i.id });
+            }
+            deferred.resolve(result);
+        },
+        err => {
+            deferred.reject(err);
+        });
+        
         return deferred.promise();
     }
     public filter(data: any[]): any[]
     {
-        return data.filter(function (i) { return this._listTC.indexOf(i.Id)>0 });
+        var flt = this;
+        return data.filter(function (i) { return flt._listTC.indexOf(i["System.Id"])>=0 });
     }
 }
 
@@ -39,7 +55,7 @@ export function getTestCasesByProjectStructure(structureType: WorkItemContracts.
     }
 
     var wiqlWhere = "[" + typeField + "] UNDER '" + path + "'";
-    return this.getTestCasesByWiql(["System.Id"], wiqlWhere);
+    return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
 export function getTestCasesByPriority(priority: string): IPromise < any > {
@@ -48,7 +64,7 @@ export function getTestCasesByPriority(priority: string): IPromise < any > {
         wiqlWhere = "[Microsoft.VSTS.Common.Priority] = " + priority
     }
 
-        return this.getTestCasesByWiql(["System.Id"], wiqlWhere);
+        return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
 export function getTestCasesByState(state: string): IPromise < any > {
@@ -57,7 +73,7 @@ export function getTestCasesByState(state: string): IPromise < any > {
         wiqlWhere = "[System.State] = '" + state + "'";
     }
 
-        return this.getTestCasesByWiql(["System.Id"], wiqlWhere);
+        return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
 export function getTestCasesByTestPlan(planId: number, suiteId: number): IPromise < any > {
@@ -69,7 +85,7 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number): IPromis
             return item.testCase.id;
         }).map(Number);
 
-        this.getTestCases(ids).then(testCases => {
+        getTestCases(ids).then(testCases => {
             deferred.resolve(testCases);
         });
     });
@@ -83,7 +99,7 @@ function getTestCases(workItemIds: number[]): IPromise<any> {
 
     workItemClient.getWorkItems(workItemIds, this._fields).then(result => {
 
-        deferred.resolve(result.map(function (i) { return i.fields; }));
+        deferred.resolve(result.map(function (i) { i.fields["System.Id"] = i.id; return i.fields; }));
     });
 
     return deferred.promise();
@@ -106,7 +122,7 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
             return item.id;
         }).map(Number);
 
-        this.getTestCases(ids).then(testCases => {
+        getTestCases(ids).then(testCases => {
             deferred.resolve(testCases);
         });
     });

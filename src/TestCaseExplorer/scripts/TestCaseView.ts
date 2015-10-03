@@ -26,6 +26,7 @@ export class TestCaseView {
     private _fields: string[];
     private _data: any[];     
 
+
     public RefreshGrid(pivot: string, value) {
 
         this._grid.setDataSource(null);
@@ -84,6 +85,8 @@ export class TestCaseView {
     
 
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
+
+        var view = this;
 
         this._paneToggler = paneToggler;
         this._fields = ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"];
@@ -173,8 +176,8 @@ export class TestCaseView {
             items: menuFilterItems,
             executeAction: function (args) {
                 var command = args.get_commandName();
-                var filter: TestCaseDataService.ITestCaseFilter
-
+                var filter: TestCaseDataService.ITestCaseFilter = null;
+                
                 switch (command) {
                     case "NoReq":
                         filter = new TestCaseDataService.orphanTestCasesFilter();
@@ -183,9 +186,14 @@ export class TestCaseView {
                     default:
                         break;
                 };
-                filter.initialize().then(function (a) {
-                    this._grid.setDataSource(filter.filter(this._data));
-                });
+                if (filter != null) {
+                    filter.initialize().then(function (a) {
+                        view._grid.setDataSource(filter.filter(view._data));
+                    });
+                }
+                else {
+                    view._grid.setDataSource(view._data);
+                }
 
                 menuFilterItems[0].text = args.get_commandSource()._item.text;
                 menubarFilter.updateItems(menuFilterItems);
