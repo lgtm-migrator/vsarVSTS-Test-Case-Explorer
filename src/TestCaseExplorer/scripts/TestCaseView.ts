@@ -250,16 +250,14 @@ export class TestCaseView {
 
         if (longRunning) {
 
-            if (this._waitControl == null) {
-                var waitOptions = {
-                    cancellable: true,
-                    target: $(".wait-control-target"),
-                    message: message
-                };
+            var waitOptions = {
+                cancellable: true,
+                target: $(".wait-control-target"),
+                message: message
+            };
               
-                this._waitControl = new StatusIndicator.WaitControl(waitOptions);
-                this._waitControl.startWait();
-            }
+            this._waitControl = new StatusIndicator.WaitControl(waitOptions);
+            this._waitControl.startWait();
         }
     }
 
@@ -269,7 +267,9 @@ export class TestCaseView {
         $("body").css("cursor", "default");
     
         if (this._waitControl != null) {
+            this._waitControl.cancelWait();
             this._waitControl.endWait();
+            this._waitControl = null;
         }
     }
 }
