@@ -11,6 +11,12 @@ import TestContracts = require("TFS/TestManagement/Contracts");
 import DetailsToggle = require("scripts/DetailsToggle");
 import CommonControls = require("VSS/Controls/Common");
 import Navigation = require("VSS/Controls/Navigation");
+
+import StatusIndicator = require("VSS/Controls/Common");
+import CoreUtils = require("VSS/Utils/Core");
+
+
+
 //import CC = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
 
@@ -25,58 +31,55 @@ export class TestCaseView {
     private _menubar: Menus.MenuBar;
     private _fields: string[];
     private _data: any[];     
-
+    private _waitControl:StatusIndicator.WaitControl;
 
     public RefreshGrid(pivot: string, value) {
 
         this._grid.setDataSource(null);
         $("#grid-title").text("");
+        this.StartLoading(true, "Fetching data");
+        var promise: IPromise<any>;
+        var title: string;
 
         switch (pivot) {
             case "Area path":
-                TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path).then(result => {
-                    this._data = result;
-                    this._grid.setDataSource(result);
-                    $("#grid-title").text("Test cases with area path: " + value.path);
-                });
+                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path);
+                title = "Test cases with area path: " + value.path;
+                
                 break;
             case "Iteration path":
-                TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path).then(result => {
-                    this._data = result;
-                    this._grid.setDataSource(result);
-                    $("#grid-title").text("Test cases with iteration path: " + value.path);
-                });
+                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path);
+                title = "Test cases with iteration path: " + value.path;
                 break;
             case "Priority":
                 var priority: string = "any"; 
                 if (value.name != "Priority") {
                     priority = value.name;
                 }
-                TestCaseDataService.getTestCasesByPriority(priority).then(result => {
-                    this._data = result;
-                    this._grid.setDataSource(result);
-                    $("#grid-title").text("Test cases with priority: " + priority);
-                });
+                promise = TestCaseDataService.getTestCasesByPriority(priority);
+                title = "Test cases with priority: " + priority;
                 break;
             case "State":
                 var state: string = "any";
                 if (value.name != "States") {
                     state = value.name;
                 }
-                TestCaseDataService.getTestCasesByState(state).then(result => {
-                    this._data = result;
-                    this._grid.setDataSource(result);
-                    $("#grid-title").text("Test cases with state: " + state);
-                });
+                promise = TestCaseDataService.getTestCasesByState(state)
+                title = "Test cases with state: " + state;
                 break;
             case "Test plan":
-                TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId).then(result => {
-                    this._data = result;
-                    this._grid.setDataSource(result);
-                    $("#grid-title").text("Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")");
-                });
+                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId);
+                title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
                 break;
         }
+        $("#grid-title").text(title);
+
+        promise.then(result => {
+            this._data = result;
+            this._grid.setDataSource(result);
+            this.DoneLoading();
+        });
+
     }
 
     public toggle() {
@@ -239,6 +242,35 @@ export class TestCaseView {
         var menubar = <Menus.MenuBar>Controls.Enhancement.getInstance(Menus.MenuBar, $("#menu-container"));
 
         this._menubar.updateCommandStates([{ id: "toggle", toggled: paneToggler._isTestCaseDetailsPaneOn() }]);
+    }
+
+
+    public StartLoading( longRunning, message) {
+        $("body").css("cursor", "progress");
+
+        if (longRunning) {
+
+            if (this._waitControl == null) {
+                var waitOptions = {
+                    cancellable: true,
+                    target: $(".wait-control-target"),
+                    message: message
+                };
+              
+                this._waitControl = new StatusIndicator.WaitControl(waitOptions);
+                this._waitControl.startWait();
+            }
+        }
+    }
+
+
+
+    public DoneLoading () {
+        $("body").css("cursor", "default");
+    
+        if (this._waitControl != null) {
+            this._waitControl.endWait();
+        }
     }
 }
 

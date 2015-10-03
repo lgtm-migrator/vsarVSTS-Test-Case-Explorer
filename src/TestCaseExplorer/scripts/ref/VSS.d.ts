@@ -688,7 +688,7 @@ interface IContributedMenuSource {
     * @param context Menu-specific context information
     * @return Array of menu items or a promise for the array
     */
-    getMenuItems(context: any): IContributedMenuItem[] | IPromise<IContributedMenuItem[]>;
+    getMenuItems(context: any): IContributedMenuItem[]| IPromise<IContributedMenuItem[]>;
 
     /**
     * Handle a menu item from this menu source being clicked. This is only invoked when the
@@ -1399,7 +1399,7 @@ declare module VSS {
      * @param modules A single module path (string) or array of paths (string[])
      * @param callback Method called once the modules have been loaded.
      */
-    function require(modules: string[] | string, callback?: Function): void;
+    function require(modules: string[]| string, callback?: Function): void;
     /**
     * Register a callback that gets called once the initial setup/handshake has completed.
     * If the initial setup is already completed, the callback is invoked at the end of the current call stack.
@@ -15715,7 +15715,7 @@ declare module "VSS/Utils/Date" {
         * @param ignoreTimeZone
         * @return
         */
-    export function parseLocale(value: string, formats?: string[] | string, ignoreTimeZone?: boolean): Date;
+    export function parseLocale(value: string, formats?: string[]| string, ignoreTimeZone?: boolean): Date;
     /**
         * @param date The Date object to format
         * @param format Date string format
@@ -29770,3 +29770,4 @@ declare module "TFS/Work/RestClient" {
      */
     export function getClient(): WorkHttpClient2;
 }
+
