@@ -122,13 +122,18 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
 
 
     workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
-        var ids = result.workItems.map(function (item) {
-            return item.id;
-        }).map(Number);
+        if (result.workItems.length > 0) {
+            var ids = result.workItems.map(function (item) {
+                return item.id;
+            }).map(Number);
 
-        getTestCases(ids).then(testCases => {
-            deferred.resolve(testCases);
-        });
+            getTestCases(ids).then(testCases => {
+                deferred.resolve(testCases);
+            });
+        }
+        else {
+            deferred.resolve([]);
+        }
     });
 
     return deferred.promise();

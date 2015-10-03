@@ -198,19 +198,20 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 return 1;
             return 0;
         }).forEach(function (item) {
-            var node = new TreeView.TreeNode(item.name);
-            node.icon = item.icon;
+            var itemPath = "";
             if (path == "") {
-                path = item.name;
+                itemPath = item.name;
             }
             else {
-                path = path + "\\" + item.name;
+                itemPath = path + "\\" + item.name;
             }
+            var node = new TreeView.TreeNode(item.name);
+            node.icon = item.icon;
             node.id = item.id;
-            node.config = { name: item.name, path: path };
+            node.config = { name: item.name, path: itemPath };
             node.expanded = item.expanded;
             if (item.children && item.children.length > 0) {
-                node.addRange(convertToTreeNodes(item.children, path));
+                node.addRange(convertToTreeNodes(item.children, itemPath));
             }
             a.push(node);
         });
