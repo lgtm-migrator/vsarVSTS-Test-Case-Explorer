@@ -8,7 +8,7 @@ import TreeView = require("VSS/Controls/TreeView");
 
 
 
-private function  getTestCases(workItemIds: number[]): IPromise < any > {
+ function  getTestCases(workItemIds: number[]): IPromise < any > {
     var deferred = $.Deferred<any[]>();
     var workItemClient = WorkItemClient.getClient();
 
@@ -20,7 +20,7 @@ private function  getTestCases(workItemIds: number[]): IPromise < any > {
     return deferred.promise();
 }
 
-private function getTestCasesByWiql(fields:string[], wiqlWhere: string): IPromise < any > {
+ function getTestCasesByWiql(fields:string[], wiqlWhere: string): IPromise < any > {
     var deferred = $.Deferred<any[]>();
     var workItemClient = WorkItemClient.getClient();
 
@@ -45,7 +45,7 @@ private function getTestCasesByWiql(fields:string[], wiqlWhere: string): IPromis
     return deferred.promise();
 }
 
-private function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string): IPromise < any > {
+export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string): IPromise < any > {
     var typeField: string;
     switch(structureType) {
         case WorkItemContracts.TreeNodeStructureType.Area:
