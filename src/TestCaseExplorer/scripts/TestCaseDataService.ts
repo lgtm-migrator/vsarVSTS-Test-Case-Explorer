@@ -7,23 +7,27 @@ import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
 
 
-
-export interface ITestCaseFilter {
-    initialize(): IPromise<any>,
-    filter(data: any[]): any[];
+export enum filterMode {
+    Contains, 
+    NotContains
 }
 
-export class orphanTestCasesFilter implements ITestCaseFilter {
+export interface ITestCaseFilter {
+    initialize(value:any): IPromise<any>,
+    filter(data: any[], mode: filterMode): any[];
+}
+
+export class wiqlFilter implements ITestCaseFilter {
     private _listTC:any[]
-    public initialize(): IPromise<any>{
+    public initialize(wiql:string): IPromise<any>{
 
         var deferred = $.Deferred<any>();
         var workItemClient = WorkItemClient.getClient();
 
-        var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP 'Test Case Category') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [Source].[System.Id] mode(DoesNotContain)"
-        wiqlOrphaneTC = wiqlOrphaneTC.replace("@project", "'" + VSS.getWebContext().project.name + "'");
         
-        workItemClient.queryByWiql({ query: wiqlOrphaneTC }, VSS.getWebContext().project.name).then(result => {
+        wiql = wiql.replace("@project", "'" + VSS.getWebContext().project.name + "'");
+        
+        workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
             if (result.queryResultType== 1) {
                 this._listTC = result.workItems.map(i=> { return i.id });
             }
@@ -35,10 +39,10 @@ export class orphanTestCasesFilter implements ITestCaseFilter {
         
         return deferred.promise();
     }
-    public filter(data: any[]): any[]
+    public filter(data: any[], mode: filterMode): any[]
     {
         var flt = this;
-        return data.filter(function (i) { return flt._listTC.indexOf(i["System.Id"])>=0 });
+        return data.filter(function (i) { var exist = flt._listTC.indexOf(i["System.Id"]) >= 0; return (mode == filterMode.Contains) ? exist : !exist; });
     }
 }
 

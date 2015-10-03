@@ -164,10 +164,10 @@ export class TestCaseView {
             {
                 id: "root", text: "Select Pane ", childItems: [
                     { id: "All", text: "All" },
-                    { id: "NoReq", text: "Tests not associated with any requirements" },
+                    { id: "TC_WithOUT_Requirement", text: "Tests not associated with any requirements" },
                     { id: "TestResults", text: "Tests present in multiple suites" },
                     { id: "TestResults", text: "Orphaned tests" },
-                    { id: "TestResults", text: "Tests with requirements linking" }
+                    { id: "TC_With_Requirement", text: "Tests with requirements linking" }
                 ]
             },
         ];
@@ -177,18 +177,27 @@ export class TestCaseView {
             executeAction: function (args) {
                 var command = args.get_commandName();
                 var filter: TestCaseDataService.ITestCaseFilter = null;
-                
-                switch (command) {
-                    case "NoReq":
-                        filter = new TestCaseDataService.orphanTestCasesFilter();
+                var filterMode: TestCaseDataService.filterMode;
+                var filterData: any;
 
+                switch (command) {
+                    case "TC_WithOUT_Requirement":
+                        filterData = wiqlOrphaneTC;
+                        filter = new TestCaseDataService.wiqlFilter();
+                        filterMode = TestCaseDataService.filterMode.Contains;
                         break;
+                    case "TC_With_Requirement":
+                        filterData = wiqlOrphaneTC;
+                        filter = new TestCaseDataService.wiqlFilter();
+                        filterMode = TestCaseDataService.filterMode.NotContains;
+                        break;
+
                     default:
                         break;
                 };
                 if (filter != null) {
-                    filter.initialize().then(function (a) {
-                        view._grid.setDataSource(filter.filter(view._data));
+                    filter.initialize(filterData).then(function (a) {
+                        view._grid.setDataSource(filter.filter(view._data, filterMode));
                     });
                 }
                 else {
@@ -233,3 +242,4 @@ export class TestCaseView {
     }
 }
 
+var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP 'Test Case Category') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [Source].[System.Id] mode(DoesNotContain)"
