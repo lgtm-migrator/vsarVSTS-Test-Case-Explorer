@@ -16,7 +16,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 return getStates();
                 break;
             case "Test plan":
-                return getTestPlans();
+                return getTestPlansWithSuite();
                 break;
         }
     }
@@ -62,16 +62,16 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return icon;
     }
     exports.getIconFromTestOutcome = getIconFromTestOutcome;
-    function getTestPlans() {
+    function getTestPlansWithSuite() {
         // Get an instance of the client
         var deferred = $.Deferred();
         var tstClient = TestClient.getClient();
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
-            var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }]);
+            var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
             var i = 0;
             var noPlans = data.length;
             data.forEach(function (t) {
-                getTestPlanaAndSuites(t.id, t.name).then(function (n) {
+                getTestPlanAndSuites(t.id, t.name).then(function (n) {
                     tRoot[0].addRange(n);
                     i++;
                     if (i >= noPlans) {
@@ -80,6 +80,21 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                     }
                 });
             });
+        });
+        return deferred.promise();
+    }
+    exports.getTestPlansWithSuite = getTestPlansWithSuite;
+    function getTestPlans() {
+        // Get an instance of the client
+        var deferred = $.Deferred();
+        var tstClient = TestClient.getClient();
+        tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
+            var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
+            data.forEach(function (t) {
+                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [] }], ""));
+            });
+            tRoot[0].expanded = true;
+            deferred.resolve(tRoot);
         });
         return deferred.promise();
     }
@@ -105,10 +120,9 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return deferred.promise();
     }
     exports.getTestResultsForTestCase = getTestResultsForTestCase;
-    function getTestPlanaAndSuites(planId, testPlanName) {
+    function getTestPlanAndSuites(planId, testPlanName) {
         // Get an instance of the client
         var deferred = $.Deferred();
-        planId = 546;
         var tstClient = TestClient.getClient();
         tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
             var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null; }), null, data);
@@ -116,7 +130,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         });
         return deferred.promise();
     }
-    exports.getTestPlanaAndSuites = getTestPlanaAndSuites;
+    exports.getTestPlanAndSuites = getTestPlanAndSuites;
     function BuildTestSuiteTree(tsList, parentNode, allTS) {
         var returnNode = null;
         tsList.forEach(function (t) {
@@ -126,7 +140,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             node.expanded = true;
             node.droppable = true;
             node.icon = getIconFromSuiteType(t.suiteType);
-            node.config = { suiteId: t.id, testPlanId: parseInt(t.plan.id) };
+            node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt(t.plan.id) };
             BuildTestSuiteTree(allTS.filter(function (i) { return i.parent != null && i.parent.id == t.id; }), node, allTS);
             if (parentNode != null) {
                 parentNode.children.push(node);
@@ -140,28 +154,9 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     function getStructure(structure) {
         var deferred = $.Deferred();
         var client = WITClient.getClient();
-        client.getClassificationNode(VSS.getWebContext().project.name, structure, null, 7).then(function (data) {
-            var p = VSS.getWebContext().project.name;
-            var d = [];
-            //fake
-            if (structure == Contracts.TreeStructureGroup.Areas) {
-                var f = { name: p, path: "\\" + p, children: [] };
-                f.children.push({ name: "Mobile", path: "\\" + p + "\\Mobile", children: [] });
-                f.children[0].children.push({ name: "iPhone", path: "\\" + p + "\\Mobile\\iPhone", children: [] });
-                f.children[0].children.push({ name: "Android", path: "\\" + p + "\\Mobile\\Android", children: [] });
-                f.children[0].children.push({ name: "WP", path: "\\" + p + "\\Mobile\\WP", children: [] });
-                d.push(f);
-            }
-            else {
-                var f = { name: p, path: "\\" + p, children: [] };
-                f.children.push({ name: "Sprint 1", path: "\\" + p + "\\Sprint 1", children: [] });
-                f.children.push({ name: "Sprint 2", path: "\\" + p + "\\Sprint 2", children: [] });
-                f.children.push({ name: "Sprint 3", path: "\\" + p + "\\Sprint 3", children: [] });
-                d.push(f);
-            }
-            deferred.resolve(convertToTreeNodes(d));
+        client.getRootNodes(VSS.getWebContext().project.name, 11).then(function (data) {
+            deferred.resolve(convertToTreeNodes([data[structure]], ""));
         });
-        //TODO - getClasification Node doesnt work as expected with areapath
         return deferred.promise();
     }
     function getStates() {
@@ -173,11 +168,13 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 var d = data;
                 var t = { name: "States", children: [] };
                 for (var s in d.transitions) {
-                    t.children.push({ name: s, config: s });
+                    if (s != "") {
+                        t.children.push({ name: s, config: s });
+                    }
                 }
                 var t2 = [];
                 t2.push(t);
-                deferred.resolve(convertToTreeNodes(t2));
+                deferred.resolve(convertToTreeNodes(t2, ""));
             });
         });
         return deferred.promise();
@@ -187,20 +184,33 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var client = WITClient.getClient();
         client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
             var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
-            deferred.resolve(convertToTreeNodes(d));
+            deferred.resolve(convertToTreeNodes(d, ""));
         });
         return deferred.promise();
     }
     // Converts the source to TreeNodes
-    function convertToTreeNodes(items) {
+    function convertToTreeNodes(items, path) {
         var a = [];
-        items.forEach(function (item) {
+        items.sort(function (a, b) {
+            if (a.name < b.name)
+                return -1;
+            if (a.name > b.name)
+                return 1;
+            return 0;
+        }).forEach(function (item) {
             var node = new TreeView.TreeNode(item.name);
             node.icon = item.icon;
-            node.config = { name: item.name, path: item.path };
+            if (path == "") {
+                path = item.name;
+            }
+            else {
+                path = path + "\\" + item.name;
+            }
+            node.id = item.id;
+            node.config = { name: item.name, path: path };
             node.expanded = item.expanded;
             if (item.children && item.children.length > 0) {
-                node.addRange(convertToTreeNodes(item.children));
+                node.addRange(convertToTreeNodes(item.children, path));
             }
             a.push(node);
         });

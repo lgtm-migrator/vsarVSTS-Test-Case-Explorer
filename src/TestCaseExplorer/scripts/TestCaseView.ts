@@ -14,6 +14,8 @@ import Navigation = require("VSS/Controls/Navigation");
 //import CC = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
 
+import TestCaseDataService = require("scripts/TestCaseDataService");
+
 export interface TestCaseViewSelectedCallback { (value: string): void }
 
 export class TestCaseView {
@@ -31,13 +33,13 @@ export class TestCaseView {
 
         switch (pivot) {
             case "Area path":
-                this.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path).then(result => {
+                TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path).then(result => {
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test cases with area path: " + value.path);
                 });
                 break;
             case "Iteration path":
-                this.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path).then(result => {
+                TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path).then(result => {
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test cases with iteration path: " + value.path);
                 });
@@ -47,7 +49,7 @@ export class TestCaseView {
                 if (value.name != "Priority") {
                     priority = value.name;
                 }
-                this.getTestCasesByPriority(priority).then(result => {
+                TestCaseDataService.getTestCasesByPriority(priority).then(result => {
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test cases with priority: " + priority);
                 });
@@ -57,13 +59,13 @@ export class TestCaseView {
                 if (value.name != "States") {
                     state = value.name;
                 }
-                this.getTestCasesByState(state).then(result => {
+                TestCaseDataService.getTestCasesByState(state).then(result => {
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test cases with state: " + state);
                 });
                 break;
             case "Test plan":
-                this.getTestCasesByTestPlan(value.testPlanId, value.suiteId).then(result => {
+                TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId).then(result => {
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")");
                 });
@@ -74,92 +76,7 @@ export class TestCaseView {
     public toggle() {
     }
 
-    private getTestCases(workItemIds: number[]): IPromise<any> {
-        var deferred = $.Deferred<any[]>();
-        var workItemClient = WorkItemClient.getClient();
-
-        workItemClient.getWorkItems(workItemIds, this._fields).then(result => {
-
-            deferred.resolve(result.map(function (i) { return i.fields;}));
-        });
-
-        return deferred.promise();
-    }
-
-    private getTestCasesByWiql(fields:string[] , wiqlWhere: string): IPromise<any> {
-        var deferred = $.Deferred<any[]>();
-        var workItemClient = WorkItemClient.getClient();
-
-        var wiql: string = "SELECT ";
-        fields.forEach(function (f) {
-            wiql += f + ", ";
-        });
-        wiql = wiql.substr(0, wiql.lastIndexOf(", "));
-        wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP 'Test Case Category'  "+ (wiqlWhere=="" ? "":  " AND " + wiqlWhere ) + " ORDER BY [System.Id]";
-         
-
-        workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
-            var ids = result.workItems.map(function (item) {
-                return item.id;
-            }).map(Number);
-
-            this.getTestCases(ids).then(testCases => {
-                deferred.resolve(testCases);
-            });
-        });
-
-        return deferred.promise();
-    }
-
-    private getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string): IPromise<any> {
-        var typeField: string;
-        switch (structureType) {
-            case WorkItemContracts.TreeNodeStructureType.Area:
-                typeField = "System.AreaPath";
-                break;
-            case WorkItemContracts.TreeNodeStructureType.Iteration:
-                typeField = "System.IterationPath";
-                break;
-        }
-
-        var wiqlWhere = "[" + typeField + "] UNDER '" + path + "'";
-        return this.getTestCasesByWiql(["System.Id"], wiqlWhere);
-    }
-
-    private getTestCasesByPriority(priority: string): IPromise<any> {
-        var wiqlWhere: string;
-        if (priority != "any") {
-            wiqlWhere = "[Microsoft.VSTS.Common.Priority] = " + priority
-        }
-
-        return this.getTestCasesByWiql(["System.Id"], wiqlWhere);
-    }
-
-    private getTestCasesByState(state: string): IPromise<any> {
-        var wiqlWhere: string;
-        if (state != "any") {
-            wiqlWhere = "[System.State] = '" + state + "'";
-        }
-
-        return this.getTestCasesByWiql(["System.Id"] , wiqlWhere);
-    }
-
-    private getTestCasesByTestPlan(planId: number, suiteId: number): IPromise<any> {
-        var deferred = $.Deferred<any[]>();
-        var testClient = TestClient.getClient();
-
-        testClient.getTestCases(VSS.getWebContext().project.name, planId, suiteId).then(result => {
-            var ids = result.map(function (item) {
-                return item.testCase.id;
-            }).map(Number);
-
-            this.getTestCases(ids).then(testCases => {
-                deferred.resolve(testCases);
-            });
-        });
-
-        return deferred.promise();
-    }
+    
 
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
 
