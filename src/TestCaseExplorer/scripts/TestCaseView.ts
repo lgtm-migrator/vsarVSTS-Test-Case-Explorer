@@ -24,7 +24,7 @@ export class TestCaseView {
     private _grid: Grids.Grid;
     private _menubar: Menus.MenuBar;
     private _fields: string[];
-     
+    private _data: any[];     
 
     public RefreshGrid(pivot: string, value) {
 
@@ -34,12 +34,14 @@ export class TestCaseView {
         switch (pivot) {
             case "Area path":
                 TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path).then(result => {
+                    this._data = result;
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test cases with area path: " + value.path);
                 });
                 break;
             case "Iteration path":
                 TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path).then(result => {
+                    this._data = result;
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test cases with iteration path: " + value.path);
                 });
@@ -50,6 +52,7 @@ export class TestCaseView {
                     priority = value.name;
                 }
                 TestCaseDataService.getTestCasesByPriority(priority).then(result => {
+                    this._data = result;
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test cases with priority: " + priority);
                 });
@@ -60,12 +63,14 @@ export class TestCaseView {
                     state = value.name;
                 }
                 TestCaseDataService.getTestCasesByState(state).then(result => {
+                    this._data = result;
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test cases with state: " + state);
                 });
                 break;
             case "Test plan":
                 TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId).then(result => {
+                    this._data = result;
                     this._grid.setDataSource(result);
                     $("#grid-title").text("Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")");
                 });
@@ -168,13 +173,23 @@ export class TestCaseView {
             items: menuFilterItems,
             executeAction: function (args) {
                 var command = args.get_commandName();
-                switch (command) {
+                var filter: TestCaseDataService.ITestCaseFilter
 
+                switch (command) {
+                    case "NoReq":
+                        filter = new TestCaseDataService.orphanTestCasesFilter();
+
+                        break;
                     default:
-                        menuFilterItems[0].text = args.get_commandSource()._item.text;
-                        menubarFilter.updateItems(menuFilterItems);
                         break;
                 };
+                filter.initialize().then(function (a) {
+                    this._grid.setDataSource(filter.filter(this._data));
+                });
+
+                menuFilterItems[0].text = args.get_commandSource()._item.text;
+                menubarFilter.updateItems(menuFilterItems);
+
             }
         };
 

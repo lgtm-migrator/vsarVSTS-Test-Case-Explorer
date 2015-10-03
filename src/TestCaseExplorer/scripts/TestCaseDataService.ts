@@ -8,42 +8,24 @@ import TreeView = require("VSS/Controls/TreeView");
 
 
 
- function  getTestCases(workItemIds: number[]): IPromise < any > {
-    var deferred = $.Deferred<any[]>();
-    var workItemClient = WorkItemClient.getClient();
-
-    workItemClient.getWorkItems(workItemIds, this._fields).then(result => {
-
-        deferred.resolve(result.map(function (i) { return i.fields; }));
-    });
-
-    return deferred.promise();
+export interface ITestCaseFilter {
+    initialize(): IPromise<any>,
+    filter(data: any[]): any[];
 }
 
- function getTestCasesByWiql(fields:string[], wiqlWhere: string): IPromise < any > {
-    var deferred = $.Deferred<any[]>();
-    var workItemClient = WorkItemClient.getClient();
+export class orphanTestCasesFilter implements ITestCaseFilter {
+    private _listTC:number[]
+    public initialize(): IPromise<any>{
+        var deferred = $.Deferred<any>();
 
-    var wiql: string = "SELECT ";
-    fields.forEach(function (f) {
-        wiql += f + ", ";
-    });
-    wiql = wiql.substr(0, wiql.lastIndexOf(", "));
-    wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP 'Test Case Category'  " + (wiqlWhere == "" ? "" : " AND " + wiqlWhere) + " ORDER BY [System.Id]";
-         
-
-    workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
-        var ids = result.workItems.map(function (item) {
-            return item.id;
-        }).map(Number);
-
-        this.getTestCases(ids).then(testCases => {
-            deferred.resolve(testCases);
-        });
-    });
-
-    return deferred.promise();
+        return deferred.promise();
+    }
+    public filter(data: any[]): any[]
+    {
+        return data.filter(function (i) { return this._listTC.indexOf(i.Id)>0 });
+    }
 }
+
 
 export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string): IPromise < any > {
     var typeField: string;
@@ -85,6 +67,43 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number): IPromis
     testClient.getTestCases(VSS.getWebContext().project.name, planId, suiteId).then(result => {
         var ids = result.map(function (item) {
             return item.testCase.id;
+        }).map(Number);
+
+        this.getTestCases(ids).then(testCases => {
+            deferred.resolve(testCases);
+        });
+    });
+
+    return deferred.promise();
+}
+
+function getTestCases(workItemIds: number[]): IPromise<any> {
+    var deferred = $.Deferred<any[]>();
+    var workItemClient = WorkItemClient.getClient();
+
+    workItemClient.getWorkItems(workItemIds, this._fields).then(result => {
+
+        deferred.resolve(result.map(function (i) { return i.fields; }));
+    });
+
+    return deferred.promise();
+}
+
+function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> {
+    var deferred = $.Deferred<any[]>();
+    var workItemClient = WorkItemClient.getClient();
+
+    var wiql: string = "SELECT ";
+    fields.forEach(function (f) {
+        wiql += f + ", ";
+    });
+    wiql = wiql.substr(0, wiql.lastIndexOf(", "));
+    wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP 'Test Case Category'  " + (wiqlWhere == "" ? "" : " AND " + wiqlWhere) + " ORDER BY [System.Id]";
+
+
+    workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
+        var ids = result.workItems.map(function (item) {
+            return item.id;
         }).map(Number);
 
         this.getTestCases(ids).then(testCases => {
