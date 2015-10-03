@@ -1,10 +1,13 @@
 ﻿/// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
+/// <reference path='ref/q.d.ts' />
 
 import WorkItemContracts = require("TFS/WorkItemTracking/Contracts");
 import TestClient = require("TFS/TestManagement/RestClient");
 import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
+import Q = require("q");
+
 
 
 export enum filterMode {
@@ -80,20 +83,66 @@ export function getTestCasesByState(state: string): IPromise < any > {
         return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
-export function getTestCasesByTestPlan(planId: number, suiteId: number, recursive:boolean): IPromise < any > {
+function   getRecursiveChildIds(id:number , lst: any[]): number[]
+{
+    var ret: number[] = [];
+    ret.push(id);
+    lst.filter(i=> { return i.parent!=null && i.parent.id == id }).forEach(it=> {
+        ret = ret.concat(getRecursiveChildIds(it.id, lst));
+    });
+    return ret;
+}
+
+export function getTestCasesByTestPlan(planId: number, suiteId: number, recursive: boolean): IPromise<any> {
     var deferred = $.Deferred<any[]>();
     var testClient = TestClient.getClient();
+ 
+    if (recursive) {
+        var idList = [];
+        var suite_id: number = suiteId;
+        
 
-    testClient.getTestCases(VSS.getWebContext().project.name, planId, suiteId).then(result => {
-        var ids = result.map(function (item) {
-            return item.testCase.id;
-        }).map(Number);
+        testClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId, true).then(suites => {
+            var que: IPromise<any[]>[] = [];
 
-        getTestCases(ids).then(testCases => {
-            deferred.resolve(testCases);
+            getRecursiveChildIds(suiteId, suites).forEach(s => {
+                que.push(testClient.getTestCases(VSS.getWebContext().project.name, planId, s));
+            });
+            Q.all(que).then(results => {
+                results.forEach(r => {
+                    idList = idList.concat(
+                        r.map(i => { return i.testCase.id; })
+                        );
+                });
+                if (idList.length > 0) {
+                    getTestCases(idList).then(testCases => {
+                        deferred.resolve(testCases);
+                    });
+                }
+                else {
+                    deferred.resolve([]);
+                }
+            });
         });
-    });
+    }
+    else{
 
+
+        testClient.getTestCases(VSS.getWebContext().project.name, planId, suiteId).then(result => {
+            var idList = result.map(function (item) {
+                return item.testCase.id;
+            }).map(Number);
+
+            if (idList.length > 0) {
+                getTestCases(idList).then(testCases => {
+                    deferred.resolve(testCases);
+                });
+            }
+            else {
+                deferred.resolve([]);
+            }
+        });
+    }
     return deferred.promise();
 }
 
