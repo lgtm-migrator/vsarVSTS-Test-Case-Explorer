@@ -238,7 +238,7 @@ export class TestCaseView {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
 
         $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
-            var s = view._grid.getRowData(view._grid.getSelectedDataIndex()).id;
+            var s = view._grid.getRowData(view._grid.getSelectedDataIndex())["System.Id"];
             selectCallBack(s);
         });
 
