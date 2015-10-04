@@ -245,13 +245,13 @@ export class DetailsView {
             });
         });
 
-        $("#droppable").droppable({
+        $(".ui-droppable").droppable({
             drop: function (event, ui) {
                 alert("Dropped");
             }
         });
-         
-     }
+        $(".ui-draggable").draggable();
+     } 
 
      public show() {
          $("#details-TestPlan").css("display", "block");
