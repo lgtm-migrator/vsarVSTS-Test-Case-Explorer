@@ -94,11 +94,11 @@ export class TestCaseView {
 
         this._paneToggler = paneToggler;
         this._showRecursive = false;
-
+        
         this._fields = ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"];
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
-            { id: "show-recursive", text: "Recursive", icon: "child-node-icon" },
+            { id: "show-recursive", showText: false, icon: VSS.getExtensionContext().baseUri + "/img/Child-node-icon.png" },
             { separator: true },
             { id: "new-testcase", text: "New", icon: "icon-add-small" },
             { separator: true },
@@ -107,7 +107,6 @@ export class TestCaseView {
             { id: "column_options", text: "Column Options", noIcon: true },
             { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
         ];
-
   
         var menubarOptions = {
             items: menuItems,
