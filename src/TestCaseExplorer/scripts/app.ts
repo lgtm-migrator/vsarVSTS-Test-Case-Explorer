@@ -1,6 +1,7 @@
 ﻿/// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 
+var gridTC;
 import DetailsToggle = require("scripts/DetailsToggle");
 var paneToggler = new DetailsToggle.DetailsPaneToggler();
 

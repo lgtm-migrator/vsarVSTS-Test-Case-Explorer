@@ -16,15 +16,18 @@ export enum filterMode {
 }
 
 export interface ITestCaseFilter {
+    setMode(mode: filterMode),
     initialize(value:any): IPromise<any>,
-    filter(data: any[], mode: filterMode): any[];
+    filter(data: any[]): any[];
 }
 
 export class wiqlFilter implements ITestCaseFilter {
-    private _listTC:any[]
+    private _listTC: any[]
+    private _mode: filterMode;
+
     public initialize(wiql:string): IPromise<any>{
 
-        var deferred = $.Deferred<any>();
+        var deferred = $.Deferred<ITestCaseFilter>();
         var workItemClient = WorkItemClient.getClient();
 
         
@@ -34,7 +37,7 @@ export class wiqlFilter implements ITestCaseFilter {
             if (result.queryResultType== 1) {
                 this._listTC = result.workItems.map(i=> { return i.id });
             }
-            deferred.resolve(result);
+            deferred.resolve(this);
         },
         err => {
             deferred.reject(err);
@@ -42,10 +45,15 @@ export class wiqlFilter implements ITestCaseFilter {
         
         return deferred.promise();
     }
-    public filter(data: any[], mode: filterMode): any[]
+
+    public setMode(mode: filterMode) {
+        this._mode = mode;
+    }
+
+    public filter(data: any[]): any[]
     {
         var flt = this;
-        return data.filter(function (i) { var exist = flt._listTC.indexOf(i["System.Id"]) >= 0; return (mode == filterMode.Contains) ? exist : !exist; });
+        return data.filter(function (i) { var exist = flt._listTC.indexOf(i["System.Id"]) >= 0; return (flt._mode == filterMode.Contains) ? exist : !exist; });
     }
 }
 

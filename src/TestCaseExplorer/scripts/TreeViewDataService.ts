@@ -29,6 +29,7 @@ export function getNodes(param) {
 
 }
 
+
 export function getIconFromSuiteType(suiteType): string
 {
     var icon: string = "";
@@ -73,6 +74,11 @@ export function getIconFromTestOutcome(outcome): string {
     }
     return icon;
 }
+export function mapTestCaseToSuite(project,tcId, suiteId, planId):IPromise<any> {
+    var client = TestClient.getClient();
+    return client.addTestCasesToSuite(project, planId, suiteId, tcId)
+}
+
 
 export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
     // Get an instance of the client

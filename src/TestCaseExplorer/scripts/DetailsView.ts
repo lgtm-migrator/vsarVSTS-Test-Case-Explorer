@@ -7,6 +7,7 @@ import TreeView = require("VSS/Controls/TreeView");
 import Grids = require("VSS/Controls/Grids");
 import CommonControls = require("VSS/Controls/Common");
 import Menus = require("VSS/Controls/Menus");
+import StatusIndicator = require("VSS/Controls/Common");
 
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
@@ -14,7 +15,7 @@ import TreeViewDataService = require("scripts/TreeViewDataService");
 
 
 interface IPaneRefresh {
-    initialize(): void,
+    initialize(view: DetailsView): void,
     hide(): void,
     show(): void;
     masterIdChanged(id: string): void
@@ -27,6 +28,7 @@ export class DetailsView {
     private _PaneLst: IPaneRefresh[];
 
     public _toggler: Toggler.DetailsPaneToggler;
+    public _waitControl: StatusIndicator.WaitControl;
 
     public initialize(paneToggler: Toggler.DetailsPaneToggler) {
    
@@ -129,7 +131,7 @@ export class DetailsView {
                     pane = new partOfTestSuitesPane();
                     break;
             }
-            pane.initialize();
+            pane.initialize(this);
             this._PaneLst[panel] = pane;
         } else {
             pane = this._PaneLst[panel];
@@ -139,6 +141,33 @@ export class DetailsView {
         this._selectedPane.show();
     }
 
+    public StartLoading(longRunning:boolean, message:string) {
+        $("body").css("cursor", "progress");
+
+        if (longRunning) {
+
+            var waitOptions = {
+                cancellable: true,
+                target: $(".wait-control-details-target"),
+                message: message
+            };
+
+            this._waitControl = new StatusIndicator.WaitControl(waitOptions);
+            this._waitControl.startWait();
+        }
+    }
+
+
+
+    public DoneLoading() {
+        $("body").css("cursor", "default");
+
+        if (this._waitControl != null) {
+            this._waitControl.cancelWait();
+            this._waitControl.endWait();
+            this._waitControl = null;
+        }
+    }
 }
 
 
@@ -147,7 +176,7 @@ export class DetailsView {
 
      private _grid;
 
-     public initialize() {
+     public initialize(view: DetailsView) {
          
          var options = {
              height: "1000px", // Explicit height is required for a Grid control
@@ -202,9 +231,11 @@ export class DetailsView {
  class testPlanPane implements IPaneRefresh {
      private _cbo: CommonControls.Combo;
      private _testPlans;
+     private _view: DetailsView;
 
-     public initialize() {
+     public initialize(view: DetailsView) {
      
+         this._view = view;
         var tpp = this;
 
         this._cbo= Controls.create(CommonControls.Combo, $("#details-cboTestPlan"), {
@@ -228,29 +259,79 @@ export class DetailsView {
         };
 
         var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
-        treeviewTestPlan.setDroppable(true);
+        
 
         treeviewTestPlan.onItemClick = function (node, nodeElement, e) {
         };
 
 
         $("#details-cboTestPlan").change(function () {
-            
+            tpp._view.StartLoading(true, "Fetching test plan " + tpp._cbo.getSelectedIndex());
             var tp = tpp._testPlans[tpp._cbo.getSelectedIndex()];
             TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(function (data) {
+
+                tpp._view.DoneLoading();
+
                 treeviewTestPlan.rootNode.clear();
 
                 treeviewTestPlan.rootNode.addRange(data);
                 treeviewTestPlan._draw();
+
+                var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
+
+                $("li.node").droppable({
+                    greedy: true,
+                    tolerance: "pointer",
+                    hoverClass: "droppable-hover",
+                    drop: function (event, ui) {
+                        var n = treeviewTestPlan.getNodeFromElement(event.target);
+                        var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
+                        var tcId = ui.draggable.context.childNodes[0].textContent;
+                        //var x = grd.getDraggingRowInfo();
+                        //Grids.Grid.getInstance($("#grid-container"));
+                        var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
+                        var div = $("<div />").text(s);
+                        ui.draggable.context = div[0];
+                        TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
+                            data => { alert(s); },
+                            err => { alert(err); });
+
+
+                    }
+                });
+                $(".grid-row-normal").draggable({
+                    revert: "invalid",
+                    appendTo: document.body,
+                    helper: "clone",
+                    zIndex: 1000,
+                    cursor: "move",
+                    cursorAt: { top: -5, left: -5 },
+                    //scope: TFS_Agile.DragDropScopes.ProductBacklog,
+                    //start: this._draggableStart,
+                    //stop: this._draggableStop,
+                    //helper: this._draggableHelper,
+                    //drag: this._draggableDrag,
+                    refreshPositions: true
+
+                });
             });
         });
+         
+    
 
-        $(".ui-droppable").droppable({
-            drop: function (event, ui) {
-                alert("Dropped");
-            }
+       
+        $(".ui-draggable").draggable({
+            revert: true,
+            appendTo: document.body,
+            helper: "clone",
+            zIndex: 1000,
+            refreshPositions: true
+
         });
-        $(".ui-draggable").draggable();
+
+      
+        
+
      } 
 
      public show() {
@@ -271,7 +352,7 @@ export class DetailsView {
 class testResultsPane implements IPaneRefresh {
     private _grid;
 
-    public initialize() {
+    public initialize(view: DetailsView) {
       
 
         var options = {

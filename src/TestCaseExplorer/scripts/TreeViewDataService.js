@@ -62,6 +62,11 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return icon;
     }
     exports.getIconFromTestOutcome = getIconFromTestOutcome;
+    function mapTestCaseToSuite(project, tcId, suiteId, planId) {
+        var client = TestClient.getClient();
+        return client.addTestCasesToSuite(project, planId, suiteId, tcId);
+    }
+    exports.mapTestCaseToSuite = mapTestCaseToSuite;
     function getTestPlansWithSuite() {
         // Get an instance of the client
         var deferred = $.Deferred();

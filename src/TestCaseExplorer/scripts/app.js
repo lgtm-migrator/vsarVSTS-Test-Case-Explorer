@@ -1,6 +1,7 @@
 /// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "scripts/TestCaseView", "scripts/TreeViewView", "VSS/Controls", "VSS/Controls/Common"], function (require, exports, DetailsToggle, DetailsView, TestCaseView, TreeViewView, Controls, CommonControls) {
+    var gridTC;
     var paneToggler = new DetailsToggle.DetailsPaneToggler();
     var dv = new DetailsView.DetailsView();
     var tc = new TestCaseView.TestCaseView();

@@ -33,6 +33,8 @@ export class TestCaseView {
     private _data: any[];     
     private _waitControl: StatusIndicator.WaitControl;
     private _showRecursive: boolean;
+    private _currentFilter: TestCaseDataService.ITestCaseFilter = null;
+    private _orphanTestCaseFilter: TestCaseDataService.wiqlFilter = null;
 
     public RefreshGrid(pivot: string, value) {
 
@@ -77,7 +79,8 @@ export class TestCaseView {
 
         promise.then(result => {
             this._data = result;
-            this._grid.setDataSource(result);
+            this.DoRefreshGrid();
+            
             this.DoneLoading();
         });
 
@@ -88,14 +91,20 @@ export class TestCaseView {
 
     
 
+
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
-
-        var view = this;
-
+        
         this._paneToggler = paneToggler;
         this._showRecursive = false;
         
         this._fields = ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"];
+        this.initMenu(this, paneToggler);
+        this.initFilter(this);
+        this.initGrid(this, selectCallBack);
+        
+    }
+
+    private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
             { id: "show-recursive", showText: false, icon: VSS.getExtensionContext().baseUri + "/img/Child-node-icon.png" },
@@ -107,7 +116,7 @@ export class TestCaseView {
             { id: "column_options", text: "Column Options", noIcon: true },
             { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
         ];
-  
+
         var menubarOptions = {
             items: menuItems,
             executeAction: function (args) {
@@ -127,7 +136,7 @@ export class TestCaseView {
                             workItemService.openNewWorkItem("Test Case");
                             // TODO: refresh grid after add
                         });
-                       break;
+                        break;
                     default:
                         alert("Unhandled action: " + command);
                         break;
@@ -139,34 +148,10 @@ export class TestCaseView {
         this._menubar = menubar;
         menubar.updateCommandStates([{ id: "toggle", toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
 
-        var options = {
-            height: "1000px", // Explicit height is required for a Grid control
-            columns: this._fields.map(function (f) {
-                return { text: f.substring(f.lastIndexOf(".")+1), index:f};
-            })
-            //    { text: "Id", index: "id", width: 50 },
-            //    { text: "Title", index: "title", width: 200 },
-            //    { text: "State", index: "state", width: 75 },
-            //    { text: "Assigned To", index: "assigned_to", width: 150 },
-            //    { text: "Priority", index: "priority", width: 50 },
-            //    { text: "Automation status", index: "automation_status", width: 150 }
-        //]
-            ,
-            draggable: true,
-            droppable: true,
-            openRowDetail: (index: number) => {
-                // Double clicking row or hitting enter key when the row is selected
-                // will cause this function to be executed
-                var item = this._grid.getRowData(index);
-                selectCallBack(item["System.Id"]);
-                WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
-                    workItemService.openWorkItem(item["System.Id"]);
-                    // TODO: refresh grid after update
-                });
-            }
+  
+    }
 
-        };
-
+    private initFilter(view: TestCaseView) {
 
         var menubarFilter: Menus.MenuBar = null;
         var menuFilterItems: Menus.IMenuItemSpec[] = [
@@ -186,33 +171,29 @@ export class TestCaseView {
             items: menuFilterItems,
             executeAction: function (args) {
                 var command = args.get_commandName();
-                var filter: TestCaseDataService.ITestCaseFilter = null;
+
+                var filterPromise: IPromise<TestCaseDataService.ITestCaseFilter>;
                 var filterMode: TestCaseDataService.filterMode;
                 var filterData: any;
 
                 switch (command) {
                     case "TC_WithOUT_Requirement":
-                        filterData = wiqlOrphaneTC;
-                        filter = new TestCaseDataService.wiqlFilter();
-                        filterMode = TestCaseDataService.filterMode.Contains;
+                        filterPromise = view.getOrphanTestCaseFilter(TestCaseDataService.filterMode.Contains)
                         break;
                     case "TC_With_Requirement":
-                        filterData = wiqlOrphaneTC;
-                        filter = new TestCaseDataService.wiqlFilter();
-                        filterMode = TestCaseDataService.filterMode.NotContains;
+                        filterPromise = view.getOrphanTestCaseFilter(TestCaseDataService.filterMode.NotContains)
                         break;
-
                     default:
+                        var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
+                        deferred.resolve(null);
+                        filterPromise = deferred.promise();
                         break;
                 };
-                if (filter != null) {
-                    filter.initialize(filterData).then(function (a) {
-                        view._grid.setDataSource(filter.filter(view._data, filterMode));
-                    });
-                }
-                else {
-                    view._grid.setDataSource(view._data);
-                }
+
+                filterPromise.then(filter=> {
+                    view._currentFilter = filter;
+                    view.DoRefreshGrid();
+                });
 
                 menuFilterItems[0].text = args.get_commandSource()._item.text;
                 menubarFilter.updateItems(menuFilterItems);
@@ -232,16 +213,55 @@ export class TestCaseView {
         //    allowEdit: false,
         //    source: ["All", "Tests not associated with any requirements", "Tests present in multiple suites", "Orphaned tests", "Tests with requirements linking"]
         //});
+    }
+
+    private initGrid(view:TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
+        var options: Grids.IGridOptions = {
+            height: "1000px", // Explicit height is required for a Grid control
+            columns: this._fields.map(function (f) {
+                return { text: f.substring(f.lastIndexOf(".") + 1), index: f };
+            }),            
+            draggable: {
+                axis: "",
+                containment: "",
+            revert: "invalid",
+            appendTo: document.body,
+            helper: "clone",
+            zIndex: 1000,
+            cursor: "move",
+            cursorAt: { top: -5, left: -5 },
+            scope: "",
+            //start: this._draggableStart,
+            //stop: this._draggableStop,
+            //helper: this._draggableHelper,
+            //drag: this._draggableDrag,
+            refreshPositions: true
+
+        },
+            droppable: true,
+            openRowDetail: (index: number) => {
+                // Double clicking row or hitting enter key when the row is selected
+                // will cause this function to be executed
+                var item = this._grid.getRowData(index);
+                selectCallBack(item["System.Id"]);
+                WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
+                    workItemService.openWorkItem(item["System.Id"]);
+                    // TODO: refresh grid after update
+                });
+            }
+
+        };
 
         // Create the grid in a container element
-        this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
+        this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options );
+
 
         $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
             var s = view._grid.getRowData(view._grid.getSelectedDataIndex())["System.Id"];
             selectCallBack(s);
         });
 
-        this._grid.enableDragDrop();
+        //this._grid.enableDragDrop();
 
     }
 
@@ -251,6 +271,46 @@ export class TestCaseView {
         this._menubar.updateCommandStates([{ id: "toggle", toggled: paneToggler._isTestCaseDetailsPaneOn() }]);
     }
 
+    private getOrphanTestCaseFilter(mode: TestCaseDataService.filterMode): IPromise<TestCaseDataService.ITestCaseFilter>
+    {
+        if (this._orphanTestCaseFilter == null) {
+            this._orphanTestCaseFilter = new TestCaseDataService.wiqlFilter();
+            this._orphanTestCaseFilter.setMode(mode);
+            return this._orphanTestCaseFilter.initialize(wiqlOrphaneTC);
+        }
+        else
+        {
+            var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
+            deferred.resolve(this._orphanTestCaseFilter);
+            return deferred.promise();
+        }
+    }
+
+    private DoRefreshGrid() {
+
+
+        if (this._currentFilter != null) {
+            this._grid.setDataSource(this._currentFilter.filter(this._data));
+        }
+        else {
+            this._grid.setDataSource(this._data);
+        }
+        $(".grid-row-normal").draggable({
+            revert: "invalid",
+            appendTo: document.body,
+            helper: "clone",
+            zIndex: 1000,
+            cursor: "move",
+            cursorAt: { top: -5, left: -5 },
+            //scope: TFS_Agile.DragDropScopes.ProductBacklog,
+            //start: this._draggableStart,
+            //stop: this._draggableStop,
+            //helper: this._draggableHelper,
+            //drag: this._draggableDrag,
+            refreshPositions: true
+
+        });
+    }
 
     public StartLoading( longRunning, message) {
         $("body").css("cursor", "progress");
