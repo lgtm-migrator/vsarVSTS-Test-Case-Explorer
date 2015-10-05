@@ -35,6 +35,7 @@ export class TestCaseView {
     private _showRecursive: boolean;
     private _currentFilter: TestCaseDataService.ITestCaseFilter = null;
     private _orphanTestCaseFilter: TestCaseDataService.wiqlFilter = null;
+    private _testSuiteFilter: TestCaseDataService.testSuiteFilter = null;
 
     public RefreshGrid(pivot: string, value) {
 
@@ -48,7 +49,6 @@ export class TestCaseView {
             case "Area path":
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path, this._showRecursive);
                 title = "Test cases with area path: " + value.path;
-                
                 break;
             case "Iteration path":
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path, this._showRecursive);
@@ -160,8 +160,8 @@ export class TestCaseView {
                 id: "root", text: "Select Pane ", childItems: [
                     { id: "All", text: "All" },
                     { id: "TC_WithOUT_Requirement", text: "Tests not associated with any requirements" },
-                    { id: "TestResults", text: "Tests present in multiple suites" },
-                    { id: "TestResults", text: "Orphaned tests" },
+                    { id: "TC_MultipleSuites", text: "Tests present in multiple suites" },
+                    { id: "TC_OrphanedSuites", text: "Orphaned tests" },
                     { id: "TC_With_Requirement", text: "Tests with requirements linking" }
                 ]
             },
@@ -182,6 +182,12 @@ export class TestCaseView {
                         break;
                     case "TC_With_Requirement":
                         filterPromise = view.getOrphanTestCaseFilter(TestCaseDataService.filterMode.NotContains)
+                        break;
+                    case "TC_MultipleSuites":
+                        filterPromise = view.getTestSuiteFilter(TestCaseDataService.filterMode.Contains)
+                        break;
+                    case "TC_OrphanedSuites":
+                        filterPromise = view.getTestSuiteFilter(TestCaseDataService.filterMode.NotContains)
                         break;
                     default:
                         var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
@@ -282,6 +288,19 @@ export class TestCaseView {
         {
             var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
             deferred.resolve(this._orphanTestCaseFilter);
+            return deferred.promise();
+        }
+    }
+
+    private getTestSuiteFilter(mode: TestCaseDataService.filterMode): IPromise<TestCaseDataService.ITestCaseFilter> {
+        if (this._testSuiteFilter == null) {
+            this._testSuiteFilter = new TestCaseDataService.testSuiteFilter();
+            this._testSuiteFilter.setMode(mode);
+            return this._testSuiteFilter.initialize(this._data);
+        }
+        else {
+            var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
+            deferred.resolve(this._testSuiteFilter);
             return deferred.promise();
         }
     }

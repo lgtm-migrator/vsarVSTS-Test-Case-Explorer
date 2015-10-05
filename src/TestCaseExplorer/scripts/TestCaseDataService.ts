@@ -57,6 +57,46 @@ export class wiqlFilter implements ITestCaseFilter {
     }
 }
 
+export class testSuiteFilter implements ITestCaseFilter {
+    private _listTC: any[]
+    private _mode: filterMode;
+
+    public initialize(data: any[]): IPromise<any> {
+
+        var deferred = $.Deferred<ITestCaseFilter>();
+
+        var testClient = TestClient.getClient();
+
+        var que: IPromise<any[]>[] = [];
+
+        // anropa getSuitesByTestCaseId och spara tc_id, suite_count i en dictionary eller liknande
+        // hur får jag synkat resultat från getSuitesByTestCaseId med rätt tc id?
+
+        data.forEach(item => {
+            que.push(testClient.getSuitesByTestCaseId(item["System.Id"]));
+        });
+
+        Q.all(que).then(results => {
+            results.forEach(suites => {
+                var suiteCount = suites.length;
+            });
+        });
+
+        deferred.resolve(this);
+
+        return deferred.promise();
+    }
+
+    public setMode(mode: filterMode) {
+        this._mode = mode;
+    }
+
+    public filter(data: any[]): any[] {
+        var flt = this;
+        // TODO: filtrera på tc med suite-count == 0 eller suite-count > 1
+        return data.filter(function (i) { var exist = flt._listTC.indexOf(i["System.Id"]) >= 0; return (flt._mode == filterMode.Contains) ? exist : !exist; });
+    }
+}
 
 export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string, recursive:boolean): IPromise < any > {
     var typeField: string;
