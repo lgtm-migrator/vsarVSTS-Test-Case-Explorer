@@ -287,6 +287,7 @@ export class TestCaseView {
         else
         {
             var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
+            this._orphanTestCaseFilter.setMode(mode);
             deferred.resolve(this._orphanTestCaseFilter);
             return deferred.promise();
         }
@@ -300,6 +301,7 @@ export class TestCaseView {
         }
         else {
             var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
+            this._testSuiteFilter.setMode(mode);
             deferred.resolve(this._testSuiteFilter);
             return deferred.promise();
         }
