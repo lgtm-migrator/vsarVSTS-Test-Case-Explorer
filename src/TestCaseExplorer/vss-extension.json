@@ -1,11 +1,16 @@
 {
     "manifestVersion": 1,
     "id": "almrangers-vsoextensions-testcases-dev",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "name": "Test Case Explorer Extension",
     "description": "An extension to manage test cases.",
     "baseUri": "https://localhost:44300/",
     "publisher": "mathias",
+    "scopes": [
+        "vso.work_write",
+        "vso.test_write",
+        "vso.profile"
+      ],
     "icons": {
       "default": "img/Short_Icon.jpg",
       "wide":  "img/Wide_Icon.jpg"

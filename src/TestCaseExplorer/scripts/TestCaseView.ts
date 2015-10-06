@@ -108,11 +108,10 @@ export class TestCaseView {
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
             { id: "show-recursive", showText: false, icon: VSS.getExtensionContext().baseUri + "/img/Child-node-icon.png" },
-            { separator: true },
             { id: "new-testcase", text: "New", icon: "icon-add-small" },
-            { separator: true },
-            { id: "clone-testcase", text: "Clone", noIcon: true },
-            { separator: true },
+            //{ separator: true },
+            //{ id: "clone-testcase", text: "Clone", noIcon: true },
+            { id: "refresh", showText: false, icon: "icon-refresh" },
             { id: "column_options", text: "Column Options", noIcon: true },
             { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
         ];
@@ -263,7 +262,8 @@ export class TestCaseView {
 
 
         $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
-            var s = view._grid.getRowData(view._grid.getSelectedDataIndex())["System.Id"];
+            var item = view._grid.getRowData(view._grid.getSelectedDataIndex());
+            var s = item["System.Id"];
             selectCallBack(s);
         });
 
