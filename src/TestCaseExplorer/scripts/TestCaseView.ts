@@ -32,12 +32,12 @@ export class TestCaseView {
     private _fields: string[];
     private _data: any[];     
     private _waitControl: StatusIndicator.WaitControl;
-    private _showRecursive: boolean;
+   
     private _currentFilter: TestCaseDataService.ITestCaseFilter = null;
     private _orphanTestCaseFilter: TestCaseDataService.wiqlFilter = null;
     private _testSuiteFilter: TestCaseDataService.testSuiteFilter = null;
 
-    public RefreshGrid(pivot: string, value) {
+    public RefreshGrid(pivot: string, value, showRecursive:boolean) {
 
         this._grid.setDataSource(null);
         $("#grid-title").text("");
@@ -47,11 +47,11 @@ export class TestCaseView {
 
         switch (pivot) {
             case "Area path":
-                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path, this._showRecursive);
+                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path, showRecursive);
                 title = "Test cases with area path: " + value.path;
                 break;
             case "Iteration path":
-                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path, this._showRecursive);
+                promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path, showRecursive);
                 title = "Test cases with iteration path: " + value.path;
                 break;
             case "Priority":
@@ -71,7 +71,7 @@ export class TestCaseView {
                 title = "Test cases with state: " + state;
                 break;
             case "Test plan":
-                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId,  this._showRecursive);
+                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId,  showRecursive);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
                 break;
         }
@@ -95,7 +95,6 @@ export class TestCaseView {
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
         
         this._paneToggler = paneToggler;
-        this._showRecursive = false;
         
         this._fields = ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"];
         this.initMenu(this, paneToggler);
@@ -107,7 +106,7 @@ export class TestCaseView {
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
-            { id: "show-recursive", showText: false, icon: VSS.getExtensionContext().baseUri + "/img/Child-node-icon.png" },
+   
             { id: "new-testcase", text: "New", icon: "icon-add-small" },
             //{ separator: true },
             //{ id: "clone-testcase", text: "Clone", noIcon: true },
@@ -121,10 +120,7 @@ export class TestCaseView {
             executeAction: function (args) {
                 var command = args.get_commandName();
                 switch (command) {
-                    case "show-recursive":
-                        view._showRecursive = !view._showRecursive
-                        menubar.updateCommandStates([{ id: command, toggled: view._showRecursive }]);
-                        break;
+                   
                     case "toggle":
                         paneToggler.toggleDetailsPane()
                         menubar.updateCommandStates([{ id: command, toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
@@ -344,8 +340,11 @@ export class TestCaseView {
                 message: message
             };
               
-            this._waitControl = new StatusIndicator.WaitControl(waitOptions);
-            this._waitControl.startWait();
+         //   this._waitControl = new StatusIndicator.WaitControl(waitOptions);
+
+
+
+       //     this._waitControl.startWait();
         }
     }
 

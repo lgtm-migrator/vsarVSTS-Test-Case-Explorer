@@ -1,10 +1,13 @@
 /// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
-define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/Combos", "scripts/TreeViewDataService"], function (require, exports, Controls, TreeView, CtrlCombos, TreeViewDataService) {
+define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService"], function (require, exports, Controls, TreeView, Menus, CtrlCombos, TreeViewDataService) {
     var TreeviewView = (function () {
         function TreeviewView() {
         }
         TreeviewView.prototype.initialize = function (callback) {
+            var view = this;
+            view._showRecursive = false;
+            view._callback = callback;
             var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
             var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), {
                 mode: "drop",
@@ -20,7 +23,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
             treeview.onItemClick = function (node, nodeElement, e) {
                 treeview.setSelectedNode(node);
-                callback(cbo.getText(), node.config);
+                view._currentNode = node;
+                view._currentSource = cbo.getText();
+                view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
             };
             //Hock up chnage for cbo to redraw treeview
             $("#treeview-Cbo-container").change(function () {
@@ -31,6 +36,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     });
                 });
             });
+            view._treeview = treeview;
+            //Add toolbar
+            this.initMenu(this);
             //Initilaizer def value
             VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
                 // Set value in user scope
@@ -42,6 +50,36 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     LoadTreeview(cbo.getText(), treeview);
                 });
             });
+        };
+        TreeviewView.prototype.initMenu = function (view) {
+            //var menuItems: Menus.IMenuItemSpec[] = [
+            var menuItems = [
+                { id: "show-recursive", showText: false, icon: VSS.getExtensionContext().baseUri + "/img/Child-node-icon.png" },
+                { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
+                { id: "collaps-all", showText: false, title: "Collapese all", icon: "icon-tree-collapse-all" },
+            ];
+            var menubarOptions = {
+                items: menuItems,
+                executeAction: function (args) {
+                    var command = args.get_commandName();
+                    switch (command) {
+                        case "show-recursive":
+                            view._showRecursive = !view._showRecursive;
+                            menubar.updateCommandStates([{ id: command, toggled: view._showRecursive }]);
+                            view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                            break;
+                        case "expand-all":
+                        //view._treeview.e
+                        case "collaps-all":
+                            break;
+                        default:
+                            alert("Unhandled action: " + command);
+                            break;
+                    }
+                }
+            };
+            var menubar = Controls.create(Menus.MenuBar, $("#treeview-menu-container"), menubarOptions);
+            this._menubar = menubar;
         };
         return TreeviewView;
     })();

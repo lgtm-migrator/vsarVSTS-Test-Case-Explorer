@@ -29,8 +29,8 @@ dv.initialize(paneToggler);
 
 
 
-function RefreshGrid(pivot:string, value:string):void{
-    tc.RefreshGrid(pivot, value);
+function RefreshGrid(pivot:string, value:string, showRecursive:boolean):void{
+    tc.RefreshGrid(pivot, value, showRecursive );
 }
 
 function RefreshPane(id: string): void {

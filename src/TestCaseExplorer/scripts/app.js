@@ -13,8 +13,8 @@ define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "s
     });
     tv.initialize(RefreshGrid);
     dv.initialize(paneToggler);
-    function RefreshGrid(pivot, value) {
-        tc.RefreshGrid(pivot, value);
+    function RefreshGrid(pivot, value, showRecursive) {
+        tc.RefreshGrid(pivot, value, showRecursive);
     }
     function RefreshPane(id) {
         dv.selectionChanged(id);
