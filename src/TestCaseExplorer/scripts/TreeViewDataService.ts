@@ -177,7 +177,12 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
             node.type = t.suiteType;
             node.expanded = true;
             node.droppable = true;
-            node.icon = getIconFromSuiteType(t.suiteType);
+            if (t.parent != null) {
+                node.icon = getIconFromSuiteType(t.suiteType);
+            }
+            else {
+                node.icon = "icon-testplan";
+            }
             node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt( t.plan.id) };
             BuildTestSuiteTree(allTS.filter(function (i) { return  i.parent!=null && i.parent.id == t.id }), node, allTS);
 

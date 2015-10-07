@@ -46,6 +46,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="img\Short_Icon.jpg" />
+    <Content Include="img\testPlan.png" />
     <Content Include="img\Wide_Icon.jpg" />
     <Content Include="index.html" />
     <Content Include="sdk\scripts\VSS.SDK.js" />

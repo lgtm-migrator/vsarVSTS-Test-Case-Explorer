@@ -8,6 +8,7 @@ import Menus = require("VSS/Controls/Menus");
 //import CommonControls = require("VSS/Controls/Common");
 import CtrlCombos = require("VSS/Controls/Combos");
 import TreeViewDataService = require("scripts/TreeViewDataService");
+import UtilsUI = require("VSS/Utils/UI");
 
 
 export interface TreeviewSelectedCallback{ (type: string, value: string, showRecursive:boolean): void }
@@ -107,8 +108,10 @@ export class TreeviewView {
 
                         break;
                     case "expand-all":
-                        //view._treeview.e
+                        ExpandTree(view._treeview, true);
+                        break;
                     case "collaps-all":
+                        ExpandTree(view._treeview, false);
                         break;
                         
                     default:
@@ -132,4 +135,11 @@ function LoadTreeview(pivot:string, treeview:TreeView.TreeView) {
         treeview._draw();
 
     });    
+}
+
+function ExpandTree(tree:TreeView.TreeView, nodeExpansion:boolean) {
+    UtilsUI.walkTree.call(tree.rootNode, n=> {
+        var elem = tree._getNodeElement(n);
+        tree._setNodeExpansion(n, elem, nodeExpansion);
+    });
 }

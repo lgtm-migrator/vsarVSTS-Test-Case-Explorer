@@ -1,6 +1,6 @@
 /// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
-define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService"], function (require, exports, Controls, TreeView, Menus, CtrlCombos, TreeViewDataService) {
+define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI"], function (require, exports, Controls, TreeView, Menus, CtrlCombos, TreeViewDataService, UtilsUI) {
     var TreeviewView = (function () {
         function TreeviewView() {
         }
@@ -69,8 +69,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
                             break;
                         case "expand-all":
-                        //view._treeview.e
+                            ExpandTree(view._treeview, true);
+                            break;
                         case "collaps-all":
+                            ExpandTree(view._treeview, false);
                             break;
                         default:
                             alert("Unhandled action: " + command);
@@ -89,6 +91,12 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             treeview.rootNode.clear();
             treeview.rootNode.addRange(data);
             treeview._draw();
+        });
+    }
+    function ExpandTree(tree, nodeExpansion) {
+        UtilsUI.walkTree.call(tree.rootNode, function (n) {
+            var elem = tree._getNodeElement(n);
+            tree._setNodeExpansion(n, elem, nodeExpansion);
         });
     }
 });

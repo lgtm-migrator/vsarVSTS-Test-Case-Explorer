@@ -15,6 +15,9 @@
     content: url('/img/Child-node-icon.png');
     
 }
+.icon-testplan::before{
+    content: url('/img/testPlan.png');
+}
 
 #testmanagement-view-left-pane{
     margin-left:16px;
