@@ -9,15 +9,15 @@ import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
 import TestClient = require("TFS/TestManagement/RestClient");
 import TestContracts = require("TFS/TestManagement/Contracts");
 import DetailsToggle = require("scripts/DetailsToggle");
-import CommonControls = require("VSS/Controls/Common");
+//import CommonControls = require("VSS/Controls/Common");
 import Navigation = require("VSS/Controls/Navigation");
 
-import StatusIndicator = require("VSS/Controls/Common");
+import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import CoreUtils = require("VSS/Utils/Core");
 
 
 
-//import CC = require("VSS/Controls/Combos");
+import CtrlCombos = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
 
 import TestCaseDataService = require("scripts/TestCaseDataService");

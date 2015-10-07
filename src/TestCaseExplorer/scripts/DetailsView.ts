@@ -5,9 +5,9 @@
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
 import Grids = require("VSS/Controls/Grids");
-import CommonControls = require("VSS/Controls/Common");
+import CtrlCombos = require("VSS/Controls/Combos");
 import Menus = require("VSS/Controls/Menus");
-import StatusIndicator = require("VSS/Controls/Common");
+import StatusIndicator = require("VSS/Controls/StatusIndicator");
 
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
@@ -229,7 +229,7 @@ export class DetailsView {
  }
 
  class testPlanPane implements IPaneRefresh {
-     private _cbo: CommonControls.Combo;
+     private _cbo: CtrlCombos.Combo;
      private _testPlans;
      private _view: DetailsView;
 
@@ -238,7 +238,7 @@ export class DetailsView {
          this._view = view;
         var tpp = this;
 
-        this._cbo= Controls.create(CommonControls.Combo, $("#details-cboTestPlan"), {
+        this._cbo = Controls.create(CtrlCombos.Combo, $("#details-cboTestPlan"), {
             mode: "drop",
             allowEdit: false,
         });

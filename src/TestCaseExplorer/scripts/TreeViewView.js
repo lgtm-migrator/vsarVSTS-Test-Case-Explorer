@@ -1,12 +1,12 @@
 /// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
-define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/Common", "scripts/TreeViewDataService"], function (require, exports, Controls, TreeView, CommonControls, TreeViewDataService) {
+define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/Combos", "scripts/TreeViewDataService"], function (require, exports, Controls, TreeView, CtrlCombos, TreeViewDataService) {
     var TreeviewView = (function () {
         function TreeviewView() {
         }
         TreeviewView.prototype.initialize = function (callback) {
             var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
-            var cbo = Controls.create(CommonControls.Combo, $("#treeview-Cbo-container"), {
+            var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), {
                 mode: "drop",
                 allowEdit: false,
                 source: cboSources

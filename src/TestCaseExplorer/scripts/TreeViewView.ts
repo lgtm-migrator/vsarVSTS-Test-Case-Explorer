@@ -3,8 +3,8 @@
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
-import CommonControls = require("VSS/Controls/Common");
-
+//import CommonControls = require("VSS/Controls/Common");
+import CtrlCombos = require("VSS/Controls/Combos");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 
 
@@ -14,7 +14,7 @@ export class TreeviewView {
     public initialize(callback: TreeviewSelectedCallback) {
         var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
 
-        var cbo = Controls.create(CommonControls.Combo, $("#treeview-Cbo-container"),  {
+        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"),  {
             mode: "drop",
             allowEdit: false, 
             source: cboSources
