@@ -148,24 +148,20 @@ export class TestCaseView {
 
     private initFilter(view: TestCaseView) {
 
-        var menubarFilter: Menus.MenuBar = null;
-        var menuFilterItems: Menus.IMenuItemSpec[] = [
+        
+        Controls.create(Navigation.PivotFilter, $("#grid-filter-cbo"), {
+            behavior: "dropdown",
+            text: "Filter",
+            items: [
+                { id: "All", text: "All", selected: true },
+                { id: "TC_WithOUT_Requirement", text: "Tests not associated with any requirements" },
+                { id: "TC_MultipleSuites", text: "Tests present in multiple suites" },
+                { id: "TC_OrphanedSuites", text: "Orphaned tests" },
+                { id: "TC_With_Requirement", text: "Tests with requirements linking" }
 
-            {
-                id: "root", text: "Select Pane ", childItems: [
-                    { id: "All", text: "All" },
-                    { id: "TC_WithOUT_Requirement", text: "Tests not associated with any requirements" },
-                    { id: "TC_MultipleSuites", text: "Tests present in multiple suites" },
-                    { id: "TC_OrphanedSuites", text: "Orphaned tests" },
-                    { id: "TC_With_Requirement", text: "Tests with requirements linking" }
-                ]
-            },
-        ];
-
-        var menubarFilterOptions = {
-            items: menuFilterItems,
-            executeAction: function (args) {
-                var command = args.get_commandName();
+            ],
+            change: function (item) {
+                var command = item.id;
 
                 var filterPromise: IPromise<TestCaseDataService.ITestCaseFilter>;
                 var filterMode: TestCaseDataService.filterMode;
@@ -195,25 +191,11 @@ export class TestCaseView {
                     view._currentFilter = filter;
                     view.DoRefreshGrid();
                 });
-
-                menuFilterItems[0].text = args.get_commandSource()._item.text;
-                menubarFilter.updateItems(menuFilterItems);
-
             }
-        };
+        });
 
-        menuFilterItems[0].text = menuFilterItems[0].childItems[0].text;
-        menubarFilter = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#grid-filter-cbo"), menubarFilterOptions);
-        
-        //var pivCbo = Controls.create<Navigation.PivotFilter, any>(Navigation.PivotFilter, $("#grid-filter-cbo"), menubarFilterOptions);
 
-        //var pivotFilter = Controls.Enhancement.ensureEnhancement(Navigation.PivotFilter, $("#grid-filter-cbo"));
 
-        //var cbo = Controls.create(CommonControls.ComboListDropPopup, $("#grid-filter-cbo"), {
-        //    mode: "drop",
-        //    allowEdit: false,
-        //    source: ["All", "Tests not associated with any requirements", "Tests present in multiple suites", "Orphaned tests", "Tests with requirements linking"]
-        //});
     }
 
     private initGrid(view:TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
@@ -334,17 +316,20 @@ export class TestCaseView {
 
         if (longRunning) {
 
-            var waitOptions = {
-                cancellable: true,
+
+
+            var waitControlOptions: StatusIndicator.IWaitControlOptions = {
                 target: $(".wait-control-target"),
-                message: message
-            };
-              
-         //   this._waitControl = new StatusIndicator.WaitControl(waitOptions);
+                message: message, 
+                cancellable: false,
+                cancelTextFormat: "{0} to cancel",
+                cancelCallback: function () {
+                    console.log("cancelled");
+                }
+            }
 
-
-
-       //     this._waitControl.startWait();
+            this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".left-hub-content"), waitControlOptions);             
+            this._waitControl.startWait();
         }
     }
 

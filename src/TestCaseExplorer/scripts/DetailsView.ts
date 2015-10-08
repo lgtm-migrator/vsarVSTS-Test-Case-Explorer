@@ -8,6 +8,8 @@ import Grids = require("VSS/Controls/Grids");
 import CtrlCombos = require("VSS/Controls/Combos");
 import Menus = require("VSS/Controls/Menus");
 import StatusIndicator = require("VSS/Controls/StatusIndicator");
+import Navigation = require("VSS/Controls/Navigation");
+
 
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
@@ -34,73 +36,45 @@ export class DetailsView {
    
         this._PaneLst = [];
         this._toggler = paneToggler;
+        var view = this;
 
-
-
-        var menuItemsPane: Menus.IMenuItemSpec[] = [
-
-            {
-                id: "root", text: "Select Pane ", childItems: [
-                    { id: "TestPlan", text: "Test plan" },
-                    { id: "TestSuites", text: "Test suites", icon: "icon-commented-file" },
-                    { id: "TestResults", text: "Test results" }
-
-                ]
-            },
-           
+        var panels = [
+            { id: "TestPlan", text: "Test plan", selected: true },
+            { id: "TestSuites", text: "Test suites", icon: "icon-commented-file" },
+            { id: "TestResults", text: "Test results" }
         ];
 
-        var dv = this;
-        var menubarPane: Menus.MenuBar = null;
+        Controls.create(Navigation.PivotFilter, $("#details-filterPane-container"), {
+            behavior: "dropdown",
+            text: "Panel",
+            items: panels,
+            change: function (item) {
+                var command = item.id;
+                view.ShowPanel(command);
 
-        var menubarOptionsPane= {
-            items: menuItemsPane,
-            executeAction: function (args) {
-                var command = args.get_commandName();
-                switch (command) {
-                    default:
-                        dv.ShowPanel(command);
-                        menuItemsPane[0].text = args.get_commandSource()._item.text;
-                        menubarPane.updateItems(menuItemsPane);
-                        break;
-                };
             }
-        };
-        menuItemsPane[0].text = menuItemsPane[0].childItems[0].text;
-        menubarPane = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#details-filterPane-container"), menubarOptionsPane);
-
-
-        var menuItemsPosition: Menus.IMenuItemSpec[] = [
-            {
-                id: "rootPanePlace", text: "Select Position ", childItems: [
-                    { id: "right", text: "Right", },
-                    { id: "bottom", text: "Bottom" }
-                ]
-            },
-        ];
+        });
         
-         var menubarPosition: Menus.MenuBar = null;
 
-         var menubarOptionsPosition = {
-             items: menuItemsPosition,
-             executeAction: function (args) {
-                 var command = args.get_commandName();
-                 switch (command) {
-                     case "right":
-                     case "bottom":
-                         dv._toggler.setPosition(command);
-                         menuItemsPosition[0].text = args.get_commandSource()._item.text;
-                         menubarPosition.updateItems(menuItemsPosition);
-                         break;
-                 };
-             }
-         };
-         menuItemsPosition[0].text = menuItemsPosition[0].childItems[0].text;
+        Controls.create(Navigation.PivotFilter, $("#details-filterPosition-container"), {
+            behavior: "dropdown",
+            text: "Panel",
+            items: [
+                { id: "right", text: "Right", selected: true  },
+                { id: "bottom", text: "Bottom" }
 
-         menubarPosition = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#details-filterPosition-container"), menubarOptionsPosition);
+            ],
+            change: function (item) {
+                var command = item.id;
+                view._toggler.setPosition(command);
+
+            }
+        });
+      
 
 
-         dv.ShowPanel(menuItemsPane[0].childItems[0].id);
+       
+         view.ShowPanel(panels[0].id);
     }
 
     public selectionChanged(id: string)
@@ -141,18 +115,25 @@ export class DetailsView {
         this._selectedPane.show();
     }
 
-    public StartLoading(longRunning:boolean, message:string) {
+
+    public StartLoading(longRunning, message) {
         $("body").css("cursor", "progress");
 
         if (longRunning) {
 
-            var waitOptions = {
-                cancellable: true,
-                target: $(".wait-control-details-target"),
-                message: message
-            };
 
-            this._waitControl = new StatusIndicator.WaitControl(waitOptions);
+
+            var waitControlOptions: StatusIndicator.IWaitControlOptions = {
+                target: $(".wait-control-details-target"),
+                message: message,
+                cancellable: false,
+                cancelTextFormat: "{0} to cancel",
+                cancelCallback: function () {
+                    console.log("cancelled");
+                }
+            }
+
+            this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".wait-control-details-target"), waitControlOptions);
             this._waitControl.startWait();
         }
     }
@@ -168,6 +149,8 @@ export class DetailsView {
             this._waitControl = null;
         }
     }
+   
+    
 }
 
 
