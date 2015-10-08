@@ -46,7 +46,7 @@ export class DetailsView {
 
         Controls.create(Navigation.PivotFilter, $("#details-filterPane-container"), {
             behavior: "dropdown",
-            text: "Panel",
+            text: "Pane",
             items: panels,
             change: function (item) {
                 var command = item.id;
@@ -58,7 +58,7 @@ export class DetailsView {
 
         Controls.create(Navigation.PivotFilter, $("#details-filterPosition-container"), {
             behavior: "dropdown",
-            text: "Panel",
+            text: "Position",
             items: [
                 { id: "right", text: "Right", selected: true  },
                 { id: "bottom", text: "Bottom" }
