@@ -133,8 +133,8 @@ export class DetailsView {
                 }
             }
 
-            this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".wait-control-details-target"), waitControlOptions);
-            this._waitControl.startWait();
+            //this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".wait-control-details-target"), waitControlOptions);
+            //this._waitControl.startWait();
         }
     }
 

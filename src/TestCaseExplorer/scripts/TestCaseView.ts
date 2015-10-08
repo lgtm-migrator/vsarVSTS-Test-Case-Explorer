@@ -328,8 +328,8 @@ export class TestCaseView {
                 }
             }
 
-            this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".left-hub-content"), waitControlOptions);             
-            this._waitControl.startWait();
+            //this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".left-hub-content"), waitControlOptions);             
+            //this._waitControl.startWait();
         }
     }
 
