@@ -6,7 +6,6 @@ import TestClient = require("TFS/TestManagement/RestClient");
 import WITClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
 
-
 export function getNodes(param) {
 
     switch (param) {
@@ -26,9 +25,7 @@ export function getNodes(param) {
             return getTestPlansWithSuite();
             break;
     }
-
 }
-
 
 export function getIconFromSuiteType(suiteType): string
 {
@@ -46,7 +43,6 @@ export function getIconFromSuiteType(suiteType): string
     }
     return icon;
 }
-
 
 export function getIconFromTestOutcome(outcome): string {
     var icon: string = "";
@@ -70,15 +66,13 @@ export function getIconFromTestOutcome(outcome): string {
                 case "DynamicTestSuite":
                     icon = "icon-tfs-build-status-succeeded";
                     break
-     
-    }
+         }
     return icon;
 }
 export function mapTestCaseToSuite(project,tcId, suiteId, planId):IPromise<any> {
     var client = TestClient.getClient();
     return client.addTestCasesToSuite(project, planId, suiteId, tcId)
 }
-
 
 export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
     // Get an instance of the client
@@ -101,8 +95,6 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
                 }
             });
         });
-
-
     });
     return deferred.promise();
 }
@@ -123,7 +115,7 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
         });
         
         return deferred.promise();
-}
+    }
 
     export function getTestSuitesForTestCase(testCaseId: number): IPromise<any[]> {
         // Get an instance of the client
@@ -131,8 +123,6 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
         
         var tstClient = TestClient.getClient();
         tstClient.getSuitesByTestCaseId(testCaseId).then(function (data) {
-            
-
             deferred.resolve(data);
         });
         return deferred.promise();
@@ -141,19 +131,14 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
     export function getTestResultsForTestCase(testCaseId: number): IPromise<any[]> {
         // Get an instance of the client
         var deferred = $.Deferred<any[]>();
-
         var tstClient = TestClient.getClient();
         var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId};
 
-
-        tstClient.getTestResultsByQuery(q,VSS.getWebContext().project.name, true).then(function (data) {
-
-
+        tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {
             deferred.resolve(data);
         });
         return deferred.promise();
     }
-
 
     export function getTestPlanAndSuites(planId:number, testPlanName:string): IPromise<TreeView.TreeNode[]> {
         // Get an instance of the client
@@ -162,7 +147,6 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
         var tstClient = TestClient.getClient();
         tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
             var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null }), null, data);
-            
             deferred.resolve([tRoot]);
         });
         return deferred.promise();
@@ -197,23 +181,19 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
         return returnNode;
     }
 
-
     function getStructure(structure: Contracts.TreeStructureGroup): IPromise<TreeView.TreeNode[]> {
         var deferred = $.Deferred<TreeView.TreeNode[]>();
 
         var client = WITClient.getClient();
         client.getRootNodes(VSS.getWebContext().project.name,   11).then(function (data:Contracts.WorkItemClassificationNode[]) {
-  
             deferred.resolve(convertToTreeNodes([data[structure]], ""));
-
         });
-    
+
         return deferred.promise();
     }
 
     function getStates(): IPromise<TreeView.TreeNode[]> {
         var deferred = $.Deferred<TreeView.TreeNode[]>();
-
         var client = WITClient.getClient();
         var project = VSS.getWebContext().project.name;
 
@@ -254,8 +234,6 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
     // Converts the source to TreeNodes
     function convertToTreeNodes(items, path): TreeView.TreeNode[] {
         var a: TreeView.TreeNode[] = [];
-
-         
 
         items.sort(function (a, b) {
             if (a.name < b.name)

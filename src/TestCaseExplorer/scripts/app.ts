@@ -1,7 +1,6 @@
 ﻿/// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 
-var gridTC;
 import DetailsToggle = require("scripts/DetailsToggle");
 var paneToggler = new DetailsToggle.DetailsPaneToggler();
 
@@ -25,9 +24,6 @@ paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(functi
 
 tv.initialize(RefreshGrid);
 dv.initialize(paneToggler);
-
-
-
 
 function RefreshGrid(pivot:string, value:string, showRecursive:boolean):void{
     tc.RefreshGrid(pivot, value, showRecursive );

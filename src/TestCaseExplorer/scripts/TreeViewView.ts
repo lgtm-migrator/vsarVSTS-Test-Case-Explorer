@@ -4,14 +4,11 @@
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
 import Menus = require("VSS/Controls/Menus");
-
-//import CommonControls = require("VSS/Controls/Common");
 import CtrlCombos = require("VSS/Controls/Combos");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import UtilsUI = require("VSS/Utils/UI");
 
-
-export interface TreeviewSelectedCallback{ (type: string, value: string, showRecursive:boolean): void }
+export interface TreeviewSelectedCallback{ (type: string, value: string, showRecursive: boolean): void }
 
 export class TreeviewView {
 
@@ -27,10 +24,6 @@ export class TreeviewView {
         var view = this;
         view._showRecursive = false;
         view._callback = callback;
-        
-
-
-
         var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
 
         var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"),  {
@@ -38,7 +31,6 @@ export class TreeviewView {
             allowEdit: false, 
             source: cboSources
         });
-
 
         var treeOptions = {
             width: 400,
@@ -55,7 +47,6 @@ export class TreeviewView {
             view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
         };
 
-
         //Hock up chnage for cbo to redraw treeview
         $("#treeview-Cbo-container").change(function () {
             LoadTreeview(cbo.getText(), treeview);
@@ -68,10 +59,8 @@ export class TreeviewView {
         });
         view._treeview = treeview;
         
-        
         //Add toolbar
         this.initMenu(this);
-      
 
         //Initilaizer def value
         VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
@@ -86,7 +75,6 @@ export class TreeviewView {
             })
         });
     }
-
     
     private initMenu(view: TreeviewView) {
         //var menuItems: Menus.IMenuItemSpec[] = [
@@ -105,15 +93,13 @@ export class TreeviewView {
                         view._showRecursive = !view._showRecursive
                         menubar.updateCommandStates([{ id: command, toggled: view._showRecursive }]);
                         view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
-
                         break;
                     case "expand-all":
                         ExpandTree(view._treeview, true);
                         break;
                     case "collaps-all":
                         ExpandTree(view._treeview, false);
-                        break;
-                        
+                        break;                        
                     default:
                         alert("Unhandled action: " + command);
                         break;
@@ -131,9 +117,7 @@ function LoadTreeview(pivot:string, treeview:TreeView.TreeView) {
     TreeViewDataService.getNodes(pivot).then(function (data) {
         treeview.rootNode.clear();
         treeview.rootNode.addRange(data);
-
         treeview._draw();
-
     });    
 }
 

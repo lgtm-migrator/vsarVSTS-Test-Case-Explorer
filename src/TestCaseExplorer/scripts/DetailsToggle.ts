@@ -4,34 +4,26 @@
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
 import CommonControls = require("VSS/Controls/Common");
-
 import TreeViewDataService = require("scripts/TreeViewDataService");
-
 
 export interface TreeviewSelectedCallback { (type: string, value: string): void }
 
 export class Details {
 }
 
-    var panelToggler = this;
-    
+var panelToggler = this;
 
 export class DetailsPaneToggler {
     private _previousPaneOnPosition: string;
     private _previousPaneOnWidth: number;
     private _PanePosition: string;
-    
-    private _positionFilter: any;
+        private _positionFilter: any;
     private _$farRightPaneHubPivot: any;
   //  private _savedPaneFilterItem: any;
     private _splitter: CommonControls.Splitter;
-
     private _MasterForm;
     private _detailsForm;
     private _parent;
-
-
-    
 
     public init(parent, farRightPanelCss, splitter: CommonControls.Splitter, masterForm, detailsForm): IPromise<DetailsPaneToggler>  {
         var deferred = $.Deferred<DetailsPaneToggler>(); 
@@ -40,7 +32,6 @@ export class DetailsPaneToggler {
         this._MasterForm = masterForm;
         this._detailsForm= detailsForm;
         this._$farRightPaneHubPivot = farRightPanelCss;
-
         
         var toggler = this;
         VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
@@ -60,10 +51,8 @@ export class DetailsPaneToggler {
                 });
             });
         });
-        return deferred.promise();
-        
+        return deferred.promise();        
     }
-
 
     public toggleDetailsPane() {
         if (this._isTestCaseDetailsPaneOn()) {
@@ -95,11 +84,9 @@ export class DetailsPaneToggler {
     }
 
     public setPosition(pos: string) {
-    
         this._showDetailsPane(pos);
     }
 
-  
     public _isTestCaseDetailsPaneOn = function () {
         if (this._PanePosition && this._PanePosition !== "off") {
             return true;
@@ -108,8 +95,6 @@ export class DetailsPaneToggler {
     }
 
     public _showDetailsPane(position) {
-         
-
         if (this._PanePosition !== position) {
             if (position === "off" && this._PanePosition) {
 
@@ -130,8 +115,6 @@ export class DetailsPaneToggler {
                         console.log("User scoped key value is " + value);
                     });
                 });
-
-
             }
             this._PanePosition = position;
         }
@@ -140,14 +123,10 @@ export class DetailsPaneToggler {
             dataService.setValue("PanePosition", position, { scopeType: "User" });
 
         });    
-        
         this.setTogglerAndPanesPosition(position, this._previousPaneOnWidth);
-
-      
     };
 
     public setTogglerAndPanesPosition(position:string, width:any) {
-
         if (this._splitter == null) {
             this._splitter = <CommonControls.Splitter>Controls.Enhancement.getInstance(CommonControls.Splitter, $(".right-hub-splitter"));
 
@@ -174,7 +153,6 @@ export class DetailsPaneToggler {
             this._splitter.resize(width);
             this._$farRightPaneHubPivot.css("display", "block");
         }
-
         this._PanePosition = position;
         this._previousPaneOnWidth = width;       
     }
