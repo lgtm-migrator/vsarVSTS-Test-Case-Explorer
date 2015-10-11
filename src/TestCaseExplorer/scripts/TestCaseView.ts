@@ -9,17 +9,11 @@ import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
 import TestClient = require("TFS/TestManagement/RestClient");
 import TestContracts = require("TFS/TestManagement/Contracts");
 import DetailsToggle = require("scripts/DetailsToggle");
-//import CommonControls = require("VSS/Controls/Common");
 import Navigation = require("VSS/Controls/Navigation");
-
 import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import CoreUtils = require("VSS/Utils/Core");
-
-
-
 import CtrlCombos = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
-
 import TestCaseDataService = require("scripts/TestCaseDataService");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
@@ -89,9 +83,6 @@ export class TestCaseView {
     public toggle() {
     }
 
-    
-
-
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
         
         this._paneToggler = paneToggler;
@@ -106,10 +97,7 @@ export class TestCaseView {
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
-   
             { id: "new-testcase", text: "New", icon: "icon-add-small" },
-            //{ separator: true },
-            //{ id: "clone-testcase", text: "Clone", noIcon: true },
             { id: "refresh", showText: false, icon: "icon-refresh" },
             { id: "column_options", text: "Column Options", noIcon: true },
             { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
@@ -129,7 +117,6 @@ export class TestCaseView {
                         WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
                             // TODO: pass additional default values from pivot
                             workItemService.openNewWorkItem("Test Case");
-                            // TODO: refresh grid after add
                         });
                         break;
                     default:
@@ -142,13 +129,10 @@ export class TestCaseView {
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
         this._menubar = menubar;
         menubar.updateCommandStates([{ id: "toggle", toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
-
-  
     }
 
     private initFilter(view: TestCaseView) {
 
-        
         Controls.create(Navigation.PivotFilter, $("#grid-filter-cbo"), {
             behavior: "dropdown",
             text: "Filter",
@@ -193,9 +177,6 @@ export class TestCaseView {
                 });
             }
         });
-
-
-
     }
 
     private initGrid(view:TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
@@ -229,7 +210,6 @@ export class TestCaseView {
                 selectCallBack(item["System.Id"]);
                 WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
                     workItemService.openWorkItem(item["System.Id"]);
-                    // TODO: refresh grid after update
                 });
             }
 
@@ -244,9 +224,7 @@ export class TestCaseView {
             var s = item["System.Id"];
             selectCallBack(s);
         });
-
         //this._grid.enableDragDrop();
-
     }
 
     public updateTogle(paneToggler) {
@@ -315,9 +293,6 @@ export class TestCaseView {
         $("body").css("cursor", "progress");
 
         if (longRunning) {
-
-
-
             var waitControlOptions: StatusIndicator.IWaitControlOptions = {
                 target: $(".wait-control-target"),
                 message: message, 
@@ -332,8 +307,6 @@ export class TestCaseView {
             this._waitControl.startWait();
         }
     }
-
-
 
     public DoneLoading () {
         $("body").css("cursor", "default");

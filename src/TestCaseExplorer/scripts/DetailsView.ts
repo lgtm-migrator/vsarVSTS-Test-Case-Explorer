@@ -9,12 +9,8 @@ import CtrlCombos = require("VSS/Controls/Combos");
 import Menus = require("VSS/Controls/Menus");
 import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import Navigation = require("VSS/Controls/Navigation");
-
-
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
-
-
 
 interface IPaneRefresh {
     initialize(view: DetailsView): void,
@@ -23,14 +19,12 @@ interface IPaneRefresh {
     masterIdChanged(id: string): void
 }
 
-
 export class DetailsView {
-
     public _selectedPane: IPaneRefresh;
-    private _PaneLst: IPaneRefresh[];
-
     public _toggler: Toggler.DetailsPaneToggler;
     public _waitControl: StatusIndicator.WaitControl;
+
+    private _PaneLst: IPaneRefresh[];
 
     public initialize(paneToggler: Toggler.DetailsPaneToggler) {
    
@@ -46,19 +40,17 @@ export class DetailsView {
 
         Controls.create(Navigation.PivotFilter, $("#details-filterPane-container"), {
             behavior: "dropdown",
-            text: "Panel",
+            text: "Pane",
             items: panels,
             change: function (item) {
                 var command = item.id;
                 view.ShowPanel(command);
-
             }
         });
         
-
         Controls.create(Navigation.PivotFilter, $("#details-filterPosition-container"), {
             behavior: "dropdown",
-            text: "Panel",
+            text: "Position",
             items: [
                 { id: "right", text: "Right", selected: true  },
                 { id: "bottom", text: "Bottom" }
@@ -70,10 +62,6 @@ export class DetailsView {
 
             }
         });
-      
-
-
-       
          view.ShowPanel(panels[0].id);
     }
 
@@ -115,14 +103,10 @@ export class DetailsView {
         this._selectedPane.show();
     }
 
-
     public StartLoading(longRunning, message) {
         $("body").css("cursor", "progress");
 
         if (longRunning) {
-
-
-
             var waitControlOptions: StatusIndicator.IWaitControlOptions = {
                 target: $(".wait-control-details-target"),
                 message: message,
@@ -131,15 +115,11 @@ export class DetailsView {
                 cancelCallback: function () {
                     console.log("cancelled");
                 }
-            }
-
+            
             this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".wait-control-details-target"), waitControlOptions);
-            this._waitControl.startWait();
-          
+            this._waitControl.startWait();          
         }
     }
-
-
 
     public DoneLoading() {
         $("body").css("cursor", "default");
@@ -150,10 +130,7 @@ export class DetailsView {
             this._waitControl = null;
         }
     }
-   
-    
 }
-
 
  class partOfTestSuitesPane implements IPaneRefresh
     {
@@ -233,7 +210,6 @@ export class DetailsView {
             tpp._cbo.setSource(tpp._testPlans.map(function (i) {
                 return i.text;
             }));
-            
         });
 
         var treeOptionsTestPlan = {
@@ -244,10 +220,8 @@ export class DetailsView {
 
         var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
         
-
         treeviewTestPlan.onItemClick = function (node, nodeElement, e) {
         };
-
 
         $("#details-cboTestPlan").change(function () {
             tpp._view.StartLoading(true, "Fetching test plan " + tpp._cbo.getText());
@@ -279,8 +253,6 @@ export class DetailsView {
                         TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
                             data => { alert(s); },
                             err => { alert(err); });
-
-
                     }
                 });
                 $(".grid-row-normal").draggable({
@@ -296,39 +268,29 @@ export class DetailsView {
                     //helper: this._draggableHelper,
                     //drag: this._draggableDrag,
                     refreshPositions: true
-
                 });
             });
         });
          
-    
-
-       
         $(".ui-draggable").draggable({
             revert: true,
             appendTo: document.body,
             helper: "clone",
             zIndex: 1000,
             refreshPositions: true
-
         });
-
-      
-        
-
      } 
 
      public show() {
          $("#details-TestPlan").css("display", "block");
          $("#details-title").text("Test plans");
+     }
         
-    }
      public hide() {
          $("#details-TestPlan").css("display", "none");
      }
 
      public masterIdChanged(id: string) {
-
         //Nothing 
      }
  }
@@ -337,8 +299,6 @@ class testResultsPane implements IPaneRefresh {
     private _grid;
 
     public initialize(view: DetailsView) {
-      
-
         var options = {
             height: "1000px", // Explicit height is required for a Grid control
             columns: [
@@ -355,7 +315,6 @@ class testResultsPane implements IPaneRefresh {
                         var dTxt = $("<span />");
                         dTxt.text(outcome);
                         d.append(dTxt);
-
                         return d;
                     }
                 },
@@ -364,7 +323,6 @@ class testResultsPane implements IPaneRefresh {
                 { text: "Run by", index: "RunBy", width: 150 },
                 { text: "Date ", index: "Date", width: 150 },
                 { text: "Duration", index: "suite", width: 150 }
-
             ],
             // This data source is rendered into the Grid columns defined above
             source: null
@@ -372,13 +330,12 @@ class testResultsPane implements IPaneRefresh {
 
         // Create the grid in a container element
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestResults"), options);
-
-
-      
     }
+      
     public hide() {
         $("#details-TestResults").css("display", "none");
     }
+
     public show() {
         $("#details-TestResults").css("display", "block");
         $("#details-title").text("Test results");

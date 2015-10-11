@@ -5,12 +5,9 @@
 import WorkItemContracts = require("TFS/WorkItemTracking/Contracts");
 import TestClient = require("TFS/TestManagement/RestClient");
 import TestContracts = require("TFS/TestManagement/Contracts");
-
 import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
 import Q = require("q");
-
-
 
 export enum filterMode {
     Contains, 
@@ -31,7 +28,6 @@ export class wiqlFilter implements ITestCaseFilter {
 
         var deferred = $.Deferred<ITestCaseFilter>();
         var workItemClient = WorkItemClient.getClient();
-
         
         wiql = wiql.replace("@project", "'" + VSS.getWebContext().project.name + "'");
         
@@ -66,9 +62,7 @@ export class testSuiteFilter implements ITestCaseFilter {
     public initialize(data: any[]): IPromise<any> {
 
         var deferred = $.Deferred<ITestCaseFilter>();
-
         var testClient = TestClient.getClient();
-
         var que: IPromise<TestContracts.TestSuite[]>[] = [];
 
         // anropa getSuitesByTestCaseId och spara tc_id, suite_count i en dictionary eller liknande
@@ -89,8 +83,6 @@ export class testSuiteFilter implements ITestCaseFilter {
             });
             deferred.resolve(flt);
         });
-
-    
 
         return deferred.promise();
     }
@@ -162,7 +154,6 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
         var idList = [];
         var suite_id: number = suiteId;
         
-
         testClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId, true).then(suites => {
             var que: IPromise<any[]>[] = [];
 
@@ -186,9 +177,7 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
             });
         });
     }
-    else{
-
-
+    else {
         testClient.getTestCases(VSS.getWebContext().project.name, planId, suiteId).then(result => {
             var idList = result.map(function (item) {
                 return item.testCase.id;
