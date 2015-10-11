@@ -133,8 +133,9 @@ export class DetailsView {
                 }
             }
 
-            //this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".wait-control-details-target"), waitControlOptions);
-            //this._waitControl.startWait();
+            this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".wait-control-details-target"), waitControlOptions);
+            this._waitControl.startWait();
+          
         }
     }
 
@@ -249,7 +250,7 @@ export class DetailsView {
 
 
         $("#details-cboTestPlan").change(function () {
-            tpp._view.StartLoading(true, "Fetching test plan " + tpp._cbo.getSelectedIndex());
+            tpp._view.StartLoading(true, "Fetching test plan " + tpp._cbo.getText());
             var tp = tpp._testPlans[tpp._cbo.getSelectedIndex()];
             TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(function (data) {
 
