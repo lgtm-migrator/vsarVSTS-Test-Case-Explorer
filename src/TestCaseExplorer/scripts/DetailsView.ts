@@ -34,7 +34,7 @@ export class DetailsView {
 
         var panels = [
             { id: "TestPlan", text: "Test plan", selected: true },
-            { id: "TestSuites", text: "Test suites", icon: "icon-commented-file" },
+            { id: "TestSuites", text: "Test suites" },
             { id: "TestResults", text: "Test results" }
         ];
 
