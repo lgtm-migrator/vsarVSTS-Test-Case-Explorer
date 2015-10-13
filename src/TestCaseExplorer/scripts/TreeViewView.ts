@@ -41,10 +41,12 @@ export class TreeviewView {
 
         var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
         treeview.onItemClick = function (node, nodeElement, e) {
-            treeview.setSelectedNode(node);
-            view._currentNode = node;
-            view._currentSource = cbo.getText();
-            view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+            if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
+                treeview.setSelectedNode(node);
+                view._currentNode = node;
+                view._currentSource = cbo.getText();
+                view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+            }
         };
 
         //Hock up chnage for cbo to redraw treeview
