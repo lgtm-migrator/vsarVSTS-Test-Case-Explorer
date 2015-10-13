@@ -123,8 +123,7 @@ export function getTestCasesByPriority(priority: string): IPromise < any > {
     if(priority != "any") {
         wiqlWhere = "[Microsoft.VSTS.Common.Priority] = " + priority
     }
-
-        return getTestCasesByWiql(["System.Id"], wiqlWhere);
+    return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
 export function getTestCasesByState(state: string): IPromise < any > {
@@ -132,8 +131,7 @@ export function getTestCasesByState(state: string): IPromise < any > {
     if(state != "any") {
         wiqlWhere = "[System.State] = '" + state + "'";
     }
-
-        return getTestCasesByWiql(["System.Id"], wiqlWhere);
+    return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
 function   getRecursiveChildIds(id:number , lst: any[]): number[]
@@ -217,8 +215,7 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
         wiql += f + ", ";
     });
     wiql = wiql.substr(0, wiql.lastIndexOf(", "));
-    wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP 'Test Case Category'  " + (wiqlWhere == "" ? "" : " AND " + wiqlWhere) + " ORDER BY [System.Id]";
-
+    wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP 'Test Case Category'  " + (wiqlWhere ? " AND " + wiqlWhere : "") + " ORDER BY [System.Id]";
 
     workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
         if (result.workItems.length > 0) {
