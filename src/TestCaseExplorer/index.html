@@ -1,4 +1,19 @@
-﻿<!DOCTYPE html>
+﻿<!-- ---------------------------------------------------------------------
+// <copyright file="index.html">
+//    This code is licensed under the MIT License.
+//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+//    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+//    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+//    PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// </copyright>
+// <summary>
+//    This is part of the Test Case Explorer extensions
+//    from the ALM Rangers. This file contains the main HTML
+//    layout for the extension + the bootstrap code.
+// </summary>
+//---------------------------------------------------------------------
+-->
+<!DOCTYPE html>
 <head>
     <title>Test Case Explorer</title>
     <link rel="stylesheet" type="text/css" href="css/app.css">
@@ -44,42 +59,29 @@
                     <div id="testCasePane" class="leftPane">
                         <div id="grid-title" class="hub-title"></div>
                         <div class=" left-hub-content">
-                            
                             <div class="hub-pivot">
-                            <div class="recursive">   </div>
-                             <div class="filters">
-                                    <!--<div class="dropdown pivot-filter enhance testpoint-outcome-filter" title="Filter" id="23">
-                                        <!--<span class="title">Filter</span>-->
-                                        <div id="grid-filter-cbo">
-                                            
-                                        </div>
-                                 <!--   </div>-->
+                                <div class="recursive"></div>
+                                <div class="filters">
+                                    <div id="grid-filter-cbo"></div>
                                 </div>
                             </div>
                             <div id="menu-container" class="toolbar"></div>
                             <div class="wait-control-target"></div>
-                            
                             <div id="grid-container" class="grid"></div>
                         </div>
                     </div>
-                    <div class="handleBar" ></div>
+                    <div class="handleBar"></div>
                     <div id="detailsPane" class="rightPane hotkey-section hotkey-section-3">
                         <div class="left-hub-content">
                             <div id="details-title" class="hub-title"></div>
-                            <div class="hub-pivot far-right-pane-pivot"  style="display: block;margin-left:10px;">
-
+                            <div class="hub-pivot far-right-pane-pivot" style="display: block;margin-left:10px;">
                                 <div class="filter" style="float:right; margin-top:6px;width:200px;">
-                                    <div id="details-filterPane-container" >
-                                        
+                                    <div id="details-filterPane-container">
                                     </div>
-
-                                    <div id="details-filterPosition-container" >
-                                        
+                                    <div id="details-filterPosition-container">
                                     </div>
                                 </div>
                             </div>
-
-
                             <div id="detailPanels" style="margin-left:10px;">
                                 <div class="wait-control-details-target"></div>
                                 <div id="details-TestPlan" style="display:none">
@@ -87,28 +89,20 @@
                                         <div style="margin-right:10px">Test plan: </div>
                                         <div id="details-cboTestPlan" style="flex:1"></div>
                                     </div>
-                                    <div id="details-treeviewTestPlan" class="treeview" ></div>
+                                    <div id="details-treeviewTestPlan" class="treeview"></div>
                                 </div>
                                 <div id="details-testSuites" style="display:none">
-                                    <!--<div id="detailsMenu-container" class="toolbar"></div>-->
-                                        <!--Test case  <b><span id="details-testCase"></span></b> exists in:<br />-->
-
-                                        <div id="details-gridTestSuites"></div>
-                                    </div>
+                                    <div id="details-gridTestSuites"></div>
+                                </div>
                                 <div id="details-TestResults" style="display:none">
-                                    <!--<div id="detailsMenu-container" class="toolbar"></div>-->
-                                    <!--Test results:
-                                    Test case  <b><span id="details-testCase"></span></b> exists in:<br />-->
-
                                     <div id="details-gridTestResults" class="treeview"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>  
                     </div>
                 </div>
             </div>
         </div>
-    
+    </div>
 </body>
 </html>
