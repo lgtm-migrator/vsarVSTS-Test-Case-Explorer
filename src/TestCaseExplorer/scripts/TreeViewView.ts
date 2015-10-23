@@ -33,8 +33,6 @@ export class TreeviewView {
         });
 
         var treeOptions = {
-            width: 400,
-            height: "100%",
             clickSelects: true,
             nodes: null
         };
