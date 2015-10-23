@@ -1,4 +1,19 @@
-﻿/// <reference path='ref/jquery.d.ts' />
+﻿//---------------------------------------------------------------------
+// <copyright file="TreeView.ts">
+//    This code is licensed under the MIT License.
+//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF 
+//    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED 
+//    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+//    PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// </copyright>
+// <summary>
+//    This is part of the Test Case Explorer extensions
+//    from the ALM Rangers. This file contains the implementation
+//    of the tree view (pivot).
+// </summary>
+//---------------------------------------------------------------------
+
+/// <reference path='ref/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 
 import Controls = require("VSS/Controls");
@@ -39,10 +54,12 @@ export class TreeviewView {
 
         var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
         treeview.onItemClick = function (node, nodeElement, e) {
-            treeview.setSelectedNode(node);
-            view._currentNode = node;
-            view._currentSource = cbo.getText();
-            view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+            if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
+                treeview.setSelectedNode(node);
+                view._currentNode = node;
+                view._currentSource = cbo.getText();
+                view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+            }
         };
 
         //Hock up chnage for cbo to redraw treeview
