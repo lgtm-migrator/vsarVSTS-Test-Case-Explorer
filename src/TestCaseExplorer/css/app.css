@@ -22,6 +22,12 @@
 #testmanagement-view-left-pane{
     margin-left:16px;
 }
+#treeview-Cbo-container {
+    margin-left:12px;
+    margin-right:10px;
+
+}
+
 
     #testcase-extension > .splitter > .leftPane {
         width: 10%;
