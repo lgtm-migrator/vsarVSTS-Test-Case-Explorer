@@ -133,6 +133,17 @@ function LoadTreeview(pivot:string, treeview:TreeView.TreeView) {
         treeview.rootNode.clear();
         treeview.rootNode.addRange(data);
         treeview._draw();
+
+        var n = treeview.rootNode;
+
+        var elem = treeview._getNodeElement(n);
+        treeview._setNodeExpansion(n, elem, true);
+
+        treeview.rootNode.children.forEach(n=> {
+            var elem = treeview._getNodeElement(n);
+            treeview._setNodeExpansion(n, elem, true);
+        });
+
     });    
 }
 
