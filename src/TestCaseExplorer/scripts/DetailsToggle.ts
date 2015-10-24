@@ -20,6 +20,8 @@ import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
 import CommonControls = require("VSS/Controls/Common");
 import TreeViewDataService = require("scripts/TreeViewDataService");
+import Q = require("q");
+
 
 export interface TreeviewSelectedCallback { (type: string, value: string): void }
 
@@ -50,21 +52,42 @@ export class DetailsPaneToggler {
         
         var toggler = this;
         VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
-            // Set value in user scope
-            dataService.getValue("PanePosition", { scopeType: "User" }).then(function (savedPanePosition: any) {
-                dataService.getValue("PreviousDetailsPaneWidth", { scopeType: "User" }).then(function (savedDetailsPaneWidth: number) {
-              
-                    if (savedDetailsPaneWidth == null) {
-                        savedDetailsPaneWidth = 100;
-                    }
-                    if (savedPanePosition == null) {
-                        savedPanePosition = "off";
-                    }
 
-                    toggler.setTogglerAndPanesPosition(savedPanePosition, savedDetailsPaneWidth);
-                    deferred.resolve(toggler);
+            var posReq = dataService.getValue("PanePosition", { scopeType: "User" });
+            var widthReq = dataService.getValue("PreviousDetailsPaneWidth", { scopeType: "User" });
+            var prevPanePosReq = dataService.getValue("PreviousPaneOnPosition", { scopeType: "User" });
+            
+           
+            Q.all([posReq, widthReq, prevPanePosReq    ]).then( data => {
+                var savedPanePosition: any = data[0]; 
+                var savedDetailsPaneWidth: any =data[1]
+                var prevPanePosition: any = data[2];
+              
+                if (savedDetailsPaneWidth == null || savedDetailsPaneWidth == "") {
+                    savedDetailsPaneWidth = 160;
+                }
+                if (savedPanePosition == null || savedPanePosition == "") {
+                    savedPanePosition = "off";
+                }
+
+                if (prevPanePosition != null && prevPanePosition != "" && prevPanePosition != "off") {
+                    toggler._previousPaneOnPosition = prevPanePosition;
+                }
+                else {
+                    toggler._previousPaneOnPosition = "right";
+                }
+
+
+                toggler.setTogglerAndPanesPosition(savedPanePosition, savedDetailsPaneWidth);
+
+                toggler._splitter._element.on('changed', function () {
+                    toggler.saveWidth();
                 });
-            });
+
+                deferred.resolve(toggler);                
+            }, err=> {
+
+                });
         });
         return deferred.promise();        
     }
@@ -79,27 +102,26 @@ export class DetailsPaneToggler {
             if (this._previousPaneOnPosition) {
                 this._showDetailsPane(this._previousPaneOnPosition);
             }
-            else {
-                var toggler = this;
-                VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
-                    // Set value in user scope
-                    dataService.getValue("PreviousPaneOnPosition", { scopeType: "User" }).then(function (prevPanePosition: any) {
-                        if (prevPanePosition != null && prevPanePosition != "off") {
-                            toggler._previousPaneOnPosition = prevPanePosition;
-                        }
-                        else {
-                            toggler._previousPaneOnPosition = "right";
-                        }
-                        toggler._showDetailsPane(toggler._previousPaneOnPosition);
-                    });
-
-                });
-            }
         }
     }
 
     public setPosition(pos: string) {
         this._showDetailsPane(pos);
+    }
+
+    public saveWidth() {
+        var toggle = this;
+
+      
+        var width = toggle._PanePosition == "right" ? toggle._splitter.rightPane.width() : toggle._splitter.rightPane.height();
+        width = (width == 0 ? 200 : width);
+        toggle._previousPaneOnWidth = width;
+
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+            // Set value in user scope
+            dataService.setValue("PreviousDetailsPaneWidth", toggle._previousPaneOnWidth, { scopeType: "User" }).then(function (value) {
+            });
+        });
     }
 
     public _isTestCaseDetailsPaneOn = function () {
@@ -115,8 +137,8 @@ export class DetailsPaneToggler {
 
                 var toggle = this;
 
-                var width = toggle._splitter.rightPane.width();
-                width = (width = 0 ? 200 : width);
+                var width = toggle._PanePosition == "right" ? toggle._splitter.rightPane.width() : toggle._splitter.rightPane.height();
+                width = (width == 0 ? 200 : width);
                 toggle._previousPaneOnWidth = width;
 
                 toggle._previousPaneOnPosition = toggle._PanePosition;
