@@ -39,6 +39,7 @@ export class DetailsView {
     public _toggler: Toggler.DetailsPaneToggler;
     public _waitControl: StatusIndicator.WaitControl;
 
+    private _selectedMasterId:string
     private _PaneLst: IPaneRefresh[];
 
     public initialize(paneToggler: Toggler.DetailsPaneToggler) {
@@ -83,6 +84,7 @@ export class DetailsView {
     public selectionChanged(id: string)
     {
         if (this._selectedPane != null) {
+            this._selectedMasterId = id;
             this._selectedPane.masterIdChanged(id);
         }
     }
@@ -116,6 +118,8 @@ export class DetailsView {
 
         this._selectedPane = pane;
         this._selectedPane.show();
+        this._selectedPane.masterIdChanged(this._selectedMasterId);
+        
     }
 
     public StartLoading(longRunning, message) {
