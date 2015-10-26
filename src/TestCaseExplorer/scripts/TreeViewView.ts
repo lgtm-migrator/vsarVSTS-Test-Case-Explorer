@@ -96,7 +96,7 @@ export class TreeviewView {
         var menuItems: any[] = [
             { id: "show-recursive", showText: false, icon: VSS.getExtensionContext().baseUri + "/img/Child-node-icon.png" },
             { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
-            { id: "collaps-all", showText: false, title:"Collapese all", icon: "icon-tree-collapse-all" },
+            { id: "collapse-all", showText: false, title:"Collapse all", icon: "icon-tree-collapse-all" },
         ];
 
         var menubarOptions = {
@@ -112,7 +112,7 @@ export class TreeviewView {
                     case "expand-all":
                         ExpandTree(view._treeview, true);
                         break;
-                    case "collaps-all":
+                    case "collapse-all":
                         ExpandTree(view._treeview, false);
                         break;                        
                     default:
