@@ -18,6 +18,8 @@
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
+import StatusIndicator = require("VSS/Controls/StatusIndicator");
+
 import Menus = require("VSS/Controls/Menus");
 import CtrlCombos = require("VSS/Controls/Combos");
 import TreeViewDataService = require("scripts/TreeViewDataService");
@@ -33,6 +35,7 @@ export class TreeviewView {
     private _callback: TreeviewSelectedCallback;
     private _currentNode: TreeView.TreeNode;
     private _currentSource: string;
+    private _waitControl: StatusIndicator.WaitControl;
 
     public initialize(callback: TreeviewSelectedCallback) {
 
@@ -64,10 +67,12 @@ export class TreeviewView {
 
         //Hock up chnage for cbo to redraw treeview
         $("#treeview-Cbo-container").change(function () {
+            view.StartLoading(true, "Loading pivot data");
             LoadTreeview(cbo.getText(), treeview);
             VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
                 // Set value in user scope
                 dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" }).then(function (selectedPivot: any) {
+                    view.DoneLoading();
                 });
             });
 
@@ -124,8 +129,37 @@ export class TreeviewView {
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#treeview-menu-container"), menubarOptions);
         this._menubar = menubar;
-
     }
+
+    public StartLoading(longRunning, message) {
+        $("body").css("cursor", "progress");
+
+        if (longRunning) {
+            var waitControlOptions: StatusIndicator.IWaitControlOptions = {
+                target: $(".wait-control-treeview-target"),
+                message: message,
+                cancellable: false,
+                cancelTextFormat: "{0} to cancel",
+                cancelCallback: function () {
+                    console.log("cancelled");
+                }
+            };
+
+            this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".wait-control-treeview-target"), waitControlOptions);
+            this._waitControl.startWait();
+        }
+    }
+
+    public DoneLoading() {
+        $("body").css("cursor", "default");
+
+        if (this._waitControl != null) {
+            this._waitControl.cancelWait();
+            this._waitControl.endWait();
+            this._waitControl = null;
+        }
+    }
+
 }
 
 function LoadTreeview(pivot:string, treeview:TreeView.TreeView) {
@@ -143,7 +177,7 @@ function LoadTreeview(pivot:string, treeview:TreeView.TreeView) {
             var elem = treeview._getNodeElement(n);
             treeview._setNodeExpansion(n, elem, true);
         });
-
+        this.DoneLoading();
     });    
 }
 
