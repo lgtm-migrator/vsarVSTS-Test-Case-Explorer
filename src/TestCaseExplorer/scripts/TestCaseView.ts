@@ -46,6 +46,11 @@ export class TestCaseView {
     private _orphanTestCaseFilter: TestCaseDataService.wiqlFilter = null;
     private _testSuiteFilter: TestCaseDataService.testSuiteFilter = null;
 
+    private _selectedPivot;
+    private _selectedValue;
+    private _showRecursive;
+    private _selectedValueWithField;
+
     public RefreshGrid(pivot: string, value, showRecursive:boolean) {
 
         this._grid.setDataSource(null);
@@ -54,19 +59,27 @@ export class TestCaseView {
         var promise: IPromise<any>;
         var title: string;
 
+        this._selectedPivot = pivot;
+        this._selectedValue = value;
+        this._showRecursive = showRecursive;
+        this._selectedValueWithField = null;
+
         switch (pivot) {
             case "Area path":
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path, showRecursive);
                 title = "Test cases with area path: " + value.path;
+                this._selectedValueWithField = { "System.AreaPath": value.path };
                 break;
             case "Iteration path":
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path, showRecursive);
                 title = "Test cases with iteration path: " + value.path;
+                this._selectedValueWithField = { "System.IterationPath": value.path };
                 break;
             case "Priority":
                 var priority: string = "any"; 
                 if (value.name != "Priority") {
                     priority = value.name;
+                    this._selectedValueWithField = { "Priority": value.name };
                 }
                 promise = TestCaseDataService.getTestCasesByPriority(priority);
                 title = "Test cases with priority: " + priority;
@@ -130,9 +143,11 @@ export class TestCaseView {
                         break;
                     case "new-testcase":
                         WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
-                            // TODO: pass additional default values from pivot
-                            workItemService.openNewWorkItem("Test Case");
+                            workItemService.openNewWorkItem("Test Case", view._selectedValueWithField);
                         });
+                        break;
+                    case "refresh":
+                        view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
                         break;
                     default:
                         alert("Unhandled action: " + command);
@@ -154,10 +169,9 @@ export class TestCaseView {
             items: [
                 { id: "All", text: "All", selected: true },
                 { id: "TC_WithOUT_Requirement", text: "Tests not associated with any requirements" },
-                { id: "TC_MultipleSuites", text: "Tests present in multiple suites" },
-                { id: "TC_OrphanedSuites", text: "Orphaned tests" },
-                { id: "TC_With_Requirement", text: "Tests with requirements linking" }
-
+                { id: "TC_With_Requirement", text: "Tests with requirements linking" },
+                { id: "TC_OrphanedSuites", text: "Tests not present in any suites (orphaned)" },
+                { id: "TC_MultipleSuites", text: "Tests present in multiple suites" }
             ],
             change: function (item) {
                 var command = item.id;
