@@ -165,10 +165,9 @@ export class TestCaseView {
             items: [
                 { id: "All", text: "All", selected: true },
                 { id: "TC_WithOUT_Requirement", text: "Tests not associated with any requirements" },
-                { id: "TC_MultipleSuites", text: "Tests present in multiple suites" },
-                { id: "TC_OrphanedSuites", text: "Orphaned tests" },
-                { id: "TC_With_Requirement", text: "Tests with requirements linking" }
-
+                { id: "TC_With_Requirement", text: "Tests with requirements linking" },
+                { id: "TC_OrphanedSuites", text: "Tests not present in any suites (orphaned)" },
+                { id: "TC_MultipleSuites", text: "Tests present in multiple suites" }
             ],
             change: function (item) {
                 var command = item.id;
