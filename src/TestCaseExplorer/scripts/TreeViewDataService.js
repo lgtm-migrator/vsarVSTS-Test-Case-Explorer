@@ -155,6 +155,9 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             node.id = t.id;
             node.type = t.suiteType;
             node.expanded = true;
+            if (t.testCaseCount > 0) {
+                node.text += " (" + t.testCaseCount + ")";
+            }
             node.droppable = true;
             if (t.parent != null) {
                 node.icon = getIconFromSuiteType(t.suiteType);
