@@ -49,9 +49,10 @@ export class DetailsView {
         var view = this;
 
         var panels = [
-            { id: "TestPlan", text: "Test plan", selected: true },
-            { id: "TestSuites", text: "Test suites" },
-            { id: "TestResults", text: "Test results" }
+            //{ id: "TestPlan", text: "Test plan", selected: true },
+            { id: "TestSuites", text: "Test suites", selected:true},
+            { id: "TestResults", text: "Test results" },
+            { id: "Requirements", text: "Linked requirements" }
         ];
 
         Controls.create(Navigation.PivotFilter, $("#details-filterPane-container"), {
@@ -109,6 +110,11 @@ export class DetailsView {
                 case "TestSuites":
                     pane = new partOfTestSuitesPane();
                     break;
+                case "Requirements":
+                    pane = new linkedRequirementsPane();
+                    break;
+
+                    
             }
             pane.initialize(this);
             this._PaneLst[panel] = pane;
@@ -370,6 +376,48 @@ class testResultsPane implements IPaneRefresh {
         TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(function (data) {
             var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
             pane._grid.setDataSource(ds);
+        });
+    }
+}
+    
+
+class linkedRequirementsPane implements IPaneRefresh {
+    private _grid;
+
+    public initialize(view: DetailsView) {
+        var options : Grids.IGridOptions= {
+            height: "1000px", 
+            columns: [
+                { text: "Id", index: "System.Id", width: 50 },
+                { text: "State", index: "System.State", width: 75 },
+                { text: "Title", index: "System.Title", width: 150 },
+            ],
+            // This data source is rendered into the Grid columns defined above
+            source: null
+        };
+
+        // Create the grid in a container element
+        this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridReq"), options);
+    }
+
+    public hide() {
+        $("#details-linkedReq").css("display", "none");
+    }
+
+    public show() {
+        $("#details-linkedReq").css("display", "block");
+        $("#details-title").text("Linked requirements");
+    }
+
+    public masterIdChanged(id: string) {
+        var pane = this;
+
+        $("#details-title").text("Requirements for #" + id);
+        $("#details-testCase").text(id);
+
+        TreeViewDataService.getLinkedRequirementsForTestCase(parseInt(id)).then(function (data) {
+            
+            pane._grid.setDataSource(data.map(r=> { return r.fields; }) );
         });
     }
 }

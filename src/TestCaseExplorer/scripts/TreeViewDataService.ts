@@ -149,9 +149,34 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
         var tstClient = TestClient.getClient();
         var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId};
 
-        tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {
+        tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {;
             deferred.resolve(data);
         });
+        return deferred.promise();
+    }
+
+
+    export function getLinkedRequirementsForTestCase(testCaseId: number): IPromise<any[]> {
+        // Get an instance of the client
+        var deferred = $.Deferred<any[]>();
+        var client = WITClient.getClient();
+        var q = {
+            query: "SELECT[System.Id], [System.Title], [System.AssignedTo], [System.State], [System.Tags] FROM WorkItemLinks WHERE [Target].[System.Id] = " + testCaseId + " ORDER BY [System.Id] mode(MustContain)"
+        };
+
+        client.queryByWiql(q, VSS.getWebContext().project.name).then(
+            data => {
+                client.getWorkItems(data.workItemRelations.filter(i=> { return (i.source != null); }).map(i=> { return i.source.id; }),  [ "System.Id", "System.Title", "System.State"]).then(
+                    wiData => {
+                        deferred.resolve(wiData);
+                    },
+                    err=> {
+                        deferred.reject(err);
+                    });
+            },
+            err=> {
+                deferred.reject(err);
+            });
         return deferred.promise();
     }
 

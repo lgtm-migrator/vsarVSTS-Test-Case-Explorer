@@ -132,11 +132,31 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var tstClient = TestClient.getClient();
         var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
         tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {
+            ;
             deferred.resolve(data);
         });
         return deferred.promise();
     }
     exports.getTestResultsForTestCase = getTestResultsForTestCase;
+    function getLinkedRequirementsForTestCase(testCaseId) {
+        // Get an instance of the client
+        var deferred = $.Deferred();
+        var client = WITClient.getClient();
+        var q = {
+            query: "SELECT[System.Id], [System.Title], [System.AssignedTo], [System.State], [System.Tags] FROM WorkItemLinks WHERE [Target].[System.Id] = " + testCaseId + " ORDER BY [System.Id] mode(MustContain)"
+        };
+        client.queryByWiql(q, VSS.getWebContext().project.name).then(function (data) {
+            client.getWorkItems(data.workItemRelations.filter(function (i) { return (i.source != null); }).map(function (i) { return i.source.id; }), ["System.Id", "System.Title", "System.State"]).then(function (wiData) {
+                deferred.resolve(wiData);
+            }, function (err) {
+                deferred.reject(err);
+            });
+        }, function (err) {
+            deferred.reject(err);
+        });
+        return deferred.promise();
+    }
+    exports.getLinkedRequirementsForTestCase = getLinkedRequirementsForTestCase;
     function getTestPlanAndSuites(planId, testPlanName) {
         // Get an instance of the client
         var deferred = $.Deferred();

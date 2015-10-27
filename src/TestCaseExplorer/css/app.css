@@ -52,3 +52,12 @@
     bottom: 0px;
     overflow: auto;
 }
+
+.testmanagement-details-grid{
+    position: absolute;
+    top: 70px;
+    left: 12px;
+    right: 0px;
+    bottom: 0px;
+    overflow: auto;
+}
