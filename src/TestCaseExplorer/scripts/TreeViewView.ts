@@ -61,7 +61,9 @@ export class TreeviewView {
                 treeview.setSelectedNode(node);
                 view._currentNode = node;
                 view._currentSource = cbo.getText();
-                view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                if (view._currentNode != null) {
+                    view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                }
             }
         };
 
