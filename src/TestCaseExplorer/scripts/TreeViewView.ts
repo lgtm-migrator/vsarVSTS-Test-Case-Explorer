@@ -25,6 +25,8 @@ import CtrlCombos = require("VSS/Controls/Combos");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import UtilsUI = require("VSS/Utils/UI");
 
+import Q = require("q");
+
 export interface TreeviewSelectedCallback{ (type: string, value: string, showRecursive: boolean): void }
 
 export class TreeviewView {
@@ -70,15 +72,21 @@ export class TreeviewView {
         //Hock up chnage for cbo to redraw treeview
         $("#treeview-Cbo-container").change(function () {
             view.StartLoading(true, "Loading pivot data");
-            LoadTreeview(cbo.getText(), treeview);
-            VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
-                // Set value in user scope
-                dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" }).then(function (selectedPivot: any) {
-                    view.DoneLoading();
-                });
+            view._currentSource = cbo.getText();
+
+            view.LoadTreeview(view._currentSource, treeview).then(a=> {
+                view.DoneLoading()
+            
             });
 
+            VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
+                dataService=> {
+                    // Set value in user scope
+                    dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" });
+                });
+            
         });
+
         view._treeview = treeview;
         
         //Add toolbar
@@ -92,7 +100,7 @@ export class TreeviewView {
                     selectedPivot = cboSources[0];
                 }
                 cbo.setText(selectedPivot);
-                LoadTreeview(cbo.getText(), treeview);
+                view.LoadTreeview(cbo.getText(), treeview);
 
             })
         });
@@ -114,7 +122,9 @@ export class TreeviewView {
                     case "show-recursive":
                         view._showRecursive = !view._showRecursive
                         menubar.updateCommandStates([{ id: command, toggled: view._showRecursive }]);
-                        view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                        if (view._currentNode != null) {
+                            view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                        }
                         break;
                     case "expand-all":
                         ExpandTree(view._treeview, true);
@@ -162,26 +172,37 @@ export class TreeviewView {
         }
     }
 
-}
+    public LoadTreeview( pivot: string, treeview: TreeView.TreeView):IPromise<any> {
+        var deferred = $.Deferred<any>();
+        var view = this;
 
-function LoadTreeview(pivot:string, treeview:TreeView.TreeView) {
-    TreeViewDataService.getNodes(pivot).then(function (data) {
-        treeview.rootNode.clear();
-        treeview.rootNode.addRange(data);
-        treeview._draw();
+        TreeViewDataService.getNodes(pivot).then(function (data) {
+            treeview.rootNode.clear();
+            treeview.rootNode.addRange(data);
+            treeview._draw();
 
-        var n = treeview.rootNode;
-
-        var elem = treeview._getNodeElement(n);
-        treeview._setNodeExpansion(n, elem, true);
-
-        treeview.rootNode.children.forEach(n=> {
+            var n = treeview.rootNode;
+        
+            //Empty other panes 
+            treeview.setSelectedNode(n.children[0]);
+            view._callback(view._currentSource, n.children[0].config, view._showRecursive);
+            
             var elem = treeview._getNodeElement(n);
             treeview._setNodeExpansion(n, elem, true);
+
+
+            treeview.rootNode.children.forEach(n=> {
+                var elem = treeview._getNodeElement(n);
+                treeview._setNodeExpansion(n, elem, true);
+            });
+            deferred.resolve(data);
+
         });
-        this.DoneLoading();
-    });    
+        return deferred.promise();
+    }
+
 }
+
 
 function ExpandTree(tree:TreeView.TreeView, nodeExpansion:boolean) {
     UtilsUI.walkTree.call(tree.rootNode, n=> {
