@@ -46,10 +46,6 @@ export class TestCaseView {
     private _orphanTestCaseFilter: TestCaseDataService.wiqlFilter = null;
     private _testSuiteFilter: TestCaseDataService.testSuiteFilter = null;
 
-    private _selectedPivot;
-    private _selectedValue;
-    private _showRecursive;
-
     public RefreshGrid(pivot: string, value, showRecursive:boolean) {
 
         this._grid.setDataSource(null);
@@ -57,10 +53,6 @@ export class TestCaseView {
         this.StartLoading(true, "Fetching data");
         var promise: IPromise<any>;
         var title: string;
-
-        this._selectedPivot = pivot;
-        this._selectedValue = value;
-        this._showRecursive = showRecursive;
 
         switch (pivot) {
             case "Area path":
@@ -141,9 +133,6 @@ export class TestCaseView {
                             // TODO: pass additional default values from pivot
                             workItemService.openNewWorkItem("Test Case");
                         });
-                        break;
-                    case "refresh":
-                        view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
                         break;
                     default:
                         alert("Unhandled action: " + command);

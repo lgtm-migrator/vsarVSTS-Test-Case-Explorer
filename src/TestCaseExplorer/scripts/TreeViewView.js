@@ -1,18 +1,6 @@
-//---------------------------------------------------------------------
-// <copyright file="TreeView.ts">
-//    This code is licensed under the MIT License.
-//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF 
-//    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED 
-//    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-//    PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// </copyright>
-// <summary>
-//    This is part of the Test Case Explorer extensions
-//    from the ALM Rangers. This file contains the implementation
-//    of the tree view (pivot).
-// </summary>
-//---------------------------------------------------------------------
-define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI) {
+/// <reference path='ref/jquery.d.ts' />
+/// <reference path='ref/VSS.d.ts' />
+define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI"], function (require, exports, Controls, TreeView, Menus, CtrlCombos, TreeViewDataService, UtilsUI) {
     var TreeviewView = (function () {
         function TreeviewView() {
         }
@@ -27,26 +15,24 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 source: cboSources
             });
             var treeOptions = {
+                width: 400,
+                height: "100%",
                 clickSelects: true,
                 nodes: null
             };
             var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
             treeview.onItemClick = function (node, nodeElement, e) {
-                if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
-                    treeview.setSelectedNode(node);
-                    view._currentNode = node;
-                    view._currentSource = cbo.getText();
-                    view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
-                }
+                treeview.setSelectedNode(node);
+                view._currentNode = node;
+                view._currentSource = cbo.getText();
+                view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
             };
             //Hock up chnage for cbo to redraw treeview
             $("#treeview-Cbo-container").change(function () {
-                view.StartLoading(true, "Loading pivot data");
                 LoadTreeview(cbo.getText(), treeview);
                 VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
                     // Set value in user scope
                     dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" }).then(function (selectedPivot) {
-                        view.DoneLoading();
                     });
                 });
             });
@@ -68,9 +54,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         TreeviewView.prototype.initMenu = function (view) {
             //var menuItems: Menus.IMenuItemSpec[] = [
             var menuItems = [
-                { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: VSS.getExtensionContext().baseUri + "/img/Child-node-icon.png" },
+                { id: "show-recursive", showText: false, icon: VSS.getExtensionContext().baseUri + "/img/Child-node-icon.png" },
                 { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
-                { id: "collapse-all", showText: false, title: "Collapse all", icon: "icon-tree-collapse-all" },
+                { id: "collaps-all", showText: false, title: "Collapese all", icon: "icon-tree-collapse-all" },
             ];
             var menubarOptions = {
                 items: menuItems,
@@ -85,7 +71,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         case "expand-all":
                             ExpandTree(view._treeview, true);
                             break;
-                        case "collapse-all":
+                        case "collaps-all":
                             ExpandTree(view._treeview, false);
                             break;
                         default:
@@ -97,30 +83,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             var menubar = Controls.create(Menus.MenuBar, $("#treeview-menu-container"), menubarOptions);
             this._menubar = menubar;
         };
-        TreeviewView.prototype.StartLoading = function (longRunning, message) {
-            $("body").css("cursor", "progress");
-            if (longRunning) {
-                var waitControlOptions = {
-                    target: $(".wait-control-treeview-target"),
-                    message: message,
-                    cancellable: false,
-                    cancelTextFormat: "{0} to cancel",
-                    cancelCallback: function () {
-                        console.log("cancelled");
-                    }
-                };
-                this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".wait-control-treeview-target"), waitControlOptions);
-                this._waitControl.startWait();
-            }
-        };
-        TreeviewView.prototype.DoneLoading = function () {
-            $("body").css("cursor", "default");
-            if (this._waitControl != null) {
-                this._waitControl.cancelWait();
-                this._waitControl.endWait();
-                this._waitControl = null;
-            }
-        };
         return TreeviewView;
     })();
     exports.TreeviewView = TreeviewView;
@@ -129,14 +91,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             treeview.rootNode.clear();
             treeview.rootNode.addRange(data);
             treeview._draw();
-            var n = treeview.rootNode;
-            var elem = treeview._getNodeElement(n);
-            treeview._setNodeExpansion(n, elem, true);
-            treeview.rootNode.children.forEach(function (n) {
-                var elem = treeview._getNodeElement(n);
-                treeview._setNodeExpansion(n, elem, true);
-            });
-            this.DoneLoading();
         });
     }
     function ExpandTree(tree, nodeExpansion) {
