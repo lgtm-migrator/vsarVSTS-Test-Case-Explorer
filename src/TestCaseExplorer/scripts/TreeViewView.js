@@ -36,18 +36,21 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     treeview.setSelectedNode(node);
                     view._currentNode = node;
                     view._currentSource = cbo.getText();
-                    view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                    if (view._currentNode != null) {
+                        view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                    }
                 }
             };
             //Hock up chnage for cbo to redraw treeview
             $("#treeview-Cbo-container").change(function () {
                 view.StartLoading(true, "Loading pivot data");
-                LoadTreeview(cbo.getText(), treeview);
+                view._currentSource = cbo.getText();
+                view.LoadTreeview(view._currentSource, treeview).then(function (a) {
+                    view.DoneLoading();
+                });
                 VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
                     // Set value in user scope
-                    dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" }).then(function (selectedPivot) {
-                        view.DoneLoading();
-                    });
+                    dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" });
                 });
             });
             view._treeview = treeview;
@@ -61,7 +64,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         selectedPivot = cboSources[0];
                     }
                     cbo.setText(selectedPivot);
-                    LoadTreeview(cbo.getText(), treeview);
+                    view.LoadTreeview(cbo.getText(), treeview);
                 });
             });
         };
@@ -80,7 +83,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         case "show-recursive":
                             view._showRecursive = !view._showRecursive;
                             menubar.updateCommandStates([{ id: command, toggled: view._showRecursive }]);
-                            view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                            if (view._currentNode != null) {
+                                view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                            }
                             break;
                         case "expand-all":
                             ExpandTree(view._treeview, true);
@@ -121,24 +126,30 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 this._waitControl = null;
             }
         };
+        TreeviewView.prototype.LoadTreeview = function (pivot, treeview) {
+            var deferred = $.Deferred();
+            var view = this;
+            TreeViewDataService.getNodes(pivot).then(function (data) {
+                treeview.rootNode.clear();
+                treeview.rootNode.addRange(data);
+                treeview._draw();
+                var n = treeview.rootNode;
+                //Empty other panes 
+                treeview.setSelectedNode(n.children[0]);
+                view._callback(view._currentSource, n.children[0].config, view._showRecursive);
+                var elem = treeview._getNodeElement(n);
+                treeview._setNodeExpansion(n, elem, true);
+                treeview.rootNode.children.forEach(function (n) {
+                    var elem = treeview._getNodeElement(n);
+                    treeview._setNodeExpansion(n, elem, true);
+                });
+                deferred.resolve(data);
+            });
+            return deferred.promise();
+        };
         return TreeviewView;
     })();
     exports.TreeviewView = TreeviewView;
-    function LoadTreeview(pivot, treeview) {
-        TreeViewDataService.getNodes(pivot).then(function (data) {
-            treeview.rootNode.clear();
-            treeview.rootNode.addRange(data);
-            treeview._draw();
-            var n = treeview.rootNode;
-            var elem = treeview._getNodeElement(n);
-            treeview._setNodeExpansion(n, elem, true);
-            treeview.rootNode.children.forEach(function (n) {
-                var elem = treeview._getNodeElement(n);
-                treeview._setNodeExpansion(n, elem, true);
-            });
-            this.DoneLoading();
-        });
-    }
     function ExpandTree(tree, nodeExpansion) {
         UtilsUI.walkTree.call(tree.rootNode, function (n) {
             var elem = tree._getNodeElement(n);

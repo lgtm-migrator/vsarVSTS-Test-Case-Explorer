@@ -61,3 +61,30 @@
     bottom: 0px;
     overflow: auto;
 }
+
+.drag-tile{
+    background-color:lightblue;
+    border-color:black;
+    border-width:1px;
+    vertical-align:middle;
+}
+.drag-tile-item-count {
+    font-size:large;
+    font-weight:bold;
+    text-align:center;
+}
+
+.drag-tile-drag-type {
+    font-size:large;
+    font-weight:bold;
+    margin:6px;
+}
+
+.drag-tile-head{
+    float:left;
+    height:100%;
+}
+.drag-tile-list{
+    float:right;
+   
+}

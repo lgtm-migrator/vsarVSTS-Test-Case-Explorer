@@ -50,6 +50,7 @@ export class TestCaseView {
     private _selectedValue;
     private _showRecursive;
     private _selectedValueWithField;
+    private _selectedRows:number[];
 
     public RefreshGrid(pivot: string, value, showRecursive:boolean) {
 
@@ -208,6 +209,52 @@ export class TestCaseView {
         });
     }
 
+    private dragableStart(event, ui) {
+    //    this._clearRowMouseDownEventInfo();
+    };
+
+    private helperMultiSelectDrag(event, ui)
+    {
+        var $dragTile ;
+        var draggableItemText, numOfSelectedItems;
+        var selectedWorkItemIds = this._selectedRows;
+
+        
+        var grd = this;
+
+     
+        
+
+        numOfSelectedItems = selectedWorkItemIds.length;
+        $dragTile = $("<div />")
+            .addClass("drag-tile")
+            
+       
+
+        if (numOfSelectedItems === 1) {
+            
+            $dragTile.text("") //this.getColumnValue(dataIndex, this._getTitleColumnIndex()) || "");
+        }
+        else {
+
+  
+            var $dragItemCount = $("<div />")
+                .addClass("drag-tile-item-count")
+                .text(numOfSelectedItems);
+            var $dragItemType = $("<span />")
+                .addClass("drag-tile-item-type")
+                .text(draggableItemText);
+            $dragTile.append($dragItemCount).append($dragItemType);
+        }
+
+        $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds);
+        $dragTile.data("MODE", event.ctrlKey==true?"Clone":"Attatch");
+        $dragTile.text(event.ctrlKey == true ? "Clone" : "Attatch" + " " + selectedWorkItemIds.join("; "));
+
+        return $dragTile;
+    }
+        
+
     private initGrid(view:TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
         var options: Grids.IGridOptions = {
             height: "1000px", // Explicit height is required for a Grid control
@@ -219,7 +266,53 @@ export class TestCaseView {
                 containment: "",
             revert: "invalid",
             appendTo: document.body,
-            helper: "clone",
+            dragableStart(event, ui) {
+                this._clearRowMouseDownEventInfo();
+            },
+
+            helper: function (event, ui)
+    {
+                var $dragTile;
+                var draggableItemText, numOfSelectedItems;
+                var selectedWorkItemIds = view._selectedRows;
+
+                numOfSelectedItems = selectedWorkItemIds.length;
+                $dragTile = $("<div />")
+                    .addClass("drag-tile")
+                
+                   
+                var $dragItemCount = $("<div />")
+                    .addClass("drag-tile-item-count")
+                    .text(numOfSelectedItems);
+                var $dragType = $("<span />")
+                    .addClass("drag-tile-drag-type")
+                    .text(event.ctrlKey == true ? "Clone" : "Attatch");
+
+                var $dragHead = $("<div />")
+                    .addClass("drag-tile-head")
+                    .append($dragType)
+                    .append($dragItemCount);
+             
+
+
+                $dragTile.append($dragHead);
+
+                $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i=> { return i["system.Id"]; }));
+                $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attatch");
+
+                var $dragLst = $("<div />")
+                    .addClass("drag-tile-list")
+
+                selectedWorkItemIds.forEach(r=> {
+                    $dragLst.append(
+                        $("<div />")
+                            .text(r["System.Id"] + " " + r["System.Title"]) 
+                    );
+                });
+                $dragTile.append($dragLst);
+
+                return $dragTile;
+            },
             zIndex: 1000,
             cursor: "move",
             cursorAt: { top: -5, left: -5 },
@@ -250,8 +343,10 @@ export class TestCaseView {
 
         $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
             var item = view._grid.getRowData(view._grid.getSelectedDataIndex());
+            view._selectedRows = getSelectedWorkItemIds(view._grid);
             var s = item["System.Id"];
             selectCallBack(s);
+
         });
         //this._grid.enableDragDrop();
     }
@@ -348,4 +443,11 @@ export class TestCaseView {
     }
 }
 
+function getSelectedWorkItemIds (grid:Grids.Grid):any[] {
+    var i, len, ids = [],  indices = grid.getSelectedDataIndices();
+    for (i = 0, len = indices.length; i < len; i++) {
+        ids.push(grid._dataSource[indices[i]]);
+    }
+    return ids;
+};
 var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP 'Test Case Category') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [Source].[System.Id] mode(DoesNotContain)"
