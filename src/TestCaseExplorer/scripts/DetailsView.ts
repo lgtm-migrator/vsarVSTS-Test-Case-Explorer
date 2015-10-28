@@ -264,6 +264,7 @@ export class DetailsView {
                 var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
 
                 $("li.node").droppable({
+                    scope:"test-case-scope", 
                     greedy: true,
                     tolerance: "pointer",
                     hoverClass: "droppable-hover",
@@ -281,20 +282,7 @@ export class DetailsView {
                             err => { alert(err); });
                     }
                 });
-                $(".grid-row-normal").draggable({
-                    revert: "invalid",
-                    appendTo: document.body,
-                    helper: "clone",
-                    zIndex: 1000,
-                    cursor: "move",
-                    cursorAt: { top: -5, left: -5 },
-                    //scope: TFS_Agile.DragDropScopes.ProductBacklog,
-                    //start: this._draggableStart,
-                    //stop: this._draggableStop,
-                    //helper: this._draggableHelper,
-                    //drag: this._draggableDrag,
-                    refreshPositions: true
-                });
+
             });
         });
          

@@ -88,3 +88,7 @@
     float:right;
    
 }
+
+.droppable-hover {
+    background-color:lightgreen;
+}

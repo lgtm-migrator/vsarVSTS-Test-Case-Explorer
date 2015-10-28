@@ -88,6 +88,14 @@ export function mapTestCaseToSuite(project,tcId, suiteId, planId):IPromise<any> 
     var client = TestClient.getClient();
     return client.addTestCasesToSuite(project, planId, suiteId, tcId)
 }
+export function AssignTestCasesToField(project, tcId: number, field, value): IPromise<any> {
+
+    var client = WITClient.getClient();
+    var msg = { "op": "add", "path": "/fields/" + field, "value": value }
+    return client.updateWorkItem([msg], tcId);
+}
+
+
 
 export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
     // Get an instance of the client

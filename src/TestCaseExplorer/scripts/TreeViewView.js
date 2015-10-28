@@ -63,6 +63,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     if (selectedPivot == null || selectedPivot == "") {
                         selectedPivot = cboSources[0];
                     }
+                    view._currentSource = selectedPivot;
                     cbo.setText(selectedPivot);
                     view.LoadTreeview(cbo.getText(), treeview);
                 });
@@ -142,6 +143,46 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 treeview.rootNode.children.forEach(function (n) {
                     var elem = treeview._getNodeElement(n);
                     treeview._setNodeExpansion(n, elem, true);
+                });
+                $("li.node").droppable({
+                    scope: "test-case-scope",
+                    greedy: true,
+                    tolerance: "pointer",
+                    hoverClass: "droppable-hover",
+                    drop: function (event, ui) {
+                        var n = treeview.getNodeFromElement(event.target);
+                        var tcIds = ui.helper.data("WORK_ITEM_IDS");
+                        var field, value;
+                        switch (view._currentSource) {
+                            case "Area path":
+                                field = "System.AreaPath";
+                                value = n.config.path;
+                                break;
+                            case "Iteration path":
+                                field = "System.IterationPath";
+                                value = n.config.path;
+                                break;
+                            case "Priority":
+                                field = "Microsoft.VSTS.Common.Priority";
+                                value = n.config.name;
+                                break;
+                            case "State":
+                                field = "System.State";
+                                value = n.config.name;
+                                break;
+                        }
+                        tcIds.forEach(function (id) {
+                            var itemDiv = ui.helper.find("." + id);
+                            var txt = itemDiv.text();
+                            itemDiv.text("Saving " + txt);
+                            TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(function (data) {
+                                itemDiv.text("Saved" + txt);
+                                ;
+                            }, function (err) {
+                                alert(err);
+                            });
+                        });
+                    }
                 });
                 deferred.resolve(data);
             });

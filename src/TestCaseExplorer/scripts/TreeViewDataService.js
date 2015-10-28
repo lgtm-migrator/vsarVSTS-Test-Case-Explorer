@@ -79,6 +79,12 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return client.addTestCasesToSuite(project, planId, suiteId, tcId);
     }
     exports.mapTestCaseToSuite = mapTestCaseToSuite;
+    function AssignTestCasesToField(project, tcId, field, value) {
+        var client = WITClient.getClient();
+        var msg = { "op": "add", "path": "/fields/" + field, "value": value };
+        return client.updateWorkItem([msg], tcId);
+    }
+    exports.AssignTestCasesToField = AssignTestCasesToField;
     function getTestPlansWithSuite() {
         // Get an instance of the client
         var deferred = $.Deferred();

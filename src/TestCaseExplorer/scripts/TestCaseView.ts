@@ -262,69 +262,63 @@ export class TestCaseView {
                 return { text: f.substring(f.lastIndexOf(".") + 1), index: f };
             }),            
             draggable: {
+                scope: "test-case-scope",
                 axis: "",
                 containment: "",
-            revert: "invalid",
-            appendTo: document.body,
-            dragableStart(event, ui) {
-                this._clearRowMouseDownEventInfo();
-            },
+                appendTo: document.body,
+                revert: "invalid",
+                refreshPositions: true,
+                scroll: false,
+                distance: 10,
+                zIndex: 1000,
+                cursor: "move",
+                cursorAt: { top: -5, left: -5 },
 
-            helper: function (event, ui)
-    {
-                var $dragTile;
-                var draggableItemText, numOfSelectedItems;
-                var selectedWorkItemIds = view._selectedRows;
+                helper: function (event, ui) {
+                    var $dragTile;
+                    var draggableItemText, numOfSelectedItems;
+                    var selectedWorkItemIds = view._selectedRows;
 
-                numOfSelectedItems = selectedWorkItemIds.length;
-                $dragTile = $("<div />")
-                    .addClass("drag-tile")
+                    numOfSelectedItems = selectedWorkItemIds.length;
+                    $dragTile = $("<div />")
+                        .addClass("drag-tile")
                 
                    
-                var $dragItemCount = $("<div />")
-                    .addClass("drag-tile-item-count")
-                    .text(numOfSelectedItems);
-                var $dragType = $("<span />")
-                    .addClass("drag-tile-drag-type")
-                    .text(event.ctrlKey == true ? "Clone" : "Attatch");
+                    var $dragItemCount = $("<div />")
+                        .addClass("drag-tile-item-count")
+                        .text(numOfSelectedItems);
+                    var $dragType = $("<span />")
+                        .addClass("drag-tile-drag-type")
+                        .text(event.ctrlKey == true ? "Clone" : "Attatch");
 
-                var $dragHead = $("<div />")
-                    .addClass("drag-tile-head")
-                    .append($dragType)
-                    .append($dragItemCount);
+                    var $dragHead = $("<div />")
+                        .addClass("drag-tile-head")
+                        .append($dragType)
+                        .append($dragItemCount);
              
 
 
-                $dragTile.append($dragHead);
+                    $dragTile.append($dragHead);
 
-                $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i=> { return i["system.Id"]; }));
-                $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attatch");
+                    $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i=> { return i["System.Id"]; }));
+                    $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attatch");
 
-                var $dragLst = $("<div />")
-                    .addClass("drag-tile-list")
+                    var $dragLst = $("<div />")
+                        .addClass("drag-tile-list")
 
-                selectedWorkItemIds.forEach(r=> {
-                    $dragLst.append(
-                        $("<div />")
-                            .text(r["System.Id"] + " " + r["System.Title"]) 
-                    );
-                });
-                $dragTile.append($dragLst);
+                    selectedWorkItemIds.forEach(r=> {
+                        var id = r["System.Id"];
+                        $dragLst.append(
+                            $("<div />")
+                                .addClass(id.toString() )
+                                .text(id+ " " + r["System.Title"]) 
+                        );
+                    });
+                    $dragTile.append($dragLst);
 
-                return $dragTile;
+                    return $dragTile;
+                }
             },
-            zIndex: 1000,
-            cursor: "move",
-            cursorAt: { top: -5, left: -5 },
-            scope: "",
-            //start: this._draggableStart,
-            //stop: this._draggableStop,
-            //helper: this._draggableHelper,
-            //drag: this._draggableDrag,
-            refreshPositions: true
-
-        },
-            droppable: true,
             openRowDetail: (index: number) => {
                 // Double clicking row or hitting enter key when the row is selected
                 // will cause this function to be executed
