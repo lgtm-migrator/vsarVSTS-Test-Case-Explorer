@@ -126,10 +126,10 @@ export class TestCaseView {
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
-            { id: "new-testcase", text: "New", icon: "icon-add-small" },
-            { id: "refresh", showText: false, icon: "icon-refresh" },
-            { id: "column_options", text: "Column Options", noIcon: true },
-            { id: "toggle", showText: false, icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align", text: "Show/hide" }
+            { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+            //{ id: "column_options", text: "Column Options", noIcon: true },
+            { id: "toggle", showText: false, title: "Show/hide details pane", icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align" }
         ];
 
         var menubarOptions = {
