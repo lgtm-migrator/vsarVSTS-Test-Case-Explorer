@@ -46,7 +46,7 @@
             <div class="leftPane">
                 <div class="left-hub-content">
                     <div class="testmanagement-view-left-pane">
-                        <div style="display:flex;flex-direction:row;margin-left:10px;;">
+                        <div style="display:flex;flex-direction:row;margin-left:10px;">
                             <div style="flex;margin-left:6px">Pivot&nbsp;by:</div>
                             <div style="flex:3" id="treeview-Cbo-container"></div>
                         </div>
@@ -61,7 +61,10 @@
             <div class="rightPane">
                 <div class="splitter horizontal right-fix right-hub-splitter stateful left-expand collapsed" id="2">
                     <div id="testCasePane" class="leftPane">
-                        <div id="grid-title" class="hub-title"></div>
+                        <div>
+                            <div id="grid-title" class="hub-title" style="overflow:hidden;text-overflow:ellipsis;max-width: 500px;padding-right:10px"></div>
+                            <div id="grid-count" class="hub-title-right" style="text-align: right;overflow:hidden;text-overflow:ellipsis;padding-right:10px"></div>
+                        </div>
                         <div class=" left-hub-content">
                             <div class="hub-pivot">
                                 <div class="recursive"></div>

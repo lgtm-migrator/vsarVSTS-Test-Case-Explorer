@@ -390,6 +390,9 @@ export class TestCaseView {
         else {
             this._grid.setDataSource(this._data);
         }
+
+        $("#grid-count").text("Showing " + this._grid._count + " of " + this._data.length + (this._data.length == 1 ? " test case" : " test cases"));
+
         $(".grid-row-normal").draggable({
             revert: "invalid",
             appendTo: document.body,
