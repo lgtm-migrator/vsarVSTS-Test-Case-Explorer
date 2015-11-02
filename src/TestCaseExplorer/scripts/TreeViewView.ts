@@ -210,7 +210,7 @@ export class TreeviewView {
                 drop: function (event, ui) {
                     var n = treeview.getNodeFromElement(event.target);
 
-                    var tcIds = ui.helper.data("WORK_ITEM_IDS");
+                    var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
                     var field, value;
                     switch (view._currentSource) {
                         case "Area path":
