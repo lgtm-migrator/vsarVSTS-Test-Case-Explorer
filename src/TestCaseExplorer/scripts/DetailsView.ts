@@ -203,9 +203,14 @@ export class DetailsView {
      public masterIdChanged(id: string)
      {
          var pane = this;
-         TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(function (data) {
-             pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType}; }));
-         });
+         if (id == null) {
+             pane._grid.setDataSource(null);
+         }
+         else {
+             TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(function (data) {
+                 pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
+             });
+         }
      }
  }
 
@@ -347,10 +352,15 @@ class testResultsPane implements IPaneRefresh {
 
     public masterIdChanged(id: string) {
         var pane = this;
-        TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(function (data) {
-            var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
-            pane._grid.setDataSource(ds);
-        });
+        if (id == null) {
+            pane._grid.setDataSource(null);
+        }
+        else {
+            TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(function (data) {
+                var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
+                pane._grid.setDataSource(ds);
+            });
+        }
     }
 }
     
@@ -383,10 +393,15 @@ class linkedRequirementsPane implements IPaneRefresh {
 
     public masterIdChanged(id: string) {
         var pane = this;
-        TreeViewDataService.getLinkedRequirementsForTestCase(parseInt(id)).then(function (data) {
-            
-            pane._grid.setDataSource(data.map(r=> { return r.fields; }) );
-        });
+        if (id == null) {
+            pane._grid.setDataSource(null);
+        }
+        else {
+            TreeViewDataService.getLinkedRequirementsForTestCase(parseInt(id)).then(function (data) {
+
+                pane._grid.setDataSource(data.map(r=> { return r.fields; }));
+            });
+        }
     }
 }
     
