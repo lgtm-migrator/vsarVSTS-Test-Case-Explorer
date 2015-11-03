@@ -38,7 +38,16 @@ export class TestCaseView {
     private _paneToggler: DetailsToggle.DetailsPaneToggler;
     private _grid: Grids.Grid;
     private _menubar: Menus.MenuBar;
-    private _fields: string[];
+    private _fields:any[];
+    private _commonField = [
+        { field: "System.Id", name: "Id", width: 75 },
+        { field: "System.Title", name: "Title", width: 250 },
+        { field: "System.State", name: "State", width: 75 },
+        { field: "System.AssignedTo", name: "Assigned to", width: 150 },
+        { field: "Microsoft.VSTS.Common.Priority", name: "Priority", width: 50 },
+        { field: "Microsoft.VSTS.TCM.AutomationStatus", name: "Automated", width:75 }
+    ];
+
     private _data: any[];     
     private _waitControl: StatusIndicator.WaitControl;
    
@@ -116,7 +125,7 @@ export class TestCaseView {
         
         this._paneToggler = paneToggler;
         
-        this._fields = ["System.Id", "System.Title", "System.State", "System.AssignedTo", "Microsoft.VSTS.Common.Priority", "Microsoft.VSTS.TCM.AutomationStatus"];
+        this._fields = this._commonField;
         this.initMenu(this, paneToggler);
         this.initFilter(this);
         this.initGrid(this, selectCallBack);
@@ -259,7 +268,7 @@ export class TestCaseView {
         var options: Grids.IGridOptions = {
             height: "1000px", // Explicit height is required for a Grid control
             columns: this._fields.map(function (f) {
-                return { text: f.substring(f.lastIndexOf(".") + 1), index: f };
+                return { index: f.field, text: f.name, width :f.width };
             }),            
             draggable: {
                 scope: "test-case-scope",
