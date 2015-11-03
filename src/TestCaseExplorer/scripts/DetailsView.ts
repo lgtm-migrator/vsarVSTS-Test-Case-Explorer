@@ -166,7 +166,7 @@ export class DetailsView {
      public initialize(view: DetailsView) {
          
          var options = {
-             height: "1000px", // Explicit height is required for a Grid control
+             height: "1000px", 
              columns: [
                  {
                      text: "", index: "suiteType", width: 20, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
@@ -179,9 +179,6 @@ export class DetailsView {
                          return d;
                      }
                  },
-                 // text is the column header text. 
-                 // index is the key into the source object to find the data for this column
-                 // width is the width of the column, in pixels
                  { text: "Id", index: "id", width: 50 },
                  { text: "Test Plan", index: "plan", width: 50 },
                  { text: "Suite", index: "suite", width: 150 },
@@ -191,14 +188,14 @@ export class DetailsView {
              source: null
          };
 
-         // Create the grid in a container element
          this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestSuites"), options);
-
      }
+
      public show() {
          $("#details-testSuites").css("display", "block");
          $("#details-title").text("Associated test suites");
      }
+
      public hide() {
          $("#details-testSuites").css("display", "none");
      }
@@ -206,9 +203,6 @@ export class DetailsView {
      public masterIdChanged(id: string)
      {
          var pane = this;
-         $("#details-title").text("Associated test suites for #" + id);
-         $("#details-testCase").text(id);
-
          TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(function (data) {
              pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType}; }));
          });
@@ -314,11 +308,8 @@ class testResultsPane implements IPaneRefresh {
 
     public initialize(view: DetailsView) {
         var options = {
-            height: "1000px", // Explicit height is required for a Grid control
+            height: "1000px", 
             columns: [
-                // text is the column header text. 
-                // index is the key into the source object to find the data for this column
-                // width is the width of the column, in pixels
                 {
                     text: "Outcome", index: "Outcome", width: 100, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
                         var outcome = this.getColumnValue(dataIndex, column.index);
@@ -342,7 +333,6 @@ class testResultsPane implements IPaneRefresh {
             source: null
         };
 
-        // Create the grid in a container element
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestResults"), options);
     }
       
@@ -352,15 +342,11 @@ class testResultsPane implements IPaneRefresh {
 
     public show() {
         $("#details-TestResults").css("display", "block");
-        $("#details-title").text("Test results");
+        $("#details-title").text("Recent test results");
     }
 
     public masterIdChanged(id: string) {
         var pane = this;
-
-        $("#details-title").text("Test results for #" + id);
-        $("#details-testCase").text(id);
-
         TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(function (data) {
             var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
             pane._grid.setDataSource(ds);
@@ -368,7 +354,6 @@ class testResultsPane implements IPaneRefresh {
     }
 }
     
-
 class linkedRequirementsPane implements IPaneRefresh {
     private _grid;
 
@@ -384,7 +369,6 @@ class linkedRequirementsPane implements IPaneRefresh {
             source: null
         };
 
-        // Create the grid in a container element
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridReq"), options);
     }
 
@@ -399,10 +383,6 @@ class linkedRequirementsPane implements IPaneRefresh {
 
     public masterIdChanged(id: string) {
         var pane = this;
-
-        $("#details-title").text("Requirements for #" + id);
-        $("#details-testCase").text(id);
-
         TreeViewDataService.getLinkedRequirementsForTestCase(parseInt(id)).then(function (data) {
             
             pane._grid.setDataSource(data.map(r=> { return r.fields; }) );
