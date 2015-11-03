@@ -30,7 +30,7 @@
             ],
             "properties": {
                 "name": "Test cases",
-                "order": 40,
+                "order": 100,
                 "uri": "index.html"
             }
         }
