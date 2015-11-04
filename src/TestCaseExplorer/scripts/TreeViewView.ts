@@ -38,7 +38,7 @@ export class TreeviewView {
     private _currentNode: TreeView.TreeNode;
     private _currentSource: string;
     private _waitControl: StatusIndicator.WaitControl;
-
+ 
     public initialize(callback: TreeviewSelectedCallback) {
 
         var view = this;
@@ -58,8 +58,6 @@ export class TreeviewView {
         };
 
         var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
-     
-
         treeview.onItemClick = function (node, nodeElement, e) {
             if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
                 treeview.setSelectedNode(node);
@@ -108,6 +106,8 @@ export class TreeviewView {
             })
         });
     }
+
+  
     
     private initMenu(view: TreeviewView) {
         //var menuItems: Menus.IMenuItemSpec[] = [
