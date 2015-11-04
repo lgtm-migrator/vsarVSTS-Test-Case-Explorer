@@ -347,10 +347,14 @@ class testResultsPane implements IPaneRefresh {
 
     public masterIdChanged(id: string) {
         var pane = this;
-        TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(function (data) {
-            var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
-            pane._grid.setDataSource(ds);
-        });
+        TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(
+            data => {
+                var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
+                pane._grid.setDataSource(ds);
+            },
+            err=> {
+                pane._grid.setDataSource(null);
+            });
     }
 }
     

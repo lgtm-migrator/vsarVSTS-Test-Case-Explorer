@@ -174,13 +174,18 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
 
         client.queryByWiql(q, VSS.getWebContext().project.name).then(
             data => {
-                client.getWorkItems(data.workItemRelations.filter(i=> { return (i.source != null); }).map(i=> { return i.source.id; }),  [ "System.Id", "System.Title", "System.State"]).then(
-                    wiData => {
-                        deferred.resolve(wiData);
-                    },
-                    err=> {
-                        deferred.reject(err);
-                    });
+                if (data.workItemRelations.length >= 0) {
+                    client.getWorkItems(data.workItemRelations.filter(i=> { return (i.source != null); }).map(i=> { return i.source.id; }), ["System.Id", "System.Title", "System.State"]).then(
+                        wiData => {
+                            deferred.resolve(wiData);
+                        },
+                        err=> {
+                            deferred.reject(err);
+                        });
+                }
+                else {
+                    deferred.resolve(null);
+                }
             },
             err=> {
                 deferred.reject(err);
