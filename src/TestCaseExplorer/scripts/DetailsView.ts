@@ -397,17 +397,15 @@ class linkedRequirementsPane implements IPaneRefresh {
 
     public masterIdChanged(id: string) {
         var pane = this;
-        if (id == null) {
-            pane._grid.setDataSource(null);
-        }
-        else {
+        pane._grid.setDataSource(null);
+        if (id != null) {
             TreeViewDataService.getLinkedRequirementsForTestCase(parseInt(id)).then(
-                data =>  {
-                    pane._grid.setDataSource(data.map(r=> { return r.fields; }));
-                },
-                err=> {
-                    pane._grid.setDataSource(null);
-                });
+                data => {
+                    if (data != null) {
+                        pane._grid.setDataSource(data.map(r=> { return r.fields; }));
+                    }
+                }
+            );
         }
     }
 }
