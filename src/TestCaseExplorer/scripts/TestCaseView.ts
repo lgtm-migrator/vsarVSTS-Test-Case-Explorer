@@ -347,11 +347,13 @@ export class TestCaseView {
         $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
             var item = view._grid.getRowData(view._grid.getSelectedDataIndex());
             view._selectedRows = getSelectedWorkItemIds(view._grid);
-            var s = item["System.Id"];
-            selectCallBack(s);
+
+            if (item != null) {
+                var s = item["System.Id"];
+                selectCallBack(s);
+            }
 
         });
-        //this._grid.enableDragDrop();
     }
 
     public updateTogle(paneToggler) {
