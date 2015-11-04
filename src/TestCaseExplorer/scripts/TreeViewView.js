@@ -137,6 +137,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 var n = treeview.rootNode;
                 //Empty other panes 
                 treeview.setSelectedNode(n.children[0]);
+                view._currentNode = n.children[0];
                 view._callback(view._currentSource, n.children[0].config, view._showRecursive);
                 var elem = treeview._getNodeElement(n);
                 treeview._setNodeExpansion(n, elem, true);

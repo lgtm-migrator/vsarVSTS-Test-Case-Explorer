@@ -188,18 +188,17 @@ export class TreeviewView {
         
             //Empty other panes 
             treeview.setSelectedNode(n.children[0]);
+            view._currentNode = n.children[0];
+
             view._callback(view._currentSource, n.children[0].config, view._showRecursive);
             
             var elem = treeview._getNodeElement(n);
             treeview._setNodeExpansion(n, elem, true);
 
-
             treeview.rootNode.children.forEach(n=> {
                 var elem = treeview._getNodeElement(n);
                 treeview._setNodeExpansion(n, elem, true);
-            });
-
-         
+            });    
 
             $("li.node").droppable({
                 scope: "test-case-scope",
