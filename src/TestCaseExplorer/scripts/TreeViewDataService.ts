@@ -169,12 +169,12 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
         var deferred = $.Deferred<any[]>();
         var client = WITClient.getClient();
         var q = {
-            query: "SELECT[System.Id], [System.Title], [System.AssignedTo], [System.State], [System.Tags] FROM WorkItemLinks WHERE [Target].[System.Id] = " + testCaseId + " ORDER BY [System.Id] mode(MustContain)"
+            query: "SELECT [System.Id], [System.Title], [System.AssignedTo], [System.State], [System.Tags] FROM WorkItemLinks WHERE [Target].[System.Id] = " + testCaseId + " ORDER BY [System.Id] mode(MustContain)"
         };
 
         client.queryByWiql(q, VSS.getWebContext().project.name).then(
             data => {
-                if (data.workItemRelations.length >= 0) {
+                if (data.workItemRelations.length > 0) {
                     client.getWorkItems(data.workItemRelations.filter(i=> { return (i.source != null); }).map(i=> { return i.source.id; }), ["System.Id", "System.Title", "System.State"]).then(
                         wiData => {
                             deferred.resolve(wiData);
