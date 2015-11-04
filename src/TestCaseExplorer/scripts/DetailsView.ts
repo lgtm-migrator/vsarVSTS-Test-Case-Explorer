@@ -180,7 +180,7 @@ export class DetailsView {
                      }
                  },
                  { text: "Id", index: "id", width: 50 },
-                 { text: "Test Plan", index: "plan", width: 50 },
+                 { text: "Test Plan", index: "plan", width: 100 },
                  { text: "Suite", index: "suite", width: 150 },
                  
              ],
@@ -316,7 +316,7 @@ class testResultsPane implements IPaneRefresh {
             height: "1000px", 
             columns: [
                 {
-                    text: "Outcome", index: "Outcome", width: 100, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
+                    text: "Outcome", index: "Outcome", width: 75, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
                         var outcome = this.getColumnValue(dataIndex, column.index);
                         var d = $("<div class='grid-cell'/>").width(column.width || 100)
                         var dIcon = $("<div class='testpoint-outcome-shade icon'/>");
@@ -329,7 +329,7 @@ class testResultsPane implements IPaneRefresh {
                     }
                 },
  
-                { text: "Configuration", index: "Configuration", width: 50 },
+                { text: "Configuration", index: "Configuration", width: 75 },
                 { text: "Run by", index: "RunBy", width: 150 },
                 { text: "Date ", index: "Date", width: 150 },
                 { text: "Duration", index: "suite", width: 150 }
