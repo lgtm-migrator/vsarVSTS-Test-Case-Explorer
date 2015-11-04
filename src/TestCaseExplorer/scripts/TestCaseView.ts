@@ -45,7 +45,7 @@ export class TestCaseView {
         { field: "System.State", name: "State", width: 75 },
         { field: "System.AssignedTo", name: "Assigned to", width: 150 },
         { field: "Microsoft.VSTS.Common.Priority", name: "Priority", width: 50 },
-        { field: "Microsoft.VSTS.TCM.AutomationStatus", name: "Automated", width:75 }
+        { field: "Microsoft.VSTS.TCM.AutomationStatus", name: "Automation Status", width:100 }
     ];
 
     private _data: any[];     

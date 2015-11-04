@@ -41,7 +41,8 @@ tv.initialize(RefreshGrid);
 dv.initialize(paneToggler);
 
 function RefreshGrid(pivot:string, value:string, showRecursive:boolean):void{
-    tc.RefreshGrid(pivot, value, showRecursive );
+    tc.RefreshGrid(pivot, value, showRecursive);
+    dv.selectionChanged(null);
 }
 
 function RefreshPane(id: string): void {

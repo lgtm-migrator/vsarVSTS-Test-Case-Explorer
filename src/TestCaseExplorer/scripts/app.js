@@ -26,6 +26,7 @@ define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "s
     dv.initialize(paneToggler);
     function RefreshGrid(pivot, value, showRecursive) {
         tc.RefreshGrid(pivot, value, showRecursive);
+        dv.selectionChanged(null);
     }
     function RefreshPane(id) {
         dv.selectionChanged(id);
