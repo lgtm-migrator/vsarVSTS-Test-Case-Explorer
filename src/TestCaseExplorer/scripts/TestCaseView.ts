@@ -266,7 +266,8 @@ export class TestCaseView {
 
     private initGrid(view:TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
         var options: Grids.IGridOptions = {
-            height: "1000px", // Explicit height is required for a Grid control
+            height: "100%",
+            width: "100%",
             columns: this._fields.map(function (f) {
                 return { index: f.field, text: f.name, width :f.width };
             }),            

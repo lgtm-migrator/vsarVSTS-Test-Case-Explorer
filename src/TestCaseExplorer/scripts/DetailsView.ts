@@ -166,7 +166,8 @@ export class DetailsView {
      public initialize(view: DetailsView) {
          
          var options = {
-             height: "1000px", 
+             height: "100%",
+             width: "100%",
              columns: [
                  {
                      text: "", index: "suiteType", width: 20, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
@@ -313,7 +314,8 @@ class testResultsPane implements IPaneRefresh {
 
     public initialize(view: DetailsView) {
         var options = {
-            height: "1000px", 
+            height: "100%",
+            width: "100%",
             columns: [
                 {
                     text: "Outcome", index: "Outcome", width: 75, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
@@ -373,7 +375,8 @@ class linkedRequirementsPane implements IPaneRefresh {
 
     public initialize(view: DetailsView) {
         var options : Grids.IGridOptions= {
-            height: "1000px", 
+              height: "100%",
+                width: "100%", 
             columns: [
                 { text: "Id", index: "System.Id", width: 50 },
                 { text: "State", index: "System.State", width: 75 },

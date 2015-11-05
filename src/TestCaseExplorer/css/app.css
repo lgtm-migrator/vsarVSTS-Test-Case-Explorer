@@ -52,6 +52,13 @@
     bottom: 0px;
     overflow: auto;
 }
+    .filed-grid{
+       position:absolute; 
+       top:70px;
+       left:0px;
+       right:0px; 
+       bottom:0px
+    }
 
 .testmanagement-details-grid{
     position: absolute;
