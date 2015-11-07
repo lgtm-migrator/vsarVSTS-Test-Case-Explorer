@@ -41,13 +41,16 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="content\MIT-1.txt" />
+    <Content Include="content\Screen1.png" />
+    <Content Include="content\Screen2.png" />
     <Content Include="css\app.css" />
     <Content Include="img\Child-node-icon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="img\Short_Icon.jpg" />
+    <Content Include="img\Short-Icon.jpg" />
     <Content Include="img\testPlan.png" />
-    <Content Include="img\Wide_Icon.jpg" />
+    <Content Include="img\Wide-Icon.jpg" />
     <Content Include="index.html" />
     <Content Include="sdk\scripts\VSS.SDK.js" />
     <Content Include="web.config">
@@ -92,6 +95,11 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="content\Overview.md" />
+    <Content Include="vss-extension-mathias.json" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets')" />
   <ProjectExtensions>

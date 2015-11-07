@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "id": "almrangers-vsoextensions-testcases",
+  "id": "almrangers-vsoextensions-testcases-dev",
   "version": "1.1.0",
-  "name": "Test Case Explorer Extension",
+  "name": "Test Case Explorer Extension (dev)",
   "description": "An extension to explore test cases.",
   "publisher": "mathias",
   "scopes": [

@@ -260,7 +260,7 @@ var XDM;
                 }
                 var result = method.apply(registeredInstance, methodArgs);
                 if (result !== undefined) {
-                    if (result.then && typeof result.then === "function") {
+                    if (result && result.then && typeof result.then === "function") {
                         result.then(function (asyncResult) {
                             _this._success(rpcMessage, asyncResult, rpcMessage.handshakeToken);
                         }, function (e) {
@@ -330,7 +330,7 @@ var XDM;
                     return false;
                 }
                 if (rpcMessage.error) {
-                    deferred.reject(rpcMessage.error);
+                    deferred.reject(this._customDeserializeObject([rpcMessage.error])[0]);
                 }
                 else {
                     deferred.resolve(this._customDeserializeObject([rpcMessage.result])[0]);
@@ -479,16 +479,24 @@ var XDM;
             else {
                 returnValue = {};
                 parentObjects.newObjects.push(returnValue);
-                var keys = [];
+                var keys = {};
                 try {
+                    // We want to get both enumerable and non-enumerable properties
+                    // including inherited enumerable properties. for..in grabs
+                    // enumerable properties (including inherited properties) and
+                    // getOwnPropertyNames includes non-enumerable properties.
+                    // Merge these results together.
                     for (var key in obj) {
-                        keys.push(key);
+                        keys[key] = true;
+                    }
+                    var ownProperties = Object.getOwnPropertyNames(obj);
+                    for (var i = 0, l = ownProperties.length; i < l; i++) {
+                        keys[ownProperties[i]] = true;
                     }
                 }
                 catch (ex) {
                 }
-                for (var i = 0, l = keys.length; i < l; i++) {
-                    var key = keys[i];
+                for (var key in keys) {
                     // Don't serialize properties that start with an underscore.
                     if ((key && key[0] !== "_") || (settings && settings.includeUnderscoreProperties)) {
                         serializeMember(obj, returnValue, key);
@@ -627,8 +635,8 @@ var XDM;
 var VSS;
 (function (VSS) {
     VSS.VssSDKVersion = 0.1;
-    VSS.VssSDKRestVersion = "2.0";
-    var htmlElement;
+    VSS.VssSDKRestVersion = "2.1";
+    var bodyElement;
     var webContext;
     var hostPageContext;
     var extensionContext;
@@ -915,10 +923,10 @@ var VSS;
     * Requests the parent window to resize the container for this extension based on the current extension size.
     */
     function resize() {
-        if (!htmlElement) {
-            htmlElement = document.getElementsByTagName("html").item(0);
+        if (!bodyElement) {
+            bodyElement = document.getElementsByTagName("body").item(0);
         }
-        parentChannel.invokeRemoteMethod("resize", "VSS.HostControl", [htmlElement.scrollWidth, htmlElement.scrollHeight]);
+        parentChannel.invokeRemoteMethod("resize", "VSS.HostControl", [bodyElement.scrollWidth, bodyElement.scrollHeight]);
     }
     VSS.resize = resize;
     function setupAmdLoader() {
@@ -993,7 +1001,7 @@ var VSS;
             var contributionPaths = hostPageContext.moduleLoaderConfig.contributionPaths;
             if (contributionPaths) {
                 for (var p in contributionPaths) {
-                    if (contributionPaths.hasOwnProperty(p)) {
+                    if (contributionPaths.hasOwnProperty(p) && !newConfig.paths[p]) {
                         // Add the contribution path
                         newConfig.paths[p] = hostRootUri + contributionPaths[p].value;
                         // Look for other path mappings that fall under the contribution path (e.g. "bundles")
@@ -1147,4 +1155,3 @@ var VSS;
         }
     }
 })(VSS || (VSS = {}));
-
