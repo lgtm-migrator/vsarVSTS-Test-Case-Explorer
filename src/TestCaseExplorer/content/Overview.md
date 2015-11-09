@@ -1,6 +1,4 @@
-The **Test Case Explorer** extension gives you features to manage your test cases better. 
-
-This extension helps you manage your test cases 
+The **Test Case Explorer** extension gives you features to manage your test cases better. The more test cases you have in your project the more challenging it can be to select the right tests to run. This extension helps you manage your test cases better, including features to help you:
 
 * **Find test cases** - pivot test cases by different dimensions such as area path, iteration path, priority, state and test plan.
 * Filter test cases showing

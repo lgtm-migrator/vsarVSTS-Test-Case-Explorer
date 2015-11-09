@@ -4,6 +4,7 @@
   "version": "1.1.0",
   "name": "Test Case Explorer Extension (dev)",
   "description": "An extension to explore test cases.",
+   "baseUri": "https://localhost:44300/",
   "publisher": "mathias",
   "scopes": [
     "vso.work_write",
