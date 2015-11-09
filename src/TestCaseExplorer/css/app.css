@@ -12,11 +12,11 @@
 
 #child-node-icon::before {
     position: relative;
-    content: url('/img/Child-node-icon.png');
+    content: url('../img/Child-node-icon.png');
     
 }
 .icon-testplan::before{
-    content: url('/img/testPlan.png');
+    content: url('../img/testPlan.png');
 }
 
 #testmanagement-view-left-pane{

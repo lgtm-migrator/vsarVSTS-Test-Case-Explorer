@@ -37,7 +37,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     view._currentNode = node;
                     view._currentSource = cbo.getText();
                     if (view._currentNode != null) {
-                        view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
+                        view.RefreshGrid();
                     }
                 }
             };
@@ -72,7 +72,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         TreeviewView.prototype.initMenu = function (view) {
             //var menuItems: Menus.IMenuItemSpec[] = [
             var menuItems = [
-                { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: VSS.getExtensionContext().baseUri + "/img/Child-node-icon.png" },
+                { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "img/Child-node-icon.png" },
                 { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
                 { id: "collapse-all", showText: false, title: "Collapse all", icon: "icon-tree-collapse-all" },
             ];
@@ -84,9 +84,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         case "show-recursive":
                             view._showRecursive = !view._showRecursive;
                             menubar.updateCommandStates([{ id: command, toggled: view._showRecursive }]);
-                            if (view._currentNode != null) {
-                                view._callback(view._currentSource, view._currentNode.config, view._showRecursive);
-                            }
+                            view.RefreshGrid();
                             break;
                         case "expand-all":
                             ExpandTree(view._treeview, true);
@@ -102,6 +100,11 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             };
             var menubar = Controls.create(Menus.MenuBar, $("#treeview-menu-container"), menubarOptions);
             this._menubar = menubar;
+        };
+        TreeviewView.prototype.RefreshGrid = function () {
+            if (this._currentNode != null) {
+                this._callback(this._currentSource, this._currentNode.config, this._showRecursive);
+            }
         };
         TreeviewView.prototype.StartLoading = function (longRunning, message) {
             $("body").css("cursor", "progress");
@@ -138,7 +141,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 //Empty other panes 
                 treeview.setSelectedNode(n.children[0]);
                 view._currentNode = n.children[0];
-                view._callback(view._currentSource, n.children[0].config, view._showRecursive);
+                view.RefreshGrid();
                 var elem = treeview._getNodeElement(n);
                 treeview._setNodeExpansion(n, elem, true);
                 treeview.rootNode.children.forEach(function (n) {
@@ -172,11 +175,16 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                                 value = n.config.name;
                                 break;
                         }
+                        var noRemainingAssign = tcIds.length;
                         tcIds.forEach(function (id) {
                             var itemDiv = ui.helper.find("." + id);
                             var txt = itemDiv.text();
                             itemDiv.text("Saving " + txt);
                             TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(function (data) {
+                                noRemainingAssign--;
+                                if (noRemainingAssign == 0) {
+                                    view.RefreshGrid();
+                                }
                                 itemDiv.text("Saved" + txt);
                                 ;
                             }, function (err) {
