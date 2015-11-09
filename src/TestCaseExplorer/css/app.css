@@ -12,7 +12,7 @@
 
 #child-node-icon::before {
     position: relative;
-    content: url('/img/Child-node-icon.png');
+    content: url('../img/Child-node-icon.png');
     
 }
 .icon-testplan::before{
