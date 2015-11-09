@@ -16,7 +16,7 @@
     
 }
 .icon-testplan::before{
-    content: url('/img/testPlan.png');
+    content: url('../img/testPlan.png');
 }
 
 #testmanagement-view-left-pane{
