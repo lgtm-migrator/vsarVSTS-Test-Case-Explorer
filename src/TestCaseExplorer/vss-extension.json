@@ -5,14 +5,14 @@
   "name": "Test Case Explorer Extension",
   "description": "An extension to explore test cases.",
   "publisher": "mathias",
+  "public": false,
   "scopes": [
     "vso.work_write",
     "vso.test_write",
     "vso.profile"
   ],
-  "icons": {
-    "default": "img/Short-Icon.jpg",
-    "wide": "img/Wide-Icon.jpg"
+   "icons": {
+    "default": "img/Short-Icon.png"
   },
   "categories": [
     "Testing"
@@ -38,12 +38,17 @@
       "path": "content/MIT-1.txt"
     }
   },
-  "links": {
-    "home": "http://aka.ms/vsoext13",
-    "getstarted": "http://aka.ms/vsoext13",
-    "support": "http://aka.ms/vsarcontact",
-    "repository": "http://aka.ms/vsoext13",
-    "issues": "http://aka.ms/vsoext13"
+   "links": {
+    "home": { "uri": "http://aka.ms/vsoext13" },
+    "getstarted": { "uri": "http://aka.ms/vsoext13" },
+    "support": { "uri": "http://aka.ms/vsarcontact" },
+    "repository": { "uri": "http://aka.ms/vsoext13" },
+    "issues": { "uri": "http://aka.ms/vsoext13" },
+    "learn": {"uri": "http://aka.ms/vsoext13"}
+  },
+  "branding": {
+    "color": "rgb(220, 235, 252)",
+    "theme": "light"
   },
     "files": [
     {
