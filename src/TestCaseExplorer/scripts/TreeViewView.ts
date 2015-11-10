@@ -191,8 +191,17 @@ export class TreeviewView {
             var n = treeview.rootNode;
         
             //Empty other panes 
-            treeview.setSelectedNode(n.children[0]);
-            view._currentNode = n.children[0];
+            var selectedIndex = (view._currentSource == "Test plan") ? 1 : 0;
+            if (view._currentSource == "Test plan") {
+                if (n.children[0].hasChildren) {
+                    treeview.setSelectedNode(n.children[0].children[0]);
+                    view._currentNode = n.children[0].children[0];
+                }
+            }
+            else {
+                treeview.setSelectedNode(n.children[0]);
+                view._currentNode = n.children[0];
+            }
 
             view.RefreshGrid();
             
