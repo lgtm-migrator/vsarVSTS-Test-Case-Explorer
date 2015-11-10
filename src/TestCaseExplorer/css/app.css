@@ -10,7 +10,7 @@
     width:150px;
 }
 
-#child-node-icon::before {
+.child-node-icon::before {
     position: relative;
     content: url('../img/Child-node-icon.png');
     
