@@ -133,14 +133,25 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         TreeviewView.prototype.LoadTreeview = function (pivot, treeview) {
             var deferred = $.Deferred();
             var view = this;
+            var disableShowRecursive = (view._currentSource == "Priority" || view._currentSource == "State") ? true : false;
+            this._menubar.updateCommandStates([{ id: "show-recursive", disabled: disableShowRecursive }]);
             TreeViewDataService.getNodes(pivot).then(function (data) {
                 treeview.rootNode.clear();
                 treeview.rootNode.addRange(data);
                 treeview._draw();
                 var n = treeview.rootNode;
                 //Empty other panes 
-                treeview.setSelectedNode(n.children[0]);
-                view._currentNode = n.children[0];
+                var selectedIndex = (view._currentSource == "Test plan") ? 1 : 0;
+                if (view._currentSource == "Test plan") {
+                    if (n.children[0].hasChildren) {
+                        treeview.setSelectedNode(n.children[0].children[0]);
+                        view._currentNode = n.children[0].children[0];
+                    }
+                }
+                else {
+                    treeview.setSelectedNode(n.children[0]);
+                    view._currentNode = n.children[0];
+                }
                 view.RefreshGrid();
                 var elem = treeview._getNodeElement(n);
                 treeview._setNodeExpansion(n, elem, true);

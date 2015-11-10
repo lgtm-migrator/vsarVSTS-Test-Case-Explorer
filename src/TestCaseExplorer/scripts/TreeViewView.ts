@@ -99,7 +99,7 @@ export class TreeviewView {
                     selectedPivot = cboSources[0];
                 }
                 view._currentSource = selectedPivot;
-
+                
                 cbo.setText(selectedPivot);
                 view.LoadTreeview(cbo.getText(), treeview);
 
@@ -183,6 +183,9 @@ export class TreeviewView {
         var deferred = $.Deferred<any>();
         var view = this;
 
+        var disableShowRecursive = (view._currentSource == "Priority" || view._currentSource == "State") ? true : false;
+        this._menubar.updateCommandStates([{ id: "show-recursive", disabled: disableShowRecursive }]);
+
         TreeViewDataService.getNodes(pivot).then(function (data) {
             treeview.rootNode.clear();
             treeview.rootNode.addRange(data);
@@ -204,14 +207,14 @@ export class TreeviewView {
             }
 
             view.RefreshGrid();
-            
+
             var elem = treeview._getNodeElement(n);
             treeview._setNodeExpansion(n, elem, true);
 
             treeview.rootNode.children.forEach(n=> {
                 var elem = treeview._getNodeElement(n);
                 treeview._setNodeExpansion(n, elem, true);
-            });    
+            });
 
             $("li.node").droppable({
                 scope: "test-case-scope",
@@ -244,7 +247,6 @@ export class TreeviewView {
                     }
 
                     var noRemainingAssign = tcIds.length;
-
 
                     tcIds.forEach(id=> {
                         var itemDiv = ui.helper.find("." + id);
