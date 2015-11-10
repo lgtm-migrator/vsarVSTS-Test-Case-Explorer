@@ -72,7 +72,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         TreeviewView.prototype.initMenu = function (view) {
             //var menuItems: Menus.IMenuItemSpec[] = [
             var menuItems = [
-                { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "img/Child-node-icon.png" },
+                { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "child-node-icon" },
                 { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
                 { id: "collapse-all", showText: false, title: "Collapse all", icon: "icon-tree-collapse-all" },
             ];

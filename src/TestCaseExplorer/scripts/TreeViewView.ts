@@ -112,7 +112,7 @@ export class TreeviewView {
     private initMenu(view: TreeviewView) {
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
-            { id: "show-recursive", showText: false, title: "Show tests from child suites",  icon: "img/Child-node-icon.png" },
+            { id: "show-recursive", showText: false, title: "Show tests from child suites",  icon: "child-node-icon" },
             { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
             { id: "collapse-all", showText: false, title:"Collapse all", icon: "icon-tree-collapse-all" },
         ];
