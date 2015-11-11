@@ -80,7 +80,7 @@ export class DetailsView {
             }
         });
 
-        view.initMenu(this)
+       // view.initMenu(this)
 
          view.ShowPanel(panels[0].id);
     }
@@ -107,7 +107,7 @@ export class DetailsView {
             }
         };
 
-        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenu-container"), menubarOptions);
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-container"), menubarOptions);
 
     }
 
