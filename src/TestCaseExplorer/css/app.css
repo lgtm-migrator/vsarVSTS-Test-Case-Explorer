@@ -52,9 +52,9 @@
     bottom: 0px;
     overflow: auto;
 }
-    .filed-grid{
+    .fill-grid{
        position:absolute; 
-       top:70px;
+       top:45px;
        left:0px;
        right:0px; 
        bottom:0px
@@ -98,4 +98,41 @@
 
 .droppable-hover {
     background-color:lightgreen;
+}
+.test-count{
+
+}
+
+.test-case-hub-test-case-count  {
+    float: right;
+    margin-right: 25px;
+    position: relative;
+}
+.views {
+    float: left;
+    font-size: 12px;
+    font-family: Segoe UI, Tahoma, Arial, Verdana;
+    height: 34px;
+}
+.hub-pivot {
+    font-size: 11px;
+    position: relative;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    overflow: visible;
+    height: 34px;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+
+#testCasePane .right-hub-content {
+    top: 40px;
+}
+
+.right-hub-content .pivot-filter {
+    padding: 0 5px 0 9px;
+    border: 1px solid transparent;
+    border-bottom: 0;
 }

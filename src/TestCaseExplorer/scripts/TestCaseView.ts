@@ -173,7 +173,7 @@ export class TestCaseView {
 
     private initFilter(view: TestCaseView) {
 
-        Controls.create(Navigation.PivotFilter, $("#grid-filter-cbo"), {
+        Controls.create(Navigation.PivotFilter, $("#grid-filter"), {
             behavior: "dropdown",
             text: "Filter",
             items: [
