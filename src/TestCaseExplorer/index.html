@@ -48,7 +48,7 @@
                         <div class="hub-pivot-content">
                             <div class="testmanagement-view-left-pane">
                                 <div style="display:flex;flex-direction:row;margin-left:10px;">
-                                    <div style="flex;margin-left:6px">Pivot&nbsp;by:</div>
+                                    <div style="flex:1;margin-left:6px">Pivot&nbsp;by:</div>
                                     <div style="flex:3" id="treeview-Cbo-container"></div>
                                 </div>
                                 <div id="treeview-menu-container" class="toolbar"></div>
@@ -66,19 +66,15 @@
                         <span class="test-case-hub-test-case-count hub-title-right" >
                             <div id="grid-count" class="test-count"></div>
                         </span>
-
                         <div id="grid-title" class="hub-title"></div>
-
                         <div class="right-hub-content">
                             <div class="hub-pivot ">
-                                <div class="views">
+                                <!--<div class="views">
                                     <ul class="empty pivot-view enhance test-items-tabs" >
                                         <li title="Test cases" class="selected"><a href="">Test cases</a></li>
                                     </ul>
-                                </div>
-                                
+                                </div>-->
                                 <div id="grid-filter" class="filters">
-                                    
                                 </div>
                             </div>
                             <div class="hub-pivot-content">
@@ -94,14 +90,13 @@
                             <div class="test-case-details-pane" style="display: block;">
                                 <div id="details-title" class="far-right-pane-title" />
                                 <div id="detailsMenuBar-container" class="toolbar" ></div>
-
                             </div>
                         </div>
                     </div>
-                        <div id="detailPanels" class="far-right-pane-list-container">
+                        <div id="detailPanels" class="far-right-pane-list-container" style="top:70px">
                         <div class="wait-control-details-target"></div>
                         <div id="details-TestPlan" style="display:none">
-                            <div id="testPlan-detailsMenu-container" class="toolbar" style="display:flex; flex-direction:row; padding-top:8px">
+                            <div id="testPlan-detailsMenu-container" style="display:flex; flex-direction:row; padding-top:8px">
                                 <div style="margin-right:10px">Test plan: </div>
                                 <div id="details-cboTestPlan" style="flex:1"></div>
                             </div>
@@ -118,10 +113,9 @@
                         </div>
                     </div>
                     <div class="hub-pivot far-right-pane-pivot" style="display: block;">
-                                <div id="details-filter-container" class="filters" />
-                            </div>
+                        <div id="details-filter-container" class="filters" />
+                    </div>
                 </div>
-                
             </div>
         </div>
     </div>
