@@ -73,17 +73,20 @@ export class TestCaseView {
         this._selectedValue = value;
         this._showRecursive = showRecursive;
         this._selectedValueWithField = null;
+        this._fields = this._commonField;
 
         switch (pivot) {
             case "Area path":
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path, showRecursive);
                 title = "Test cases with area path: " + value.path;
                 this._selectedValueWithField = { "System.AreaPath": value.path };
+                this._fields = this._fields.concat([{ field: "System.AreaPath", name: "Area Path", width: 200 }]);
                 break;
             case "Iteration path":
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path, showRecursive);
                 title = "Test cases with iteration path: " + value.path;
                 this._selectedValueWithField = { "System.IterationPath": value.path };
+                this._fields = this._fields.concat([{ field: "System.IterationPath", name: "Iteration Path", width: 200 }]);
                 break;
             case "Priority":
                 var priority: string = "any"; 
@@ -395,12 +398,15 @@ export class TestCaseView {
 
     private DoRefreshGrid() {
 
-
+        var columns = this._fields.map(function (f) {
+            return { index: f.field, text: f.name, width: f.width };
+        });
+    
         if (this._currentFilter != null) {
-            this._grid.setDataSource(this._currentFilter.filter(this._data));
+            this._grid.setDataSource(this._currentFilter.filter(this._data), null, columns);
         }
         else {
-            this._grid.setDataSource(this._data);
+            this._grid.setDataSource(this._data, null, columns);
         }
 
         $("#grid-count").text("Showing " + this._grid._count + " of " + this._data.length + (this._data.length == 1 ? " test case" : " test cases"));
