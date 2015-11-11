@@ -4,8 +4,8 @@
   "version": "1.1.0",
   "name": "Test Case Explorer Extension",
   "description": "An extension to explore test cases.",
-  "publisher": "mathias",
-  "public": false,
+  "publisher": "alm-rangers",
+  "public": true,
   "scopes": [
     "vso.work_write",
     "vso.test_write",
