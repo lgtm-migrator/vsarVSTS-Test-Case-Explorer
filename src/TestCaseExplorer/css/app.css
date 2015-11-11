@@ -43,7 +43,16 @@
         overflow: auto;
     }
 
- 
+  .far-right-pane-list-container {
+    top: 120px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    position: absolute;
+    overflow: auto;
+    margin: 0 10px;
+}
+
     .testmanagement-suites-tree {
     position: absolute;
     top: 70px;
@@ -59,12 +68,38 @@
        right:0px; 
        bottom:0px
     }
+     .rightPane .hub-no-content-gutter {
+    padding-left: 0px;
+}
+      .rightPane .rightPane .far-right-pane-pivot.hub-pivot {
+    position: absolute;
+    top: 40px;
+}
 
+    .test-case-details-pane .far-right-pane-title {
+    left: 0px;
+    right: 0px;
+    margin-left: 20px;
+    margin-right: 20px;
+    padding-top: 12px;
+    padding-bottom: 38px;
+    font-family: Segoe UI Light,Segoe UI,Tahoma,Arial,Verdana;
+    font-weight: lighter;
+    font-size: 18px;
+    color: #000;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.left-hub-content .hub-pivot-content {
+    top:0px;
+}
 .testmanagement-details-grid{
     position: absolute;
-    top: 70px;
-    left: 12px;
-    right: 0px;
+    top: 0px;
+    left: 6px;
+    right: 6px;
     bottom: 0px;
     overflow: auto;
 }

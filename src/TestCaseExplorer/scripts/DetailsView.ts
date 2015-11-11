@@ -55,7 +55,7 @@ export class DetailsView {
             { id: "Requirements", text: "Linked requirements" }
         ];
 
-        Controls.create(Navigation.PivotFilter, $("#details-filterPane-container"), {
+        Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
             behavior: "dropdown",
             text: "Pane",
             items: panels,
@@ -65,7 +65,7 @@ export class DetailsView {
             }
         });
         
-        Controls.create(Navigation.PivotFilter, $("#details-filterPosition-container"), {
+        Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
             behavior: "dropdown",
             text: "Position",
             items: [
@@ -79,8 +79,38 @@ export class DetailsView {
 
             }
         });
+
+        view.initMenu(this)
+
          view.ShowPanel(panels[0].id);
     }
+
+    private initMenu(view: DetailsView) {
+        //var menuItems: Menus.IMenuItemSpec[] = [
+        var menuItems: any[] = [
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+        ];
+
+        var menubarOptions = {
+            items: menuItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                switch (command) {
+
+                    case "refresh":
+                        view.selectionChanged(view._selectedMasterId);
+                        break;
+                    default:
+                        alert("Unhandled action: " + command);
+                        break;
+                }
+            }
+        };
+
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenu-container"), menubarOptions);
+
+    }
+
 
     public selectionChanged(id: string)
     {
