@@ -211,7 +211,6 @@ function getTestCases(workItemIds: number[]): IPromise<any> {
     var workItemClient = WorkItemClient.getClient();
 
     workItemClient.getWorkItems(workItemIds, this._fields).then(result => {
-
         deferred.resolve(result.map(function (i) { i.fields["System.Id"] = i.id; fixAssignedToFields(i); return i.fields; }));
     });
 
@@ -222,7 +221,7 @@ function fixAssignedToFields(wi: WorkItemContracts.WorkItem) {
     if (wi.fields["System.AssignedTo"] != null) {
         var s = wi.fields["System.AssignedTo"];
         if (s.indexOf("<")>0){
-            wi.fields["System.AssignedTo"]=name.split("<")[0];
+            wi.fields["System.AssignedTo"] = s.split("<")[0];
         }
     }
 }
