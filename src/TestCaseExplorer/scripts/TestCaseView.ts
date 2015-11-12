@@ -108,6 +108,8 @@ export class TestCaseView {
             case "Test plan":
                 promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId,  showRecursive);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
+                this._fields = this._fields.concat([{ field: "Present.In.Suite", name: "Present in suites", width: 150 }]);
+               
                 break;
         }
         $("#grid-title").text(title);

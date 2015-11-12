@@ -80,37 +80,12 @@ export class DetailsView {
             }
         });
 
-       // view.initMenu(this)
+       
 
          view.ShowPanel(panels[0].id);
     }
 
-    private initMenu(view: DetailsView) {
-        //var menuItems: Menus.IMenuItemSpec[] = [
-        var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
-        ];
-
-        var menubarOptions = {
-            items: menuItems,
-            executeAction: function (args) {
-                var command = args.get_commandName();
-                switch (command) {
-
-                    case "refresh":
-                        view.selectionChanged(view._selectedMasterId);
-                        break;
-                    default:
-                        alert("Unhandled action: " + command);
-                        break;
-                }
-            }
-        };
-
-        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-container"), menubarOptions);
-
-    }
-
+  
 
     public selectionChanged(id: string)
     {
@@ -119,7 +94,10 @@ export class DetailsView {
             this._selectedPane.masterIdChanged(id);
         }
     }
-    
+    public Refresh(): void {
+        this.selectionChanged(this._selectedMasterId);
+    }
+
     private ShowPanel(panel: string) {
 
         if (this._selectedPane != null) {
@@ -220,6 +198,29 @@ export class DetailsView {
          };
 
          this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestSuites"), options);
+
+         var menuItems: any[] = [
+             { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+         ];
+
+         var menubarOptions = {
+             items: menuItems,
+             executeAction: function (args) {
+                 var command = args.get_commandName();
+                 switch (command) {
+
+                     case "refresh":
+                         view.Refresh();
+                         break;
+                     default:
+                         alert("Unhandled action: " + command);
+                         break;
+                 }
+             }
+         };
+
+         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testSuite-container"), menubarOptions);
+       
      }
 
      public show() {
@@ -371,6 +372,28 @@ class testResultsPane implements IPaneRefresh {
         };
 
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestResults"), options);
+
+        var menuItems: any[] = [
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+        ];
+
+        var menubarOptions = {
+            items: menuItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                switch (command) {
+
+                    case "refresh":
+                        view.Refresh();
+                        break;
+                    default:
+                        alert("Unhandled action: " + command);
+                        break;
+                }
+            }
+        };
+
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("##detailsMenuBar-testSuite-container"), menubarOptions);
     }
       
     public hide() {
@@ -417,6 +440,30 @@ class linkedRequirementsPane implements IPaneRefresh {
         };
 
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridReq"), options);
+
+
+        var menuItems: any[] = [
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+        ];
+
+        var menubarOptions = {
+            items: menuItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                switch (command) {
+
+                    case "refresh":
+                        view.Refresh();
+                        break;
+                    default:
+                        alert("Unhandled action: " + command);
+                        break;
+                }
+            }
+        };
+
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("##detailsMenuBar-linkedReq-container"), menubarOptions);
+
     }
 
     public hide() {

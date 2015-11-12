@@ -63,10 +63,14 @@
 }
     .fill-grid{
        position:absolute; 
-       top:45px;
+          top:45px;
        left:0px;
        right:0px; 
        bottom:0px
+    }
+
+    #detailPanels .fill-grid{
+        top:45px;
     }
      .rightPane .hub-no-content-gutter {
     padding-left: 0px;

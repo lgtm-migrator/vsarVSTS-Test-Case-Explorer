@@ -162,23 +162,46 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
  
     if (recursive) {
         var idList = [];
+        var tcIdList = {};
         var suite_id: number = suiteId;
         
         testClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId, true).then(suites => {
             var que: IPromise<any[]>[] = [];
+            var suitesList = suites;
 
             getRecursiveChildIds(suiteId, suites).forEach(s => {
                 que.push(testClient.getTestCases(VSS.getWebContext().project.name, planId, s));
             });
+
             Q.all(que).then(results => {
-                results.forEach(r => {
-                    idList = idList.concat(
-                        r.map(i => { return i.testCase.id; })
-                        );
-                });
+                for (var n = 0; n < results.length; n++){
+                    var r = results[n];
+                
+                    r.map(i => { return i.testCase.id; }).forEach(i => {
+
+                        var x = tcIdList[i];
+                        if (x == null) {
+                            x = suitesList[n].name;
+                        }
+                        else if ($.isNumeric(x)) {
+                            x++;
+                        }
+                        else {
+                            x = 2;
+                        }
+                        tcIdList[i] = x;
+                    });
+
+                    idList = idList.concat(r.map(i => { return i.testCase.id; }));
+                }
+
                 if (idList.length > 0) {
                     getTestCases(idList).then(testCases => {
-                        deferred.resolve(testCases);
+
+                        deferred.resolve(testCases.map(tc => {
+                            tc["Present.In.Suite"] = tcIdList[tc["System.Id"]];
+                            return tc;
+                        }));
                     });
                 }
                 else {
