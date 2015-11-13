@@ -393,7 +393,7 @@ class testResultsPane implements IPaneRefresh {
             }
         };
 
-        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("##detailsMenuBar-testSuite-container"), menubarOptions);
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testSuite-container"), menubarOptions);
     }
       
     public hide() {
@@ -462,7 +462,7 @@ class linkedRequirementsPane implements IPaneRefresh {
             }
         };
 
-        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("##detailsMenuBar-linkedReq-container"), menubarOptions);
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-linkedReq-container"), menubarOptions);
 
     }
 
