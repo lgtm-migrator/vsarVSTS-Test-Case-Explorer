@@ -1,10 +1,10 @@
 {
   "manifestVersion": 1,
-  "id": "almrangers-vsoextensions-testcases",
+  "id": "TestCaseExplorer",
   "version": "1.1.0",
-  "name": "Test Case Explorer Extension",
+  "name": "Test Case Explorer",
   "description": "An extension to explore test cases.",
-  "publisher": "alm-rangers",
+  "publisher": "ms-devlabs",
   "public": true,
   "scopes": [
     "vso.work_write",
@@ -38,6 +38,11 @@
       "path": "content/MIT-1.txt"
     }
   },
+  "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
    "links": {
     "home": { "uri": "http://aka.ms/vsoext13" },
     "getstarted": { "uri": "http://aka.ms/vsoext13" },
