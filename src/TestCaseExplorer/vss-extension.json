@@ -3,7 +3,7 @@
   "id": "TestCaseExplorer",
   "version": "1.1.0",
   "name": "Test Case Explorer",
-  "description": "An extension to explore test cases.",
+  "description": "Manage your test cases better. Find, filter, analyze usage of test cases, and more.",
   "publisher": "ms-devlabs",
   "public": true,
   "scopes": [
