@@ -42,4 +42,4 @@ In order to test the extension you will need some test plans and test cases. Run
 	1. Select a test case and drag it to the test suite in the details pane to add the test case to that suite.
 
 ##Learn more about this extension
-To learn more about developing an extension for Visual Studio Team Services, see the [overview of extensions](https://www.visualstudio.com/en-us/integrate/extensions/overview).
+To learn more about developing an extension for Visual Studio Online, see the [overview of extensions](https://www.visualstudio.com/en-us/integrate/extensions/overview).
