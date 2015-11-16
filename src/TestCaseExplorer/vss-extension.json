@@ -52,8 +52,8 @@
     "learn": {"uri": "http://aka.ms/vsoext13"}
   },
   "branding": {
-    "color": "rgb(220, 235, 252)",
-    "theme": "light"
+    "color": "rgb(51,65,133)",
+    "theme": "dark"
   },
     "files": [
     {
