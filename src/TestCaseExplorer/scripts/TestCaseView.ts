@@ -262,8 +262,8 @@ export class TestCaseView {
         }
 
         $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds);
-        $dragTile.data("MODE", event.ctrlKey==true?"Clone":"Attatch");
-        $dragTile.text(event.ctrlKey == true ? "Clone" : "Attatch" + " " + selectedWorkItemIds.join("; "));
+        $dragTile.data("MODE", event.ctrlKey==true?"Clone":"Attach");
+        $dragTile.text(event.ctrlKey == true ? "Clone" : "Attach" + " " + selectedWorkItemIds.join("; "));
 
         return $dragTile;
     }
@@ -304,7 +304,7 @@ export class TestCaseView {
                         .text(numOfSelectedItems);
                     var $dragType = $("<span />")
                         .addClass("drag-tile-drag-type")
-                        .text(event.ctrlKey == true ? "Clone" : "Attatch");
+                        .text(event.ctrlKey == true ? "Clone" : "Attach");
 
                     var $dragHead = $("<div />")
                         .addClass("drag-tile-head")
@@ -316,7 +316,7 @@ export class TestCaseView {
                     $dragTile.append($dragHead);
 
                     $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i=> { return i["System.Id"]; }));
-                    $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attatch");
+                    $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
 
                     var $dragLst = $("<div />")
                         .addClass("drag-tile-list")

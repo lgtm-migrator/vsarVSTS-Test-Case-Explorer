@@ -11,7 +11,7 @@
     "vso.test_write",
     "vso.profile"
   ],
-   "icons": {
+  "icons": {
     "default": "img/Short-Icon.png"
   },
   "categories": [
@@ -22,34 +22,22 @@
     "test planning",
     "test case management"
   ],
-  "screenshots": [
-    {
-      "path": "content/screen1.png"
-    },
-    {
-      "path": "content/screen2.png"
-    }
-  ],
   "content": {
     "details": {
-      "path": "content/overview.md"
+      "path": "overview.md"
     },
     "license": {
-      "path": "content/MIT-1.txt"
+      "path": "MIT-1.txt"
     }
   },
   "targets": [
-        {
-            "id": "Microsoft.VisualStudio.Services"
-        }
-    ],
-   "links": {
-    "home": { "uri": "http://aka.ms/vsoext13" },
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
+  "links": {
     "getstarted": { "uri": "http://aka.ms/vsoext13" },
-    "support": { "uri": "http://aka.ms/vsarcontact" },
-    "repository": { "uri": "http://aka.ms/vsoext13" },
-    "issues": { "uri": "http://aka.ms/vsoext13" },
-    "learn": {"uri": "http://aka.ms/vsoext13"}
+    "support": { "uri": "http://aka.ms/vsarcontact" }
   },
   "branding": {
     "color": "rgb(51,65,133)",

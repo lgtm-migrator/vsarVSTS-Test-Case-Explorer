@@ -14104,7 +14104,7 @@ declare module "VSS/Events/Services" {
         private _events;
         fire(eventName: string, sender?: any, eventArgs?: any): boolean;
         /**
-         * Attatch a handler to an event.
+         * Attach a handler to an event.
          *
          * @param eventName The event name.
          * @param handler The handler to attach.
