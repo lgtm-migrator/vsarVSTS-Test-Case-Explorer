@@ -1,9 +1,9 @@
-## Pivot, filter, edit, and analyze usage of test cases. ##
+## Pivot, filter, edit, and analyze usage of test cases ##
 
 The more test cases you have in your project the more challenging it can be to find and select the right tests to run. This extension helps you manage your test cases better.
 
 ## Pivot test cases ##
-Pivot test cases by different dimensions such as `area path`, `iteration path`, `priority`, `state` and `test plan`
+Pivot test cases by different dimensions such as `area path`, `iteration path`, `priority`, `state` and `test plan`.
 
 ![Pivot](img/image1.png)
 

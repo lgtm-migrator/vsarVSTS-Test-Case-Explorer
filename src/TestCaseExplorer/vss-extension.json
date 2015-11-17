@@ -36,7 +36,6 @@
     }
   ],
   "links": {
-    "getstarted": { "uri": "http://aka.ms/vsoext13" },
     "support": { "uri": "http://aka.ms/vsarcontact" }
   },
   "branding": {
