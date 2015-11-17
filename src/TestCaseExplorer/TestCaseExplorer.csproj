@@ -41,6 +41,11 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="img\image1.png" />
+    <Content Include="img\image2.png" />
+    <Content Include="img\image3.png" />
+    <Content Include="img\image4.png" />
+    <Content Include="img\image5.png" />
     <Content Include="MIT-1.txt" />
     <Content Include="css\app.css" />
     <Content Include="img\Child-node-icon.png">
