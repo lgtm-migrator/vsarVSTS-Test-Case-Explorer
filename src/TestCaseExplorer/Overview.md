@@ -13,7 +13,7 @@ Toggle the `show child items` and the list will show all test cases in all suite
 
 ![Analyze](img/image4.png)
 
-Using the right-side details pane and `Test suites` pane, select a test case to show the associated test suite where the test case is used.
+Using the right-side details pane and `Linked requirements` pane, select a test case to show the associated requirements.
 
 ![Analyze](img/image6.png)
 
