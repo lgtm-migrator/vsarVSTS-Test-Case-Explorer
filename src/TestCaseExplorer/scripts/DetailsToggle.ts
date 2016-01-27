@@ -18,7 +18,7 @@
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
-import CommonControls = require("VSS/Controls/Common");
+import SplitterControls = require("VSS/Controls/Splitter");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import Q = require("q");
 
@@ -37,12 +37,12 @@ export class DetailsPaneToggler {
         private _positionFilter: any;
     private _$farRightPaneHubPivot: any;
   //  private _savedPaneFilterItem: any;
-    private _splitter: CommonControls.Splitter;
+    private _splitter: SplitterControls.Splitter;
     private _MasterForm;
     private _detailsForm;
     private _parent;
 
-    public init(parent, farRightPanelCss, splitter: CommonControls.Splitter, masterForm, detailsForm): IPromise<DetailsPaneToggler>  {
+    public init(parent, farRightPanelCss, splitter: SplitterControls.Splitter, masterForm, detailsForm): IPromise<DetailsPaneToggler>  {
         var deferred = $.Deferred<DetailsPaneToggler>(); 
         this._parent = parent;
         this._splitter = splitter;
@@ -165,7 +165,7 @@ export class DetailsPaneToggler {
 
     public setTogglerAndPanesPosition(position:string, width:any) {
         if (this._splitter == null) {
-            this._splitter = <CommonControls.Splitter>Controls.Enhancement.getInstance(CommonControls.Splitter, $(".right-hub-splitter"));
+            this._splitter = <SplitterControls.Splitter>Controls.Enhancement.getInstance(SplitterControls.Splitter, $(".right-hub-splitter"));
 
         }
         if (position === "off") {
