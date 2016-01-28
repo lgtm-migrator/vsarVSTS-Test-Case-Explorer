@@ -225,7 +225,7 @@ export class TestCaseView {
 
     private dragableStart(event, ui) {
     //    this._clearRowMouseDownEventInfo();
-    };
+    }
 
     private helperMultiSelectDrag(event, ui)
     {

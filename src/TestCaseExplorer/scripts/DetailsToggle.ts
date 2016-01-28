@@ -161,7 +161,7 @@ export class DetailsPaneToggler {
 
         });    
         this.setTogglerAndPanesPosition(position, this._previousPaneOnWidth);
-    };
+    }
 
     public setTogglerAndPanesPosition(position:string, width:any) {
         if (this._splitter == null) {

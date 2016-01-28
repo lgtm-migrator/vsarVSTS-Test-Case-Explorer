@@ -28,10 +28,10 @@ import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 
 interface IPaneRefresh {
-    initialize(view: DetailsView): void,
-    hide(): void,
+    initialize(view: DetailsView): void;
+    hide(): void;
     show(): void;
-    masterIdChanged(id: string): void
+    masterIdChanged(id: string): void;
 }
 
 export class DetailsView {
