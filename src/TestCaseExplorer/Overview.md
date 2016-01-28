@@ -1,4 +1,4 @@
-## Pivot, filter, edit, and analyze usage of test cases ##
+﻿## Pivot, filter, edit, and analyze usage of test cases ##
 
 The more test cases you have in your project the more challenging it can be to find and work with associated and relevant tests. This extension helps you manage your test cases better.
 
@@ -35,6 +35,6 @@ Edit test cases and assign them to any pivot by using drag and drop.
 
 > Microsoft DevLabs is an outlet for experiments from Microsoft, experiments that represent some of the latest ideas around developer tools. Solutions in this category are designed for broad usage, and you are encouraged to use and provide feedback on them; however, these extensions are not supported nor are any commitments made as to their longevity.
 
-> ##Contributors##
+##Contributors##
 
 We thank the following contributor(s) for this extension: Mathias Olausson and Mattias Sköld.
