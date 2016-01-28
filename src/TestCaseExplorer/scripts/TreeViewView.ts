@@ -46,11 +46,13 @@ export class TreeviewView {
         view._callback = callback;
         var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
 
-        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"),  {
+        var cboOptions: CtrlCombos.IComboOptions = {
             mode: "drop",
-            allowEdit: false, 
+            allowEdit: false,
             source: cboSources
-        });
+        };
+
+        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions );
 
         var treeOptions:TreeView.ITreeOptions = {
             clickSelects: true,

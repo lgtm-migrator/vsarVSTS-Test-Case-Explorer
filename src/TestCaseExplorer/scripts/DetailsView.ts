@@ -256,10 +256,12 @@ export class DetailsView {
          this._view = view;
         var tpp = this;
 
-        this._cbo = Controls.create(CtrlCombos.Combo, $("#details-cboTestPlan"), {
+        var cboOptions: CtrlCombos.IComboOptions = {
             mode: "drop",
             allowEdit: false,
-        });
+        };
+
+        this._cbo = Controls.create(CtrlCombos.Combo, $("#details-cboTestPlan"), cboOptions);
 
         TreeViewDataService.getTestPlans().then(function (data) {
             tpp._testPlans = data[0].children;
