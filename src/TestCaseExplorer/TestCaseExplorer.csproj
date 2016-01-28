@@ -55,7 +55,9 @@
     <Content Include="img\Short-Icon.png" />
     <Content Include="img\testPlan.png" />
     <Content Include="index.html" />
+    <Content Include="sdk\scripts\q.js" />
     <Content Include="sdk\scripts\VSS.SDK.js" />
+    <Content Include="sdk\scripts\VSS.SDK.min.js" />
     <Content Include="web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -68,8 +70,9 @@
     <TypeScriptCompile Include="scripts\ref\jquery.d.ts" />
     <TypeScriptCompile Include="scripts\ref\jqueryui.d.ts" />
     <TypeScriptCompile Include="scripts\ref\q.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\VSS.d.ts" />
     <TypeScriptCompile Include="scripts\ref\knockout.d.ts" />
+    <TypeScriptCompile Include="scripts\ref\tfs.d.ts" />
+    <TypeScriptCompile Include="scripts\ref\vss.d.ts" />
     <TypeScriptCompile Include="scripts\TestCaseDataService.ts" />
     <TypeScriptCompile Include="scripts\TestCaseView.ts" />
     <TypeScriptCompile Include="scripts\TreeViewDataService.ts" />
