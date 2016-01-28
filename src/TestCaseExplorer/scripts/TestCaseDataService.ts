@@ -30,8 +30,8 @@ export enum filterMode {
 }
 
 export interface ITestCaseFilter {
-    setMode(mode: filterMode),
-    initialize(value:any): IPromise<any>,
+    setMode(mode: filterMode);
+    initialize(value: any): IPromise<any>;
     filter(data: any[]): any[];
 }
 
