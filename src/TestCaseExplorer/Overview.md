@@ -34,3 +34,7 @@ Edit test cases and assign them to any pivot by using drag and drop.
 **Free**, but only Visual Studio Team Services users (not stakeholders) can be assigned the Test Case Explorer extension. Learn more about [Visual Studio Online Feature Matrix](https://www.visualstudio.com/pricing/visual-studio-online-feature-matrix-vs) and [Visual Studio Team Services user pricing](https://aka.ms/vs-pricing).
 
 > Microsoft DevLabs is an outlet for experiments from Microsoft, experiments that represent some of the latest ideas around developer tools. Solutions in this category are designed for broad usage, and you are encouraged to use and provide feedback on them; however, these extensions are not supported nor are any commitments made as to their longevity.
+
+> ##Contributors##
+
+We thank the following contributor(s) for this extension: Mathias Olausson and Mattias Sköld.
