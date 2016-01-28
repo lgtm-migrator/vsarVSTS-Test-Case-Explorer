@@ -13,9 +13,10 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery.d.ts' />
+/// <reference path='ref/jquery/jquery.d.ts' />
+/// <reference path='ref/q/q.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
-/// <reference path='ref/q.d.ts' />
+
 
 import WorkItemContracts = require("TFS/WorkItemTracking/Contracts");
 import TestClient = require("TFS/TestManagement/RestClient");

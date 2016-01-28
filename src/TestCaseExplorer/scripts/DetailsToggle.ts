@@ -13,7 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery.d.ts' />
+/// <reference path='ref/jquery/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 
 import Controls = require("VSS/Controls");

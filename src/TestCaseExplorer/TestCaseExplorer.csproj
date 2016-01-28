@@ -67,11 +67,14 @@
     <TypeScriptCompile Include="scripts\app.ts" />
     <TypeScriptCompile Include="scripts\DetailsToggle.ts" />
     <TypeScriptCompile Include="scripts\DetailsView.ts" />
-    <TypeScriptCompile Include="scripts\ref\jquery.d.ts" />
+    <TypeScriptCompile Include="scripts\ref\jasmine\jasmine.d.ts" />
     <TypeScriptCompile Include="scripts\ref\jqueryui.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\q.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\knockout.d.ts" />
+    <TypeScriptCompile Include="scripts\ref\jquery\jquery.d.ts" />
+    <TypeScriptCompile Include="scripts\ref\knockout\knockout.d.ts" />
+    <TypeScriptCompile Include="scripts\ref\q\Q.d.ts" />
+    <TypeScriptCompile Include="scripts\ref\requirejs\require.d.ts" />
     <TypeScriptCompile Include="scripts\ref\tfs.d.ts" />
+    <TypeScriptCompile Include="scripts\ref\tsd.d.ts" />
     <TypeScriptCompile Include="scripts\ref\vss.d.ts" />
     <TypeScriptCompile Include="scripts\TestCaseDataService.ts" />
     <TypeScriptCompile Include="scripts\TestCaseView.ts" />
