@@ -1,11 +1,11 @@
 {
   "manifestVersion": 1,
-  "id": "TestCaseExplorer",
-  "version": "1.1.3",
-  "name": "Test Case Explorer",
+  "id": "DEV-TestCaseExplorer",
+  "version": "0.0.1",
+  "name": "DEV://Test Case Explorer",
   "description": "Manage your test cases better. Find, filter, analyze usage of test cases, and more.",
-  "publisher": "ms-devlabs",
-  "public": true,
+  "publisher": "mskold",
+
   "scopes": [
     "vso.work_write",
     "vso.test_write",

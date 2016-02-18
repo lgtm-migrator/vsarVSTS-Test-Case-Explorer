@@ -1,0 +1,10 @@
+{
+  "id": "INT-TestCaseExplorer",
+  "name": "INT://Test Case Explorer",
+  
+  "publisher": "mskold",
+
+  "baseUri": null,
+
+  "public": false
+}

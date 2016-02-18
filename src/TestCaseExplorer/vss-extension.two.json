@@ -1,0 +1,10 @@
+{
+  "id": "SYS-TestCaseExplorer",
+  
+  "name": "SYS://Test Case Explorer",
+  "publisher": "mskold",
+
+  "baseUri": null,
+
+  "public": false
+}

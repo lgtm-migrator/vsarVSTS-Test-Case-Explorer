@@ -1,0 +1,11 @@
+{
+  "id": "TestCaseExplorer",
+
+  "name": "Test Case Explorer",
+  
+  "publisher": "ms-devlabs",
+
+  "baseUri": null,
+
+  "public": false
+}
