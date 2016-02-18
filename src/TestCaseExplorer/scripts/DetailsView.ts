@@ -16,6 +16,7 @@
 /// <reference path='ref/jquery/jquery.d.ts' />
 /// <reference path='ref/jqueryui.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
+/// <reference path="telemetryclient.ts" />
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
@@ -234,6 +235,7 @@ export class DetailsView {
 
      public masterIdChanged(id: string)
      {
+         TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
          var pane = this;
          if (id == null) {
              pane._grid.setDataSource(null);
@@ -252,7 +254,7 @@ export class DetailsView {
      private _view: DetailsView;
 
      public initialize(view: DetailsView) {
-     
+         TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
          this._view = view;
         var tpp = this;
 
@@ -338,6 +340,7 @@ export class DetailsView {
      }
 
      public masterIdChanged(id: string) {
+       
         //Nothing 
      }
  }
@@ -408,6 +411,7 @@ class testResultsPane implements IPaneRefresh {
     }
 
     public masterIdChanged(id: string) {
+        TelemetryClient.getClient().trackPageView("Details.TestResults");
         var pane = this;
         if (id == null) {
             pane._grid.setDataSource(null);
@@ -478,6 +482,7 @@ class linkedRequirementsPane implements IPaneRefresh {
     }
 
     public masterIdChanged(id: string) {
+        TelemetryClient.getClient().trackPageView("Details.LinkedRequirements");
         var pane = this;
         pane._grid.setDataSource(null);
         if (id != null) {

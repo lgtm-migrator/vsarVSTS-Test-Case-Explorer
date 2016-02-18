@@ -15,6 +15,7 @@
 
 /// <reference path='ref/jquery/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
+/// <reference path="telemetryclient.ts" />
 
 import Controls = require("VSS/Controls");
 import Grids = require("VSS/Controls/Grids");
@@ -127,7 +128,7 @@ export class TestCaseView {
     }
 
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
-        
+        TelemetryClient.getClient().trackPageView("TestCaseView");
         this._paneToggler = paneToggler;
         
         this._fields = this._commonField;
@@ -177,6 +178,7 @@ export class TestCaseView {
     }
 
     private initFilter(view: TestCaseView) {
+        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
 
         Controls.create(Navigation.PivotFilter, $("#grid-filter"), {
             behavior: "dropdown",

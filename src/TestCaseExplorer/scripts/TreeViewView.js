@@ -17,15 +17,17 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         function TreeviewView() {
         }
         TreeviewView.prototype.initialize = function (callback) {
+            TelemetryClient.getClient().trackPageView("TreeView");
             var view = this;
             view._showRecursive = false;
             view._callback = callback;
             var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
-            var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), {
+            var cboOptions = {
                 mode: "drop",
                 allowEdit: false,
                 source: cboSources
-            });
+            };
+            var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions);
             var treeOptions = {
                 clickSelects: true,
                 nodes: null
@@ -45,6 +47,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             $("#treeview-Cbo-container").change(function () {
                 view.StartLoading(true, "Loading pivot data");
                 view._currentSource = cbo.getText();
+                TelemetryClient.getClient().trackPageView("TreeView." + cbo.getText());
                 view.LoadTreeview(view._currentSource, treeview).then(function (a) {
                     view.DoneLoading();
                 });

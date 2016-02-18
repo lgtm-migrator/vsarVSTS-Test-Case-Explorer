@@ -15,6 +15,7 @@
 
 /// <reference path='ref/jquery/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
+/// <reference path="telemetryclient.ts" />
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
@@ -40,7 +41,7 @@ export class TreeviewView {
     private _waitControl: StatusIndicator.WaitControl;
  
     public initialize(callback: TreeviewSelectedCallback) {
-
+        TelemetryClient.getClient().trackPageView("TreeView");
         var view = this;
         view._showRecursive = false;
         view._callback = callback;
@@ -75,10 +76,9 @@ export class TreeviewView {
         $("#treeview-Cbo-container").change(function () {
             view.StartLoading(true, "Loading pivot data");
             view._currentSource = cbo.getText();
-
+            TelemetryClient.getClient().trackPageView("TreeView." + cbo.getText());
             view.LoadTreeview(view._currentSource, treeview).then(a=> {
-                view.DoneLoading()
-               
+                view.DoneLoading()              
             });
 
             VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
