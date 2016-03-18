@@ -2,10 +2,12 @@
   "id": "TestCaseExplorer",
 
   "name": "Test Case Explorer",
-  
+
   "publisher": "ms-devlabs",
 
   "baseUri": null,
 
-  "public": true
+  "public": true,
+
+  "version": "1.2.1"
 }
