@@ -275,3 +275,12 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
 
     return deferred.promise();
 }
+
+function cloneTestPlan() {
+    var deferred = $.Deferred<any[]>();
+    var testCaseClient = TestClient.getClient();
+
+    //testCaseClient.cloneTestPlan(
+
+    return deferred.promise();
+}

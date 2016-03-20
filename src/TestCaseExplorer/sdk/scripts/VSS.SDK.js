@@ -110,6 +110,12 @@ var XDM;
             if (!this._isRejected && !this._isResolved) {
                 this._isRejected = true;
                 this._rejectValue = reason;
+                if (this._rejectCallbacks.length === 0 && window.console && window.console.warn) {
+                    console.warn("Rejected XDM promise with no reject callbacks");
+                    if (reason) {
+                        console.warn(reason);
+                    }
+                }
             }
             if (this._isRejected && this._rejectCallbacks.length > 0) {
                 var rejectCallbacks = this._rejectCallbacks.splice(0);
@@ -342,8 +348,15 @@ var XDM;
             /// Determines whether the current message belongs to this channel or not
             var rpcMessage = data;
             if (this._postToWindow === source) {
+                // For messages coming from sandboxed iframes the origin will be set to the string "null".  This is 
+                // how onprem works.  If it is not a sandboxed iFrame we will get the origin as expected.
                 if (this._targetOrigin) {
-                    return this._targetOrigin.toLowerCase().indexOf(origin.toLowerCase()) === 0;
+                    if (origin) {
+                        return origin.toLowerCase() === "null" || this._targetOrigin.toLowerCase().indexOf(origin.toLowerCase()) === 0;
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
                     if (rpcMessage.handshakeToken && rpcMessage.handshakeToken === this._handshakeToken) {
@@ -353,6 +366,10 @@ var XDM;
                 }
             }
             return false;
+        };
+        XDMChannel.prototype.error = function (data, errorObj) {
+            var rpcMessage = data;
+            this._error(rpcMessage, errorObj, rpcMessage.handshakeToken);
         };
         XDMChannel.prototype._error = function (messageObj, errorObj, handshakeToken) {
             // Post back a response as an error which look like this -
@@ -378,7 +395,7 @@ var XDM;
         };
         XDMChannel.prototype._sendRpcMessage = function (message) {
             var messageString = JSON.stringify(message);
-            this._postToWindow.postMessage(messageString, this._targetOrigin || "*");
+            this._postToWindow.postMessage(messageString, "*");
         };
         XDMChannel.prototype._shouldSkipSerialization = function (obj) {
             for (var i = 0, l = XDMChannel.WINDOW_TYPES_TO_SKIP_SERIALIZATION.length; i < l; i++) {
@@ -598,19 +615,34 @@ var XDM;
         XDMChannelManager.prototype._handleMessageReceived = function (event) {
             // get channel and dispatch to it
             var i, len, channel;
-            var rpcMessage = JSON.parse(event.data);
-            var handled = false, channelOwnerFound = false;
-            for (i = 0, len = this._channels.length; i < len; i++) {
-                channel = this._channels[i];
-                if (channel.owns(event.source, event.origin, rpcMessage)) {
-                    // event belongs to this channel. Dispatch the message
-                    channelOwnerFound = true;
-                    handled = channel.onMessage(rpcMessage, event.origin) || handled;
+            var rpcMessage;
+            if (typeof event.data === "string") {
+                try {
+                    rpcMessage = JSON.parse(event.data);
+                }
+                catch (error) {
                 }
             }
-            if (channelOwnerFound && !handled) {
-                if (window.console) {
-                    console.error("No handler found on any channel for message: " + JSON.stringify(rpcMessage));
+            if (rpcMessage) {
+                var handled = false;
+                var channelOwner;
+                for (i = 0, len = this._channels.length; i < len; i++) {
+                    channel = this._channels[i];
+                    if (channel.owns(event.source, event.origin, rpcMessage)) {
+                        // keep a reference to the channel owner found. 
+                        channelOwner = channel;
+                        handled = channel.onMessage(rpcMessage, event.origin) || handled;
+                    }
+                }
+                if (!!channelOwner && !handled) {
+                    if (window.console) {
+                        console.error("No handler found on any channel for message: " + JSON.stringify(rpcMessage));
+                    }
+                    // for instance based proxies, send an error on the channel owning the message to resolve any control creation promises
+                    // on the host frame. 
+                    if (rpcMessage.instanceId) {
+                        channelOwner.error(rpcMessage, "The registered object " + rpcMessage.instanceId + " could not be found.");
+                    }
                 }
             }
         };
@@ -635,7 +667,7 @@ var XDM;
 var VSS;
 (function (VSS) {
     VSS.VssSDKVersion = 0.1;
-    VSS.VssSDKRestVersion = "2.1";
+    VSS.VssSDKRestVersion = "2.2";
     var bodyElement;
     var webContext;
     var hostPageContext;
@@ -708,7 +740,7 @@ var VSS;
      *
      * Usage:
      *
-     * VSS.require(["VSS/Controls", "VSS/Controls/Grids", function(Controls, Grids) {
+     * VSS.require(["VSS/Controls", "VSS/Controls/Grids"], function(Controls, Grids) {
      *    ...
      * });
      *
@@ -729,13 +761,11 @@ var VSS;
         }
         if (loaderConfigured) {
             // Loader already configured, just issue require
-            window.require(modulesArray, callback, function (r) {
-                var e = r;
-            });
+            window.require(modulesArray, callback);
         }
         else {
             if (!initOptions) {
-                init({ setupModuleLoader: true });
+                init({ usePlatformScripts: true });
             }
             else if (!usingPlatformScripts) {
                 usingPlatformScripts = true;
@@ -957,6 +987,7 @@ var VSS;
             return;
         }
         var scripts = [];
+        var anyCoreScriptLoaded = false;
         // Add scripts and loader configuration
         if (hostPageContext.coreReferences.scripts) {
             hostPageContext.coreReferences.scripts.forEach(function (script) {
@@ -969,14 +1000,22 @@ var VSS;
                     else if (script.identifier === "JQueryUI") {
                         alreadyLoaded = !!(global.jQuery && global.jQuery.ui && global.jQuery.ui.version);
                     }
-                    else if (script.identifier === "MicrosoftAjax") {
-                        alreadyLoaded = !!(global.Sys && global.Sys.Browser);
+                    else if (script.identifier === "AMDLoader") {
+                        alreadyLoaded = typeof global.define === "function" && !!global.define.amd;
                     }
                     if (!alreadyLoaded) {
                         scripts.push({ source: getAbsoluteUrl(script.url, hostRootUri) });
                     }
+                    else {
+                        anyCoreScriptLoaded = true;
+                    }
                 }
             });
+            if (hostPageContext.coreReferences.coreScriptsBundle && !anyCoreScriptLoaded) {
+                // If core scripts bundle exists and no core scripts already loaded by extension,
+                // we are free to add core bundle. otherwise, load core scripts individually.
+                scripts = [{ source: getAbsoluteUrl(hostPageContext.coreReferences.coreScriptsBundle.url, hostRootUri) }];
+            }
         }
         // Define a new config for extension loader
         var newConfig = {
@@ -1005,7 +1044,13 @@ var VSS;
                 for (var p in contributionPaths) {
                     if (contributionPaths.hasOwnProperty(p) && !newConfig.paths[p]) {
                         // Add the contribution path
-                        newConfig.paths[p] = hostRootUri + contributionPaths[p].value;
+                        var contributionPathValue = contributionPaths[p].value;
+                        if (!contributionPathValue.match("^https?://")) {
+                            newConfig.paths[p] = hostRootUri + contributionPathValue;
+                        }
+                        else {
+                            newConfig.paths[p] = contributionPathValue;
+                        }
                         // Look for other path mappings that fall under the contribution path (e.g. "bundles")
                         var configPaths = hostPageContext.moduleLoaderConfig.paths;
                         if (configPaths) {
@@ -1157,3 +1202,4 @@ var VSS;
         }
     }
 })(VSS || (VSS = {}));
+//dependencies=
