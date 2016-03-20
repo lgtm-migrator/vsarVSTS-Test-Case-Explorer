@@ -39,19 +39,19 @@ export class TestCaseView {
     private _paneToggler: DetailsToggle.DetailsPaneToggler;
     private _grid: Grids.Grid;
     private _menubar: Menus.MenuBar;
-    private _fields:any[];
+    private _fields: any[];
     private _commonField = [
         { field: "System.Id", name: "Id", width: 75 },
         { field: "System.Title", name: "Title", width: 250 },
         { field: "System.State", name: "State", width: 75 },
         { field: "System.AssignedTo", name: "Assigned to", width: 150 },
         { field: "Microsoft.VSTS.Common.Priority", name: "Priority", width: 50 },
-        { field: "Microsoft.VSTS.TCM.AutomationStatus", name: "Automation Status", width:100 }
+        { field: "Microsoft.VSTS.TCM.AutomationStatus", name: "Automation Status", width: 100 }
     ];
 
-    private _data: any[];     
+    private _data: any[];
     private _waitControl: StatusIndicator.WaitControl;
-   
+
     private _currentFilter: TestCaseDataService.ITestCaseFilter = null;
     private _orphanTestCaseFilter: TestCaseDataService.wiqlFilter = null;
     private _testSuiteFilter: TestCaseDataService.testSuiteFilter = null;
@@ -60,9 +60,9 @@ export class TestCaseView {
     private _selectedValue;
     private _showRecursive;
     private _selectedValueWithField;
-    private _selectedRows:number[];
+    private _selectedRows: number[];
 
-    public RefreshGrid(pivot: string, value, showRecursive:boolean) {
+    public RefreshGrid(pivot: string, value, showRecursive: boolean) {
 
         this._grid.setDataSource(null);
         $("#grid-title").text("");
@@ -90,7 +90,7 @@ export class TestCaseView {
                 this._fields = this._fields.concat([{ field: "System.IterationPath", name: "Iteration Path", width: 200 }]);
                 break;
             case "Priority":
-                var priority: string = "any"; 
+                var priority: string = "any";
                 if (value.name != "Priority") {
                     priority = value.name;
                     this._selectedValueWithField = { "Priority": value.name };
@@ -107,10 +107,10 @@ export class TestCaseView {
                 title = "Test cases with state: " + state;
                 break;
             case "Test plan":
-                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId,  showRecursive);
+                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, showRecursive);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
                 this._fields = this._fields.concat([{ field: "Present.In.Suite", name: "Present in suites", width: 150 }]);
-               
+
                 break;
         }
         $("#grid-title").text(title);
@@ -118,10 +118,9 @@ export class TestCaseView {
         promise.then(result => {
             this._data = result;
             this.DoRefreshGrid();
-            
+
             this.DoneLoading();
         });
-
     }
 
     public toggle() {
@@ -130,20 +129,18 @@ export class TestCaseView {
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
         TelemetryClient.getClient().trackPageView("TestCaseView");
         this._paneToggler = paneToggler;
-        
+
         this._fields = this._commonField;
         this.initMenu(this, paneToggler);
         this.initFilter(this);
         this.initGrid(this, selectCallBack);
-        
+
     }
 
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
-        //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
             { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
             { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
-            //{ id: "column_options", text: "Column Options", noIcon: true },
             { id: "toggle", showText: false, title: "Show/hide details pane", icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align" }
         ];
 
@@ -152,7 +149,7 @@ export class TestCaseView {
             executeAction: function (args) {
                 var command = args.get_commandName();
                 switch (command) {
-                   
+
                     case "toggle":
                         paneToggler.toggleDetailsPane()
                         menubar.updateCommandStates([{ id: command, toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
@@ -217,7 +214,7 @@ export class TestCaseView {
                         break;
                 };
 
-                filterPromise.then(filter=> {
+                filterPromise.then(filter => {
                     view._currentFilter = filter;
                     view.DoRefreshGrid();
                 });
@@ -226,34 +223,24 @@ export class TestCaseView {
     }
 
     private dragableStart(event, ui) {
-    //    this._clearRowMouseDownEventInfo();
+        //    this._clearRowMouseDownEventInfo();
     }
 
-    private helperMultiSelectDrag(event, ui)
-    {
-        var $dragTile ;
+    private helperMultiSelectDrag(event, ui) {
+        var $dragTile;
         var draggableItemText, numOfSelectedItems;
         var selectedWorkItemIds = this._selectedRows;
-
-        
         var grd = this;
-
-     
-        
 
         numOfSelectedItems = selectedWorkItemIds.length;
         $dragTile = $("<div />")
             .addClass("drag-tile")
-            
-       
 
         if (numOfSelectedItems === 1) {
-            
+
             $dragTile.text("") //this.getColumnValue(dataIndex, this._getTitleColumnIndex()) || "");
         }
         else {
-
-  
             var $dragItemCount = $("<div />")
                 .addClass("drag-tile-item-count")
                 .text(numOfSelectedItems);
@@ -264,20 +251,19 @@ export class TestCaseView {
         }
 
         $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds);
-        $dragTile.data("MODE", event.ctrlKey==true?"Clone":"Attach");
+        $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
         $dragTile.text(event.ctrlKey == true ? "Clone" : "Attach" + " " + selectedWorkItemIds.join("; "));
 
         return $dragTile;
     }
-        
 
-    private initGrid(view:TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
+    private initGrid(view: TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
         var options: Grids.IGridOptions = {
             height: "100%",
             width: "100%",
             columns: this._fields.map(function (f) {
-                return { index: f.field, text: f.name, width :f.width };
-            }),            
+                return { index: f.field, text: f.name, width: f.width };
+            }),
             draggable: {
                 scope: "test-case-scope",
                 axis: "",
@@ -299,8 +285,7 @@ export class TestCaseView {
                     numOfSelectedItems = selectedWorkItemIds.length;
                     $dragTile = $("<div />")
                         .addClass("drag-tile")
-                
-                   
+
                     var $dragItemCount = $("<div />")
                         .addClass("drag-tile-item-count")
                         .text(numOfSelectedItems);
@@ -312,23 +297,20 @@ export class TestCaseView {
                         .addClass("drag-tile-head")
                         .append($dragType)
                         .append($dragItemCount);
-             
-
 
                     $dragTile.append($dragHead);
-
-                    $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i=> { return i["System.Id"]; }));
+                    $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i => { return i["System.Id"]; }));
                     $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
 
                     var $dragLst = $("<div />")
                         .addClass("drag-tile-list")
 
-                    selectedWorkItemIds.forEach(r=> {
+                    selectedWorkItemIds.forEach(r => {
                         var id = r["System.Id"];
                         $dragLst.append(
                             $("<div />")
-                                .addClass(id.toString() )
-                                .text(id+ " " + r["System.Title"]) 
+                                .addClass(id.toString())
+                                .text(id + " " + r["System.Title"])
                         );
                     });
                     $dragTile.append($dragLst);
@@ -345,12 +327,10 @@ export class TestCaseView {
                     workItemService.openWorkItem(item["System.Id"]);
                 });
             }
-
         };
 
         // Create the grid in a container element
-        this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options );
-
+        this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#grid-container"), options);
 
         $("#grid-container").bind(Grids.GridO.EVENT_SELECTED_INDEX_CHANGED, function (eventData) {
             var item = view._grid.getRowData(view._grid.getSelectedDataIndex());
@@ -366,19 +346,16 @@ export class TestCaseView {
 
     public updateTogle(paneToggler) {
         var menubar = <Menus.MenuBar>Controls.Enhancement.getInstance(Menus.MenuBar, $("#menu-container"));
-
         this._menubar.updateCommandStates([{ id: "toggle", toggled: paneToggler._isTestCaseDetailsPaneOn() }]);
     }
 
-    private getOrphanTestCaseFilter(mode: TestCaseDataService.filterMode): IPromise<TestCaseDataService.ITestCaseFilter>
-    {
+    private getOrphanTestCaseFilter(mode: TestCaseDataService.filterMode): IPromise<TestCaseDataService.ITestCaseFilter> {
         if (this._orphanTestCaseFilter == null) {
             this._orphanTestCaseFilter = new TestCaseDataService.wiqlFilter();
             this._orphanTestCaseFilter.setMode(mode);
             return this._orphanTestCaseFilter.initialize(wiqlOrphaneTC);
         }
-        else
-        {
+        else {
             var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
             this._orphanTestCaseFilter.setMode(mode);
             deferred.resolve(this._orphanTestCaseFilter);
@@ -405,7 +382,7 @@ export class TestCaseView {
         var columns = this._fields.map(function (f) {
             return { index: f.field, text: f.name, width: f.width };
         });
-    
+
         if (this._currentFilter != null) {
             this._grid.setDataSource(this._currentFilter.filter(this._data), null, columns);
         }
@@ -432,28 +409,27 @@ export class TestCaseView {
         });
     }
 
-    public StartLoading( longRunning, message) {
+    public StartLoading(longRunning, message) {
         $("body").css("cursor", "progress");
 
         if (longRunning) {
             var waitControlOptions: StatusIndicator.IWaitControlOptions = {
                 target: $(".wait-control-target"),
-                message: message, 
+                message: message,
                 cancellable: false,
                 cancelTextFormat: "{0} to cancel",
                 cancelCallback: function () {
                     console.log("cancelled");
                 }
             }
-
-            this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".left-hub-content"), waitControlOptions);             
+            this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".left-hub-content"), waitControlOptions);
             this._waitControl.startWait();
         }
     }
 
-    public DoneLoading () {
+    public DoneLoading() {
         $("body").css("cursor", "default");
-    
+
         if (this._waitControl != null) {
             this._waitControl.cancelWait();
             this._waitControl.endWait();
@@ -462,8 +438,8 @@ export class TestCaseView {
     }
 }
 
-function getSelectedWorkItemIds (grid:Grids.Grid):any[] {
-    var i, len, ids = [],  indices = grid.getSelectedDataIndices();
+function getSelectedWorkItemIds(grid: Grids.Grid): any[] {
+    var i, len, ids = [], indices = grid.getSelectedDataIndices();
     for (i = 0, len = indices.length; i < len; i++) {
         ids.push(grid._dataSource[indices[i]]);
     }

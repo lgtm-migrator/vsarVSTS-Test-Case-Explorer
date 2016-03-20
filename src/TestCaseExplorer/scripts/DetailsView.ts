@@ -40,18 +40,18 @@ export class DetailsView {
     public _toggler: Toggler.DetailsPaneToggler;
     public _waitControl: StatusIndicator.WaitControl;
 
-    private _selectedMasterId:string
+    private _selectedMasterId: string
     private _PaneLst: IPaneRefresh[];
 
     public initialize(paneToggler: Toggler.DetailsPaneToggler) {
-   
+
         this._PaneLst = [];
         this._toggler = paneToggler;
         var view = this;
 
         var panels = [
             //{ id: "TestPlan", text: "Test plan", selected: true },
-            { id: "TestSuites", text: "Test suites", selected:true},
+            { id: "TestSuites", text: "Test suites", selected: true },
             { id: "TestResults", text: "Test results" },
             { id: "Requirements", text: "Linked requirements" }
         ];
@@ -65,12 +65,12 @@ export class DetailsView {
                 view.ShowPanel(command);
             }
         });
-        
+
         Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
             behavior: "dropdown",
             text: "Position",
             items: [
-                { id: "right", text: "Right", selected: true  },
+                { id: "right", text: "Right", selected: true },
                 { id: "bottom", text: "Bottom" }
 
             ],
@@ -81,20 +81,16 @@ export class DetailsView {
             }
         });
 
-       
-
-         view.ShowPanel(panels[0].id);
+        view.ShowPanel(panels[0].id);
     }
 
-  
-
-    public selectionChanged(id: string)
-    {
+    public selectionChanged(id: string) {
         if (this._selectedPane != null) {
             this._selectedMasterId = id;
             this._selectedPane.masterIdChanged(id);
         }
     }
+
     public Refresh(): void {
         this.selectionChanged(this._selectedMasterId);
     }
@@ -123,7 +119,7 @@ export class DetailsView {
                     pane = new linkedRequirementsPane();
                     break;
 
-                    
+
             }
             pane.initialize(this);
             this._PaneLst[panel] = pane;
@@ -134,7 +130,6 @@ export class DetailsView {
         this._selectedPane = pane;
         this._selectedPane.show();
         this._selectedPane.masterIdChanged(this._selectedMasterId);
-        
     }
 
     public StartLoading(longRunning, message) {
@@ -150,9 +145,9 @@ export class DetailsView {
                     console.log("cancelled");
                 }
             };
-            
+
             this._waitControl = Controls.create(StatusIndicator.WaitControl, $(".wait-control-details-target"), waitControlOptions);
-            this._waitControl.startWait();          
+            this._waitControl.startWait();
         }
     }
 
@@ -167,95 +162,93 @@ export class DetailsView {
     }
 }
 
- class partOfTestSuitesPane implements IPaneRefresh
-    {
+class partOfTestSuitesPane implements IPaneRefresh {
 
-     private _grid;
+    private _grid;
 
-     public initialize(view: DetailsView) {
-         
-         var options = {
-             height: "100%",
-             width: "100%",
-             columns: [
-                 {
-                     text: "", index: "suiteType", width: 20, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
-                         var suiteType = this.getColumnValue(dataIndex, column.index);
+    public initialize(view: DetailsView) {
 
-                         var d = $("<div class='grid-cell'/>").width(column.width || 100)
-                         var dIcon = $("<div class='testpoint-outcome-shade icon'/>").addClass(TreeViewDataService.getIconFromSuiteType(suiteType));
-                         d.append(dIcon);
-                       
-                         return d;
-                     }
-                 },
-                 { text: "Id", index: "id", width: 50 },
-                 { text: "Test Plan", index: "plan", width: 100 },
-                 { text: "Suite", index: "suite", width: 150 },
-                 
-             ],
-             // This data source is rendered into the Grid columns defined above
-             source: null
-         };
+        var options = {
+            height: "100%",
+            width: "100%",
+            columns: [
+                {
+                    text: "", index: "suiteType", width: 20, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
+                        var suiteType = this.getColumnValue(dataIndex, column.index);
 
-         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestSuites"), options);
+                        var d = $("<div class='grid-cell'/>").width(column.width || 100)
+                        var dIcon = $("<div class='testpoint-outcome-shade icon'/>").addClass(TreeViewDataService.getIconFromSuiteType(suiteType));
+                        d.append(dIcon);
 
-         var menuItems: any[] = [
-             { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
-         ];
+                        return d;
+                    }
+                },
+                { text: "Id", index: "id", width: 50 },
+                { text: "Test Plan", index: "plan", width: 100 },
+                { text: "Suite", index: "suite", width: 150 },
 
-         var menubarOptions = {
-             items: menuItems,
-             executeAction: function (args) {
-                 var command = args.get_commandName();
-                 switch (command) {
+            ],
+            // This data source is rendered into the Grid columns defined above
+            source: null
+        };
 
-                     case "refresh":
-                         view.Refresh();
-                         break;
-                     default:
-                         alert("Unhandled action: " + command);
-                         break;
-                 }
-             }
-         };
+        this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestSuites"), options);
 
-         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testSuite-container"), menubarOptions);
-       
-     }
+        var menuItems: any[] = [
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+        ];
 
-     public show() {
-         $("#details-testSuites").css("display", "block");
-         $("#details-title").text("Associated test suites");
-     }
+        var menubarOptions = {
+            items: menuItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                switch (command) {
 
-     public hide() {
-         $("#details-testSuites").css("display", "none");
-     }
+                    case "refresh":
+                        view.Refresh();
+                        break;
+                    default:
+                        alert("Unhandled action: " + command);
+                        break;
+                }
+            }
+        };
 
-     public masterIdChanged(id: string)
-     {
-         TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
-         var pane = this;
-         if (id == null) {
-             pane._grid.setDataSource(null);
-         }
-         else {
-         TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(function (data) {
-                 pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
-         });
-     }
- }
- }
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testSuite-container"), menubarOptions);
 
- class testPlanPane implements IPaneRefresh {
-     private _cbo: CtrlCombos.Combo;
-     private _testPlans;
-     private _view: DetailsView;
+    }
 
-     public initialize(view: DetailsView) {
-         TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
-         this._view = view;
+    public show() {
+        $("#details-testSuites").css("display", "block");
+        $("#details-title").text("Associated test suites");
+    }
+
+    public hide() {
+        $("#details-testSuites").css("display", "none");
+    }
+
+    public masterIdChanged(id: string) {
+        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
+        var pane = this;
+        if (id == null) {
+            pane._grid.setDataSource(null);
+        }
+        else {
+            TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(function (data) {
+                pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
+            });
+        }
+    }
+}
+
+class testPlanPane implements IPaneRefresh {
+    private _cbo: CtrlCombos.Combo;
+    private _testPlans;
+    private _view: DetailsView;
+
+    public initialize(view: DetailsView) {
+        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
+        this._view = view;
         var tpp = this;
 
         var cboOptions: CtrlCombos.IComboOptions = {
@@ -267,7 +260,7 @@ export class DetailsView {
 
         TreeViewDataService.getTestPlans().then(function (data) {
             tpp._testPlans = data[0].children;
-            
+
             tpp._cbo.setSource(tpp._testPlans.map(function (i) {
                 return i.text;
             }));
@@ -280,7 +273,7 @@ export class DetailsView {
         };
 
         var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
-        
+
         treeviewTestPlan.onItemClick = function (node, nodeElement, e) {
         };
 
@@ -299,7 +292,7 @@ export class DetailsView {
                 var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
 
                 $("li.node").droppable({
-                    scope:"test-case-scope", 
+                    scope: "test-case-scope",
                     greedy: true,
                     tolerance: "pointer",
                     hoverClass: "droppable-hover",
@@ -320,7 +313,7 @@ export class DetailsView {
 
             });
         });
-         
+
         $(".ui-draggable").draggable({
             revert: true,
             appendTo: document.body,
@@ -328,22 +321,22 @@ export class DetailsView {
             zIndex: 1000,
             refreshPositions: true
         });
-     } 
+    }
 
-     public show() {
-         $("#details-TestPlan").css("display", "block");
-         $("#details-title").text("Test plans");
-     }
-        
-     public hide() {
-         $("#details-TestPlan").css("display", "none");
-     }
+    public show() {
+        $("#details-TestPlan").css("display", "block");
+        $("#details-title").text("Test plans");
+    }
 
-     public masterIdChanged(id: string) {
-       
+    public hide() {
+        $("#details-TestPlan").css("display", "none");
+    }
+
+    public masterIdChanged(id: string) {
+
         //Nothing 
-     }
- }
+    }
+}
 
 class testResultsPane implements IPaneRefresh {
     private _grid;
@@ -366,7 +359,7 @@ class testResultsPane implements IPaneRefresh {
                         return d;
                     }
                 },
- 
+
                 { text: "Configuration", index: "Configuration", width: 75 },
                 { text: "Run by", index: "RunBy", width: 150 },
                 { text: "Date ", index: "Date", width: 150 },
@@ -400,7 +393,7 @@ class testResultsPane implements IPaneRefresh {
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testSuite-container"), menubarOptions);
     }
-      
+
     public hide() {
         $("#details-TestResults").css("display", "none");
     }
@@ -418,24 +411,24 @@ class testResultsPane implements IPaneRefresh {
         }
         else {
             TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(
-                data =>  {
+                data => {
                     var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
                     pane._grid.setDataSource(ds);
                 },
-                err=> {
+                err => {
                     pane._grid.setDataSource(null);
                 });
         }
     }
 }
-    
+
 class linkedRequirementsPane implements IPaneRefresh {
     private _grid;
 
     public initialize(view: DetailsView) {
-        var options : Grids.IGridOptions= {
-              height: "100%",
-                width: "100%", 
+        var options: Grids.IGridOptions = {
+            height: "100%",
+            width: "100%",
             columns: [
                 { text: "Id", index: "System.Id", width: 50 },
                 { text: "State", index: "System.State", width: 75 },
@@ -489,11 +482,10 @@ class linkedRequirementsPane implements IPaneRefresh {
             TreeViewDataService.getLinkedRequirementsForTestCase(parseInt(id)).then(
                 data => {
                     if (data != null) {
-                        pane._grid.setDataSource(data.map(r=> { return r.fields; }));
+                        pane._grid.setDataSource(data.map(r => { return r.fields; }));
                     }
                 }
             );
         }
     }
 }
-    

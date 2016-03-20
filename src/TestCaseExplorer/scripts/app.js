@@ -13,6 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "scripts/TestCaseView", "scripts/TreeViewView", "VSS/Controls", "VSS/Controls/Splitter"], function (require, exports, DetailsToggle, DetailsView, TestCaseView, TreeViewView, Controls, SplitterControls) {
+    "use strict";
     var paneToggler = new DetailsToggle.DetailsPaneToggler();
     var dv = new DetailsView.DetailsView();
     var tc = new TestCaseView.TestCaseView();
@@ -45,7 +46,7 @@ define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "s
         var width = leftSplitter.leftPane.width();
         width = (width == 0 ? 200 : width);
         VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
-            // Set value in user scop
+            // Set value in user scope
             dataService.setValue("LeftPaneWidth", width, { scopeType: "User" }).then(function (value) {
             });
         });

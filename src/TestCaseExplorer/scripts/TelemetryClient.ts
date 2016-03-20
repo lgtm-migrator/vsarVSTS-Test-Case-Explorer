@@ -41,9 +41,7 @@ class TelemetryClient {
     }
 
     public trackPageView(name?: string, url?: string, properties?: Object, measurements?: Object, duration?: number) {
-        this.appInsightsClient.trackPageView("TCExplorer." + name, url, properties, measurements, duration);
-        
-        
+        this.appInsightsClient.trackPageView("TCExplorer." + name, url, properties, measurements, duration);        
     }
 
     public trackEvent(name: string, properties?: Object, measurements?: Object) {

@@ -28,7 +28,7 @@ import UtilsUI = require("VSS/Utils/UI");
 
 import Q = require("q");
 
-export interface TreeviewSelectedCallback{ (type: string, value: string, showRecursive: boolean): void }
+export interface TreeviewSelectedCallback { (type: string, value: string, showRecursive: boolean): void }
 
 export class TreeviewView {
 
@@ -39,7 +39,7 @@ export class TreeviewView {
     private _currentNode: TreeView.TreeNode;
     private _currentSource: string;
     private _waitControl: StatusIndicator.WaitControl;
- 
+
     public initialize(callback: TreeviewSelectedCallback) {
         TelemetryClient.getClient().trackPageView("TreeView");
         var view = this;
@@ -53,9 +53,9 @@ export class TreeviewView {
             source: cboSources
         };
 
-        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions );
+        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions);
 
-        var treeOptions:TreeView.ITreeOptions = {
+        var treeOptions: TreeView.ITreeOptions = {
             clickSelects: true,
             nodes: null
         };
@@ -77,19 +77,19 @@ export class TreeviewView {
             view.StartLoading(true, "Loading pivot data");
             view._currentSource = cbo.getText();
             TelemetryClient.getClient().trackPageView("TreeView." + cbo.getText());
-            view.LoadTreeview(view._currentSource, treeview).then(a=> {
-                view.DoneLoading()              
+            view.LoadTreeview(view._currentSource, treeview).then(a => {
+                view.DoneLoading()
             });
 
             VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
-                dataService=> {
+                dataService => {
                     // Set value in user scope
                     dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" });
                 });
         });
 
         view._treeview = treeview;
-        
+
         //Add toolbar
         this.initMenu(this);
 
@@ -97,11 +97,11 @@ export class TreeviewView {
         VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
             // Set value in user scope
             dataService.getValue("SelectedPivot", { scopeType: "User" }).then(function (selectedPivot: any) {
-                if (selectedPivot == null || selectedPivot=="") {
+                if (selectedPivot == null || selectedPivot == "") {
                     selectedPivot = cboSources[0];
                 }
                 view._currentSource = selectedPivot;
-                
+
                 cbo.setText(selectedPivot);
                 view.LoadTreeview(cbo.getText(), treeview);
 
@@ -109,14 +109,12 @@ export class TreeviewView {
         });
     }
 
-  
-    
     private initMenu(view: TreeviewView) {
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
-            { id: "show-recursive", showText: false, title: "Show tests from child suites",  icon: "child-node-icon" },
+            { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "child-node-icon" },
             { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
-            { id: "collapse-all", showText: false, title:"Collapse all", icon: "icon-tree-collapse-all" },
+            { id: "collapse-all", showText: false, title: "Collapse all", icon: "icon-tree-collapse-all" },
         ];
 
         var menubarOptions = {
@@ -134,7 +132,7 @@ export class TreeviewView {
                         break;
                     case "collapse-all":
                         ExpandTree(view._treeview, false);
-                        break;                        
+                        break;
                     default:
                         alert("Unhandled action: " + command);
                         break;
@@ -181,7 +179,7 @@ export class TreeviewView {
         }
     }
 
-    public LoadTreeview( pivot: string, treeview: TreeView.TreeView):IPromise<any> {
+    public LoadTreeview(pivot: string, treeview: TreeView.TreeView): IPromise<any> {
         var deferred = $.Deferred<any>();
         var view = this;
 
@@ -194,7 +192,7 @@ export class TreeviewView {
             treeview._draw();
 
             var n = treeview.rootNode;
-        
+
             //Empty other panes 
             var selectedIndex = (view._currentSource == "Test plan") ? 1 : 0;
             if (view._currentSource == "Test plan") {
@@ -213,7 +211,7 @@ export class TreeviewView {
             var elem = treeview._getNodeElement(n);
             treeview._setNodeExpansion(n, elem, true);
 
-            treeview.rootNode.children.forEach(n=> {
+            treeview.rootNode.children.forEach(n => {
                 var elem = treeview._getNodeElement(n);
                 treeview._setNodeExpansion(n, elem, true);
             });
@@ -223,7 +221,7 @@ export class TreeviewView {
                 greedy: true,
                 tolerance: "pointer",
                 hoverClass: "droppable-hover",
-                
+
                 drop: function (event, ui) {
                     var n = treeview.getNodeFromElement(event.target);
 
@@ -250,10 +248,10 @@ export class TreeviewView {
 
                     var noRemainingAssign = tcIds.length;
 
-                    tcIds.forEach(id=> {
+                    tcIds.forEach(id => {
                         var itemDiv = ui.helper.find("." + id);
                         var txt = itemDiv.text();
-                        itemDiv.text("Saving "+  txt);
+                        itemDiv.text("Saving " + txt);
                         TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(
                             data => {
                                 noRemainingAssign--;
@@ -261,28 +259,21 @@ export class TreeviewView {
                                     view.RefreshGrid()
                                 }
                                 itemDiv.text("Saved" + txt);;
-                                
                             },
                             err => {
                                 alert(err);
                             });
                     });
                 }
-                
             });
-
-           
             deferred.resolve(data);
-
         });
         return deferred.promise();
     }
-
 }
 
-
-function ExpandTree(tree:TreeView.TreeView, nodeExpansion:boolean) {
-    UtilsUI.walkTree.call(tree.rootNode, n=> {
+function ExpandTree(tree: TreeView.TreeView, nodeExpansion: boolean) {
+    UtilsUI.walkTree.call(tree.rootNode, n => {
         var elem = tree._getNodeElement(n);
         tree._setNodeExpansion(n, elem, nodeExpansion);
     });

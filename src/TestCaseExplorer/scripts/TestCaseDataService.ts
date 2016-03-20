@@ -17,7 +17,6 @@
 /// <reference path='ref/q/q.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 
-
 import WorkItemContracts = require("TFS/WorkItemTracking/Contracts");
 import TestClient = require("TFS/TestManagement/RestClient");
 import TestContracts = require("TFS/TestManagement/Contracts");
@@ -26,7 +25,7 @@ import TreeView = require("VSS/Controls/TreeView");
 import Q = require("q");
 
 export enum filterMode {
-    Contains, 
+    Contains,
     NotContains
 }
 
@@ -40,23 +39,23 @@ export class wiqlFilter implements ITestCaseFilter {
     private _listTC: any[]
     private _mode: filterMode;
 
-    public initialize(wiql:string): IPromise<any>{
+    public initialize(wiql: string): IPromise<any> {
 
         var deferred = $.Deferred<ITestCaseFilter>();
         var workItemClient = WorkItemClient.getClient();
-        
+
         wiql = wiql.replace("@project", "'" + VSS.getWebContext().project.name + "'");
-        
+
         workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
-            if (result.queryResultType== 1) {
-                this._listTC = result.workItems.map(i=> { return i.id });
+            if (result.queryResultType == 1) {
+                this._listTC = result.workItems.map(i => { return i.id });
             }
             deferred.resolve(this);
         },
-        err => {
-            deferred.reject(err);
-        });
-        
+            err => {
+                deferred.reject(err);
+            });
+
         return deferred.promise();
     }
 
@@ -64,8 +63,7 @@ export class wiqlFilter implements ITestCaseFilter {
         this._mode = mode;
     }
 
-    public filter(data: any[]): any[]
-    {
+    public filter(data: any[]): any[] {
         var flt = this;
         return data.filter(function (i) { var exist = flt._listTC.indexOf(i["System.Id"]) >= 0; return (flt._mode == filterMode.Contains) ? exist : !exist; });
     }
@@ -116,9 +114,9 @@ export class testSuiteFilter implements ITestCaseFilter {
     }
 }
 
-export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string, recursive:boolean): IPromise < any > {
+export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string, recursive: boolean): IPromise<any> {
     var typeField: string;
-    switch(structureType) {
+    switch (structureType) {
         case WorkItemContracts.TreeNodeStructureType.Area:
             typeField = "System.AreaPath";
             break;
@@ -127,31 +125,30 @@ export function getTestCasesByProjectStructure(structureType: WorkItemContracts.
             break;
     }
 
-    var wiqlWhere = "[" + typeField + "] " + ( recursive ? "UNDER" : "=") + " '" + path + "'";
+    var wiqlWhere = "[" + typeField + "] " + (recursive ? "UNDER" : "=") + " '" + path + "'";
     return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
-export function getTestCasesByPriority(priority: string): IPromise < any > {
+export function getTestCasesByPriority(priority: string): IPromise<any> {
     var wiqlWhere: string;
-    if(priority != "any") {
+    if (priority != "any") {
         wiqlWhere = "[Microsoft.VSTS.Common.Priority] = " + priority
     }
     return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
-export function getTestCasesByState(state: string): IPromise < any > {
+export function getTestCasesByState(state: string): IPromise<any> {
     var wiqlWhere: string;
-    if(state != "any") {
+    if (state != "any") {
         wiqlWhere = "[System.State] = '" + state + "'";
     }
     return getTestCasesByWiql(["System.Id"], wiqlWhere);
 }
 
-function   getRecursiveChildIds(id:number , lst: any[]): number[]
-{
+function getRecursiveChildIds(id: number, lst: any[]): number[] {
     var ret: number[] = [];
     ret.push(id);
-    lst.filter(i=> { return i.parent!=null && i.parent.id == id }).forEach(it=> {
+    lst.filter(i => { return i.parent != null && i.parent.id == id }).forEach(it => {
         ret = ret.concat(getRecursiveChildIds(it.id, lst));
     });
     return ret;
@@ -160,12 +157,12 @@ function   getRecursiveChildIds(id:number , lst: any[]): number[]
 export function getTestCasesByTestPlan(planId: number, suiteId: number, recursive: boolean): IPromise<any> {
     var deferred = $.Deferred<any[]>();
     var testClient = TestClient.getClient();
- 
+
     if (recursive) {
         var idList = [];
         var tcIdList = {};
         var suite_id: number = suiteId;
-        
+
         testClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId, true).then(suites => {
             var que: IPromise<any[]>[] = [];
             var suitesList = suites;
@@ -175,9 +172,9 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
             });
 
             Q.all(que).then(results => {
-                for (var n = 0; n < results.length; n++){
+                for (var n = 0; n < results.length; n++) {
                     var r = results[n];
-                
+
                     r.map(i => { return i.testCase.id; }).forEach(i => {
 
                         var x = tcIdList[i];
@@ -244,7 +241,7 @@ function getTestCases(workItemIds: number[]): IPromise<any> {
 function fixAssignedToFields(wi: WorkItemContracts.WorkItem) {
     if (wi.fields["System.AssignedTo"] != null) {
         var s = wi.fields["System.AssignedTo"];
-        if (s.indexOf("<")>0){
+        if (s.indexOf("<") > 0) {
             wi.fields["System.AssignedTo"] = s.split("<")[0];
         }
     }

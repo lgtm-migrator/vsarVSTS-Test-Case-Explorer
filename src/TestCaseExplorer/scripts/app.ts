@@ -24,7 +24,7 @@ var dv = new DetailsView.DetailsView();
 
 import TestCaseView = require("scripts/TestCaseView");
 var tc = new TestCaseView.TestCaseView();
-tc.initialize(paneToggler, RefreshPane );
+tc.initialize(paneToggler, RefreshPane);
 
 import TreeViewView = require("scripts/TreeViewView");
 var tv = new TreeViewView.TreeviewView();
@@ -35,12 +35,11 @@ import SplitterControls = require("VSS/Controls/Splitter");
 
 var leftSplitter = <SplitterControls.Splitter>Controls.Enhancement.getInstance(SplitterControls.Splitter, $(".left-hub-splitter"));
 VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
-    var posReq = dataService.getValue("LeftPaneWidth", { scopeType: "User" }).then(width=> {
+    var posReq = dataService.getValue("LeftPaneWidth", { scopeType: "User" }).then(width => {
         leftSplitter.toggleExpanded(true)
         leftSplitter.resize(width);
-    }); 
+    });
 });
-
 
 leftSplitter._element.on('changed', function () {
     saveWidth();
@@ -54,7 +53,7 @@ paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(functi
 tv.initialize(RefreshGrid);
 dv.initialize(paneToggler);
 
-function RefreshGrid(pivot:string, value:string, showRecursive:boolean):void{
+function RefreshGrid(pivot: string, value: string, showRecursive: boolean): void {
     tc.RefreshGrid(pivot, value, showRecursive);
     dv.selectionChanged(null);
 }
@@ -69,7 +68,7 @@ function saveWidth() {
     width = (width == 0 ? 200 : width);
 
     VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
-        // Set value in user scop
+        // Set value in user scope
         dataService.setValue("LeftPaneWidth", width, { scopeType: "User" }).then(function (value) {
         });
     });
