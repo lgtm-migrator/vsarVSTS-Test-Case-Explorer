@@ -101,11 +101,11 @@
     <Content Include="vss-extension-mathias.json" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="vss-extension.one.json" />
+    <Content Include="vss-extension.beta.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="vss-extension.public.json" />
-    <Content Include="vss-extension.two.json" />
+    <Content Include="vss-extension.team.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="mp_terms.md" />
