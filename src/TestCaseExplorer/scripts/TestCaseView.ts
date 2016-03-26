@@ -107,20 +107,27 @@ export class TestCaseView {
                 title = "Test cases with state: " + state;
                 break;
             case "Test plan":
+                
+                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, this._fields.map(f=> { return f.Field }) , showRecursive);
                 this._fields = this._fields.concat([{ field: "Present.In.Suite", name: "Present in suites", width: 150 }]);
-                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, this._fields, showRecursive);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
 
                 break;
         }
         $("#grid-title").text(title);
 
-        promise.then(result => {
-            this._data = result;
-            this.DoRefreshGrid();
+        promise.then(
+            result => {
+                this._data = result;
+                this.DoRefreshGrid();
 
-            this.DoneLoading();
-        });
+                this.DoneLoading();
+            },
+            err=> {
+                console.log(err);
+                this.DoneLoading();
+            }
+        );
     }
 
     public toggle() {

@@ -195,13 +195,16 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, fields: 
                     }
 
                     if (idList.length > 0) {
-                        getTestCases(idList, fields).then(testCases => {
-
-                            deferred.resolve(testCases.map(tc => {
-                                tc["Present.In.Suite"] = tcIdList[tc["System.Id"]];
-                                return tc;
-                            }));
-                        });
+                        getTestCases(idList, fields).then(
+                            testCases => {
+                                deferred.resolve(testCases.map(tc => {
+                                    tc["Present.In.Suite"] = tcIdList[tc["System.Id"]];
+                                    return tc;
+                                }));
+                            },
+                            err=> {
+                                deferred.reject(err);
+                            });
                     }
                     else {
                         deferred.resolve([]);
@@ -269,20 +272,24 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
     wiql = wiql.substr(0, wiql.lastIndexOf(", "));
     wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP 'Test Case Category'  " + (wiqlWhere ? " AND " + wiqlWhere : "") + " ORDER BY [System.Id]";
 
-    workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
-        if (result.workItems.length > 0) {
-            var ids = result.workItems.map(function (item) {
-                return item.id;
-            }).map(Number);
+    workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(
+        result => {
+            if (result.workItems.length > 0) {
+                var ids = result.workItems.map(function (item) {
+                    return item.id;
+                }).map(Number);
 
-            getTestCases(ids, fields).then(testCases => {
-                deferred.resolve(testCases);
-            });
-        }
-        else {
-            deferred.resolve([]);
-        }
-    });
+                getTestCases(ids, fields).then(testCases => {
+                    deferred.resolve(testCases);
+                });
+            }
+            else {
+                deferred.resolve([]);
+            }
+        },
+        err => {
+            deferred.reject(err);
+        });
 
     return deferred.promise();
 }
