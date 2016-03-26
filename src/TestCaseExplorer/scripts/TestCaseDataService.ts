@@ -154,7 +154,7 @@ function getRecursiveChildIds(id: number, lst: any[]): number[] {
     return ret;
 }
 
-export function getTestCasesByTestPlan(planId: number, suiteId: number, recursive: boolean): IPromise<any> {
+export function getTestCasesByTestPlan(planId: number, suiteId: number, fields: string[], recursive: boolean): IPromise<any> {
     var deferred = $.Deferred<any[]>();
     var testClient = TestClient.getClient();
 
@@ -171,41 +171,47 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
                 que.push(testClient.getTestCases(VSS.getWebContext().project.name, planId, s));
             });
 
-            Q.all(que).then(results => {
-                for (var n = 0; n < results.length; n++) {
-                    var r = results[n];
+            Q.all(que).then(
+                results => {
+                    for (var n = 0; n < results.length; n++) {
+                        var r = results[n];
 
-                    r.map(i => { return i.testCase.id; }).forEach(i => {
+                        r.map(i => { return i.testCase.id; }).forEach(i => {
 
-                        var x = tcIdList[i];
-                        if (x == null) {
-                            x = suitesList[n].name;
-                        }
-                        else if ($.isNumeric(x)) {
-                            x++;
-                        }
-                        else {
-                            x = 2;
-                        }
-                        tcIdList[i] = x;
-                    });
+                            var x = tcIdList[i];
+                            if (x == null) {
+                                x = suitesList[n].name;
+                            }
+                            else if ($.isNumeric(x)) {
+                                x++;
+                            }
+                            else {
+                                x = 2;
+                            }
+                            tcIdList[i] = x;
+                        });
 
-                    idList = idList.concat(r.map(i => { return i.testCase.id; }));
+                        idList = idList.concat(r.map(i => { return i.testCase.id; }));
+                    }
+
+                    if (idList.length > 0) {
+                        getTestCases(idList, fields).then(testCases => {
+
+                            deferred.resolve(testCases.map(tc => {
+                                tc["Present.In.Suite"] = tcIdList[tc["System.Id"]];
+                                return tc;
+                            }));
+                        });
+                    }
+                    else {
+                        deferred.resolve([]);
+                    }
+                },
+                err=> {
+                    deferred.reject(err);
                 }
 
-                if (idList.length > 0) {
-                    getTestCases(idList).then(testCases => {
-
-                        deferred.resolve(testCases.map(tc => {
-                            tc["Present.In.Suite"] = tcIdList[tc["System.Id"]];
-                            return tc;
-                        }));
-                    });
-                }
-                else {
-                    deferred.resolve([]);
-                }
-            });
+            );
         });
     }
     else {
@@ -215,7 +221,7 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
             }).map(Number);
 
             if (idList.length > 0) {
-                getTestCases(idList).then(testCases => {
+                getTestCases(idList, fields).then(testCases => {
                     deferred.resolve(testCases);
                 });
             }
@@ -227,13 +233,18 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
     return deferred.promise();
 }
 
-function getTestCases(workItemIds: number[]): IPromise<any> {
+function getTestCases(workItemIds: number[], fields:string[]): IPromise<any> {
     var deferred = $.Deferred<any[]>();
     var workItemClient = WorkItemClient.getClient();
 
-    workItemClient.getWorkItems(workItemIds, this._fields).then(result => {
-        deferred.resolve(result.map(function (i) { i.fields["System.Id"] = i.id; fixAssignedToFields(i); return i.fields; }));
-    });
+    workItemClient.getWorkItems(workItemIds, fields).then(
+        result => {
+            deferred.resolve(result.map(function (i) { i.fields["System.Id"] = i.id; fixAssignedToFields(i); return i.fields; }));
+        },
+        err=> {
+            deferred.reject(err);
+        }
+    );
 
     return deferred.promise();
 }
@@ -264,7 +275,7 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
                 return item.id;
             }).map(Number);
 
-            getTestCases(ids).then(testCases => {
+            getTestCases(ids, fields).then(testCases => {
                 deferred.resolve(testCases);
             });
         }
