@@ -108,7 +108,7 @@ export class TestCaseView {
                 break;
             case "Test plan":
                 
-                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, this._fields.map(f=> { return f.Field }) , showRecursive);
+                promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, this._fields.map(f=> { return f.field }) , showRecursive);
                 this._fields = this._fields.concat([{ field: "Present.In.Suite", name: "Present in suites", width: 150 }]);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
 
