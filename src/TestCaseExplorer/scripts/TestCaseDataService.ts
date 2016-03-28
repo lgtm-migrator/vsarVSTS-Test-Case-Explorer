@@ -276,11 +276,20 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
     return deferred.promise();
 }
 
-function cloneTestPlan() {
+function cloneTestPlan(sourcePlanId: number) {
     var deferred = $.Deferred<any[]>();
     var testCaseClient = TestClient.getClient();
 
-    //testCaseClient.cloneTestPlan(
+    //testCaseClient.cloneTestPlan("", VSS.getWebContext().project.name, sourcePlanId);
+
+    return deferred.promise();
+}
+
+function cloneTestSuite(sourceSuiteId: number, planId: number) {
+    var deferred = $.Deferred<any[]>();
+    var testCaseClient = TestClient.getClient();
+
+    //testCaseClient.cloneTestSuite([], VSS.getWebContext().project.name, sourceSuiteId, planId);
 
     return deferred.promise();
 }
