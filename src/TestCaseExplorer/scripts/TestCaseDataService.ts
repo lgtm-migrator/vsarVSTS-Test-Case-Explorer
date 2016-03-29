@@ -240,9 +240,21 @@ function getTestCases(workItemIds: number[], fields:string[]): IPromise<any> {
     var deferred = $.Deferred<any[]>();
     var workItemClient = WorkItemClient.getClient();
 
-    workItemClient.getWorkItems(workItemIds, fields).then(
-        result => {
-            deferred.resolve(result.map(function (i) { i.fields["System.Id"] = i.id; fixAssignedToFields(i); return i.fields; }));
+    var size = 200;
+
+    var promises: IPromise<WorkItemContracts.WorkItem[]>[] = [];
+    while (workItemIds.length > 0) {
+        var idsToFetch = workItemIds.splice(0, size);
+        promises.push(workItemClient.getWorkItems(idsToFetch, fields));
+    }
+    
+    Q.all(promises).then(
+        resultSets => {
+            var data = []
+            resultSets.forEach(result=> {
+                data = data.concat(result.map(function (i) { i.fields["System.Id"] = i.id; fixAssignedToFields(i); return i.fields; }));
+            });
+            deferred.resolve(data);
         },
         err=> {
             deferred.reject(err);
