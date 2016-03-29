@@ -126,6 +126,7 @@ export class TestCaseView {
                 this.DoneLoading();
             },
             err=> {
+                TelemetryClient.getClient().trackException(err);
                 console.log(err);
                 this.DoneLoading();
             }
