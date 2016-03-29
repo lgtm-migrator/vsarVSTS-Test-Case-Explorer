@@ -283,7 +283,7 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
                     testCases => {
                         deferred.resolve(testCases);
                     },
-                    err=> 0 > {
+                    err=>  {
                         deferred.reject(err);
                     });
             }
