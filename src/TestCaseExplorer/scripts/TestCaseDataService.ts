@@ -279,9 +279,13 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
                     return item.id;
                 }).map(Number);
 
-                getTestCases(ids, fields).then(testCases => {
-                    deferred.resolve(testCases);
-                });
+                getTestCases(ids, fields).then(
+                    testCases => {
+                        deferred.resolve(testCases);
+                    },
+                    err=> 0 > {
+                        deferred.reject(err);
+                    });
             }
             else {
                 deferred.resolve([]);
