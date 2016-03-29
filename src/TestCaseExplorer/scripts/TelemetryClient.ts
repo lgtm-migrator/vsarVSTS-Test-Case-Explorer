@@ -1,4 +1,4 @@
-﻿/// <reference path="ai.0.21.5-build00175.d.ts" />
+﻿/// <reference path="ai.0.22.9-build00167.d.ts" />
 
 class TelemetryClient {
 
