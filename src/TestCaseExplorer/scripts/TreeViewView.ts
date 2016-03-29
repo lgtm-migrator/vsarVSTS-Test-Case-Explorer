@@ -184,7 +184,7 @@ export class TreeviewView {
         var view = this;
 
         var disableShowRecursive = (view._currentSource == "Priority" || view._currentSource == "State") ? true : false;
-        this._menubar.updateCommandStates([{ id: "show-recursive", disabled: disableShowRecursive }]);
+        this._menubar.updateCommandStates([{ id: "show-recursive", toggled: view._showRecursive, disabled: disableShowRecursive }]);
 
         TreeViewDataService.getNodes(pivot).then(function (data) {
             treeview.rootNode.clear();
