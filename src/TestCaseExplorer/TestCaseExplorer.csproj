@@ -55,6 +55,8 @@
     <Content Include="img\Short-Icon.png" />
     <Content Include="img\testPlan.png" />
     <Content Include="index.html" />
+    <Content Include="sdk\scripts\ai.0.22.9-build00167.js" />
+    <Content Include="sdk\scripts\ai.0.22.9-build00167.min.js" />
     <Content Include="sdk\scripts\q.js" />
     <Content Include="sdk\scripts\VSS.SDK.js" />
     <Content Include="sdk\scripts\VSS.SDK.min.js" />
