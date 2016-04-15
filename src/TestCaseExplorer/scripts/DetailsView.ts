@@ -28,6 +28,7 @@ import Navigation = require("VSS/Controls/Navigation");
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 
+
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
     hide(): void;
@@ -234,9 +235,21 @@ class partOfTestSuitesPane implements IPaneRefresh {
             pane._grid.setDataSource(null);
         }
         else {
-            TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(function (data) {
-                pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
-            });
+            TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(
+                data=> {
+                    if (data != null) {
+                        $("#details-gridTestSuites").show();
+                        pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
+                    }
+                    else {
+                        $("#details-gridTestSuites").hide();
+                    }
+                    
+                },
+                err => {
+                    $("#details-gridTestSuites").hide();
+                }
+            );
         }
     }
 }
@@ -258,13 +271,16 @@ class testPlanPane implements IPaneRefresh {
 
         this._cbo = Controls.create(CtrlCombos.Combo, $("#details-cboTestPlan"), cboOptions);
 
-        TreeViewDataService.getTestPlans().then(function (data) {
-            tpp._testPlans = data[0].children;
-
-            tpp._cbo.setSource(tpp._testPlans.map(function (i) {
-                return i.text;
-            }));
-        });
+        TreeViewDataService.getTestPlans().then(
+            data=> {
+                tpp._testPlans = data[0].children;
+                tpp._cbo.setSource(tpp._testPlans.map(i=> { return i.text;}));
+            },
+            err=> {
+                console.log(err);
+                TelemetryClient.getClient().trackException(err);
+            }
+        );
 
         var treeOptionsTestPlan = {
             width: 400,
@@ -280,38 +296,40 @@ class testPlanPane implements IPaneRefresh {
         $("#details-cboTestPlan").change(function () {
             tpp._view.StartLoading(true, "Fetching test plan " + tpp._cbo.getText());
             var tp = tpp._testPlans[tpp._cbo.getSelectedIndex()];
-            TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(function (data) {
+            TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(
+                data=> {
+                    tpp._view.DoneLoading();
+                    treeviewTestPlan.rootNode.clear();
 
-                tpp._view.DoneLoading();
+                    treeviewTestPlan.rootNode.addRange(data);
+                    treeviewTestPlan._draw();
 
-                treeviewTestPlan.rootNode.clear();
+                    var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
 
-                treeviewTestPlan.rootNode.addRange(data);
-                treeviewTestPlan._draw();
-
-                var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
-
-                $("li.node").droppable({
-                    scope: "test-case-scope",
-                    greedy: true,
-                    tolerance: "pointer",
-                    hoverClass: "droppable-hover",
-                    drop: function (event, ui) {
-                        var n = treeviewTestPlan.getNodeFromElement(event.target);
-                        var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
-                        var tcId = ui.draggable.context.childNodes[0].textContent;
-                        //var x = grd.getDraggingRowInfo();
-                        //Grids.Grid.getInstance($("#grid-container"));
-                        var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
-                        var div = $("<div />").text(s);
-                        ui.draggable.context = div[0];
-                        TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
-                            data => { alert(s); },
-                            err => { alert(err); });
-                    }
+                    $("li.node").droppable({
+                        scope: "test-case-scope",
+                        greedy: true,
+                        tolerance: "pointer",
+                        hoverClass: "droppable-hover",
+                        drop: function (event, ui) {
+                            var n = treeviewTestPlan.getNodeFromElement(event.target);
+                            var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
+                            var tcId = ui.draggable.context.childNodes[0].textContent;
+                            //var x = grd.getDraggingRowInfo();
+                            //Grids.Grid.getInstance($("#grid-container"));
+                            var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
+                            var div = $("<div />").text(s);
+                            ui.draggable.context = div[0];
+                            TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
+                                data => { alert(s); },
+                                err => { alert(err); });
+                        }
+                    });
+                },
+                err=> {
+                    console.log("Err fetching test plans");
+                    console.log(err);
                 });
-
-            });
         });
 
         $(".ui-draggable").draggable({
@@ -484,6 +502,12 @@ class linkedRequirementsPane implements IPaneRefresh {
                     if (data != null) {
                         pane._grid.setDataSource(data.map(r => { return r.fields; }));
                     }
+                    else {
+                        pane._grid.setDataSource(null);
+                    }
+                },
+                err=> {
+                    pane._grid.setDataSource(null);
                 }
             );
         }

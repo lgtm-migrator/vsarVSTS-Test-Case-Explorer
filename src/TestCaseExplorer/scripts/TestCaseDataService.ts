@@ -88,13 +88,18 @@ export class testSuiteFilter implements ITestCaseFilter {
 
         });
 
-        Q.all(que).then(results => {
-            results.forEach(suites => {
-                var id = data[results.indexOf(suites)]["System.Id"];
-                flt._listTC[id] = suites.length;
-            });
-            deferred.resolve(flt);
-        });
+        Q.all(que).then(
+            results => {
+                results.forEach(suites => {
+                    var id = data[results.indexOf(suites)]["System.Id"];
+                    flt._listTC[id] = suites.length;
+                });
+                deferred.resolve(flt);
+            },
+            err=> {
+                deferred.reject(err);
+            }
+        );
 
         return deferred.promise();
     }
