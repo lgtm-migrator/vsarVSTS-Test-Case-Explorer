@@ -31,6 +31,7 @@ import CoreUtils = require("VSS/Utils/Core");
 import CtrlCombos = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
 import TestCaseDataService = require("scripts/TestCaseDataService");
+import Common = require("scripts/Common");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
 
@@ -127,8 +128,8 @@ export class TestCaseView {
                 view._data = result;
 
                 if (view._showTestResults) {
-                    view._fields = view._fields.concat([{ field: "Outcome", name: "Last testresult", width: 50 },
-                                         { field: "TestedDate", name: "Last tested date", width: 50 },]);
+                    view._fields = view._fields.concat([{ field: "Outcome", name: "Last test result",  width: 100, getCellContents: Common.getTestResultCellContent },
+                                         { field: "TestedDate", name: "Last tested date", width: 150 },]);
 
                     TestCaseDataService.getTestResultsForTestCases(view._data.map(i=> { return i["System.Id"]; })).then(
                         data=> {
@@ -426,7 +427,7 @@ export class TestCaseView {
     private DoRefreshGrid() {
 
         var columns = this._fields.map(function (f) {
-            return { index: f.field, text: f.name, width: f.width };
+            return { index: f.field, text: f.name, width: f.width, getCellContents: f.getCellContents};
         });
 
         if (this._currentFilter != null) {
