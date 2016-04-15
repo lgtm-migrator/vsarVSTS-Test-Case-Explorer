@@ -40,6 +40,8 @@ export class TestCaseView {
     private _grid: Grids.Grid;
     private _menubar: Menus.MenuBar;
     private _fields: any[];
+    private _showTestResults: boolean = false;
+
     private _commonField = [
         { field: "System.Id", name: "Id", width: 75 },
         { field: "System.Title", name: "Title", width: 250 },
@@ -63,6 +65,8 @@ export class TestCaseView {
     private _selectedRows: number[];
 
     public RefreshGrid(pivot: string, value, showRecursive: boolean) {
+
+        var view = this;
 
         this._grid.setDataSource(null);
         $("#grid-title").text("");
@@ -120,15 +124,35 @@ export class TestCaseView {
 
         promise.then(
             result => {
-                this._data = result;
-                this.DoRefreshGrid();
+                view._data = result;
 
-                this.DoneLoading();
+                if (view._showTestResults) {
+                    view._fields = view._fields.concat([{ field: "Outcome", name: "Last testresult", width: 50 },
+                                         { field: "TestedDate", name: "Last tested date", width: 50 },]);
+
+                    TestCaseDataService.getTestResultsForTestCases(view._data.map(i=> { return i["System.Id"]; })).then(
+                        data=> {
+                            data.forEach(r => {
+                                var testCaseId = r.testCase.id;
+                                var row = view._data.filter(i=> { return i["System.Id"] == testCaseId; })[0];
+                                row["Outcome"] = r.outcome;
+                                row["TestedDate"] = r.lastUpdatedDate;
+                                row["TestedBy"] = r.runBy.displayName;
+                                row["TestDuration"] = r.durationInMs;
+                            });
+                            view.DoRefreshGrid();
+                        },
+                        err=> {
+                        });
+                }
+                    view.DoRefreshGrid();
+
+                view.DoneLoading();
             },
             err=> {
                 TelemetryClient.getClient().trackException(err);
                 console.log(err);
-                this.DoneLoading();
+                view.DoneLoading();
             }
         );
     }
@@ -150,6 +174,7 @@ export class TestCaseView {
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         var menuItems: any[] = [
             { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
+            { id: "latestTestResult", text: "Latest TestResults", title: "Latest TestResults", icon: "icon-refresh"            },
             { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
             { id: "toggle", showText: false, title: "Show/hide details pane", icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align" }
         ];
@@ -168,6 +193,11 @@ export class TestCaseView {
                         WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
                             workItemService.openNewWorkItem("Test Case", view._selectedValueWithField);
                         });
+                        break;
+                    case "latestTestResult":
+                        view._showTestResults = !view._showTestResults ;
+                        view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
+                        menubar.updateCommandStates([{ id: command, toggled: view._showTestResults }]);
                         break;
                     case "refresh":
                         view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);

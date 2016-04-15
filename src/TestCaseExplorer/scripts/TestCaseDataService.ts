@@ -119,6 +119,25 @@ export class testSuiteFilter implements ITestCaseFilter {
     }
 }
 
+
+
+export function getTestResultsForTestCases(testCaseLst: number[]): IPromise<TestContracts.TestCaseResult[]> {
+    // Get an instance of the client
+    var deferred = $.Deferred<any[]>();
+    var tstClient = TestClient.getClient();
+    var q = { query: "Select * from TestResult  WHERE TestCaseId IN (" + testCaseLst.join(",") + ")" };
+
+    tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(
+        data=> {
+            deferred.resolve(data);
+        },
+        err=> {
+            deferred.reject(err);
+        }
+    );
+    return deferred.promise();
+}
+
 export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string, recursive: boolean, fieldLst:string[]): IPromise<any> {
     var typeField: string;
     switch (structureType) {

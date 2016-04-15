@@ -163,6 +163,7 @@ export function getTestResultsForTestCase(testCaseId: number): IPromise<any[]> {
     return deferred.promise();
 }
 
+
 export function getLinkedRequirementsForTestCase(testCaseId: number): IPromise<any[]> {
     // Get an instance of the client
     var deferred = $.Deferred<any[]>();
