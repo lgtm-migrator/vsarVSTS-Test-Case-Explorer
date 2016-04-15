@@ -47,6 +47,8 @@
     <Content Include="img\image4.png" />
     <Content Include="img\image5.png" />
     <Content Include="img\image6.png" />
+    <Content Include="img\TestOutcome.png" />
+    <Content Include="columnoptions.html" />
     <Content Include="MIT-1.txt" />
     <Content Include="css\app.css" />
     <Content Include="img\Child-node-icon.png">

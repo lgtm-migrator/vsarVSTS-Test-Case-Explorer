@@ -125,7 +125,7 @@ export function getTestResultsForTestCases(testCaseLst: number[]): IPromise<Test
     // Get an instance of the client
     var deferred = $.Deferred<any[]>();
     var tstClient = TestClient.getClient();
-    var q = { query: "Select * from TestResult  WHERE TestCaseId IN (" + testCaseLst.join(",") + ")" };
+    var q = { query: "Select * from TestResult  WHERE TestCaseId IN (" + testCaseLst.join(",") + ") ORDER BY CreationDate DESC" };
 
     tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(
         data=> {

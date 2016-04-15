@@ -1,7 +1,7 @@
 ﻿export function getTestResultCellContent(rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
     var outcome = this.getColumnValue(dataIndex, column.index);
     var d = $("<div class='grid-cell'/>").width(column.width || 100)
-    var dIcon = $("<div class='testpoint-outcome-shade icon'/>");
+    var dIcon = $("<div class='testpoint-outcome-shade icon bowtie-icon-small'/>");
     dIcon.addClass(getIconFromTestOutcome(outcome));
     d.append(dIcon);
     var dTxt = $("<span />");

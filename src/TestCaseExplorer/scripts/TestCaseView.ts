@@ -128,8 +128,11 @@ export class TestCaseView {
                 view._data = result;
 
                 if (view._showTestResults) {
-                    view._fields = view._fields.concat([{ field: "Outcome", name: "Last test result",  width: 100, getCellContents: Common.getTestResultCellContent },
-                                         { field: "TestedDate", name: "Last tested date", width: 150 },]);
+                    var outcomeFields = [
+                        { field: "Outcome", name: "Last Outcome", width: 100, getCellContents: Common.getTestResultCellContent },
+                        { field: "TestedDate", name: "Last tested date", width: 150 }];
+
+                    view._fields = outcomeFields.concat(view._fields);
 
                     TestCaseDataService.getTestResultsForTestCases(view._data.map(i=> { return i["System.Id"]; })).then(
                         data=> {
@@ -175,8 +178,9 @@ export class TestCaseView {
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         var menuItems: any[] = [
             { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
-            { id: "latestTestResult", text: "Latest TestResults", title: "Latest TestResults", icon: "icon-refresh"            },
+            { id: "latestTestResult", text: "Show TestResults", title: "Show latest test results", icon: "test-outcome-node-icon"            },
             { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+           
             { id: "toggle", showText: false, title: "Show/hide details pane", icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align" }
         ];
 
@@ -200,6 +204,8 @@ export class TestCaseView {
                         view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
                         menubar.updateCommandStates([{ id: command, toggled: view._showTestResults }]);
                         break;
+                 
+                       
                     case "refresh":
                         view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
                         break;

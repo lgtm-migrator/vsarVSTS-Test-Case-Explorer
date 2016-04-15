@@ -1,0 +1,130 @@
+﻿<!-- ---------------------------------------------------------------------
+// <copyright file="columnoptions.html">
+//    This code is licensed under the MIT License.
+//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+//    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+//    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+//    PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// </copyright>
+// <summary>
+//    This is part of the Test Case Explorer extensions
+//    from the ALM Rangers. This file contains the main HTML
+//    layout for the extension + the bootstrap code.
+// </summary>
+//---------------------------------------------------------------------
+-->
+<!DOCTYPE html>
+<head>
+    <title>Test Case Explorer</title>
+    <link rel="stylesheet" type="text/css" href="css/app.css">
+</head>
+<html>
+<body>
+    <script src="sdk/scripts/VSS.SDK.js"></script>
+    <script src="sdk/scripts/ai.0.22.9-build00167.js"></script>
+    <script src="scripts/TelemetryClient.js"></script>
+
+    <script type="text/javascript">
+        VSS.init({
+            explicitNotifyLoaded: true,
+            usePlatformScripts: true,
+            usePlatformStyles: true,
+            moduleLoaderConfig: {
+                paths: {
+                    "Scripts": "scripts"
+                }
+            }
+        });
+
+        // Wait for the SDK to be initialized
+        VSS.ready(function () {
+            require(["Scripts/app"], function (app) { });
+        });
+
+        VSS.notifyLoadSucceeded();
+
+    </script>
+    <div id="testcase-extension">
+        <div class="splitter horizontal right left-hub-splitter">
+            <div class="leftPane">
+                <div class="left-hub-content">
+                        <div class="hub-pivot-content">
+                            <div class="testmanagement-view-left-pane">
+                                <div style="display:flex;flex-direction:row;margin-left:10px;">
+                                    <div style="flex:1;margin-left:6px">Pivot&nbsp;by:</div>
+                                    <div style="flex:3" id="treeview-Cbo-container"></div>
+                                </div>
+                                <div id="treeview-menu-container" class="toolbar"></div>
+                                <div id="treeview-container" class="treeview testmanagement-suites-tree"></div>
+                                <div id="treeview-value"></div>
+                                <div class="wait-control-treeview-target"></div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            <div class="handleBar"></div>
+            <div class="rightPane">
+                <div class="splitter horizontal right-fix right-hub-splitter stateful left-expand collapsed" id="2">
+                    <div id="testCasePane" class="leftPane">
+                        <span class="test-case-hub-test-case-count hub-title-right" >
+                            <div id="grid-count" class="test-count"></div>
+                        </span>
+                        <div id="grid-title" class="hub-title"></div>
+                        <div class="right-hub-content">
+                            <div class="hub-pivot ">
+                                <!--<div class="views">
+                                    <ul class="empty pivot-view enhance test-items-tabs" >
+                                        <li title="Test cases" class="selected"><a href="">Test cases</a></li>
+                                    </ul>
+                                </div>-->
+                                <div id="grid-filter" class="filters">
+                                </div>
+                            </div>
+                            <div class="hub-pivot-content">
+                                <div id="menu-container" class="toolbar"></div>
+                                <div class="wait-control-target"></div>
+                                <div id="grid-container" class="grid fill-grid" style="position:absolute;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="handleBar"></div>
+                    <div id="detailsPane" class="rightPane hotkey-section hotkey-section-3">
+                        <div class="rightPane hub-no-content-gutter">
+                            <div class="test-case-details-pane" style="display: block;">
+                                <div id="details-title" class="far-right-pane-title" />
+                                <hr />
+                               
+                            </div>
+                        </div>
+                    </div>
+                        <div id="detailPanels" class="far-right-pane-list-container" style="top:70px;">
+                        <div class="wait-control-details-target"></div>
+                        <div id="details-TestPlan" style="display:none">
+                            <div id="testPlan-detailsMenu-container" style="display:flex; flex-direction:row; padding-top:8px">
+                                <div style="margin-right:10px">Test plan: </div>
+                                <div id="details-cboTestPlan" style="flex:1"></div>
+                            </div>
+                            <div id="details-treeviewTestPlan" class="treeview" style="overflow:auto"> </div>
+                        </div>
+                        <div id="details-testSuites" style="display:none">
+                            <div id="detailsMenuBar-testSuite-container" class="toolbar"></div>
+                            <div id="details-gridTestSuites" class="testmanagement-details-grid fill-grid" style="position:absolute;"></div>
+                        </div>
+                        <div id="details-TestResults" style="display:none">
+                            <div id="detailsMenuBar-TestResults-container" class="toolbar"></div>
+                            <div id="details-gridTestResults" class="testmanagement-details-grid fill-grid" style="position:absolute;"></div>
+                        </div>
+                        <div id="details-linkedReq" style="display:none">
+                            <div id="detailsMenuBar-linkedReq-container" class="toolbar"></div>
+                            <div id="details-gridReq" class="testmanagement-details-grid fill-grid" style="position:absolute;"></div>
+                        </div>
+                    </div>
+                    <div class="hub-pivot far-right-pane-pivot" style="display: block;">
+                        <div id="details-filter-container" class="filters" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

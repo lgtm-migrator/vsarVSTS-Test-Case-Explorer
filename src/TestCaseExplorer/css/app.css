@@ -15,6 +15,13 @@
     content: url('../img/Child-node-icon.png');
     
 }
+
+.test-outcome-node-icon::before {
+    position: relative;
+    content: url('../img/TestOutcome.png');
+    
+}
+
 .icon-testplan::before{
     content: url('../img/testPlan.png');
 }
