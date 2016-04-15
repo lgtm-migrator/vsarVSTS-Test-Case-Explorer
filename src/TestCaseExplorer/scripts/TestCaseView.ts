@@ -224,10 +224,16 @@ export class TestCaseView {
                         break;
                 };
 
-                filterPromise.then(filter => {
-                    view._currentFilter = filter;
-                    view.DoRefreshGrid();
-                });
+                filterPromise.then(
+                    filter => {
+                        view._currentFilter = filter;
+                        view.DoRefreshGrid();
+                    },
+                    err=> {
+                        TelemetryClient.getClient().trackException(err);
+                        console.log(err);
+                    }
+                );
             }
         });
     }

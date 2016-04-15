@@ -31,6 +31,7 @@ class TelemetryClient {
             this.appInsightsClient.setAuthenticatedUserContext(webContext.user.id, webContext.collection.id);
         }
         catch (e) {
+            this.appInsightsClient = null;
             console.log(e);
         }
     }
