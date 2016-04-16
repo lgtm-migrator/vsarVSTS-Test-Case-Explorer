@@ -50,5 +50,41 @@ define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "s
             });
         });
     }
+    var registrationForm = (function () {
+        var callbacks = [];
+        function inputChanged() {
+            // Execute registered callbacks
+            for (var i = 0; i < callbacks.length; i++) {
+                callbacks[i](isValid());
+            }
+        }
+        function isValid() {
+            // Check whether form is valid or not
+            return true; //!!(name.value) && !!(dateOfBirth.value) && !!(email.value);
+        }
+        function getFormData() {
+            // Get form values
+            return {};
+        }
+        //var name = document.getElementById("inpName");
+        //var dateOfBirth = document.getElementById("inpDob");
+        //var email = document.getElementById("inpEmail");
+        //name.addEventListener("change", inputChanged);
+        //dateOfBirth.addEventListener("change", inputChanged);
+        //email.addEventListener("change", inputChanged);
+        return {
+            isFormValid: function () {
+                return isValid();
+            },
+            getFormData: function () {
+                return getFormData();
+            },
+            attachFormChanged: function (cb) {
+                callbacks.push(cb);
+            }
+        };
+    })();
+    // Register form object to be used accross this extension
+    VSS.register("columnOptionsForm", registrationForm);
 });
 //# sourceMappingURL=app.js.map

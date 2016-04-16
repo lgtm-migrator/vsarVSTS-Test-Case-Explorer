@@ -34,3 +34,10 @@ export function getIconFromTestOutcome(outcome): string {
     }
     return icon;
 }
+
+export interface ICustomColumnDef {
+    field: string;
+    name: string;
+    width: number;
+    getCellContents?: any;
+}

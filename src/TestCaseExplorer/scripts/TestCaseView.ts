@@ -20,6 +20,7 @@
 import Controls = require("VSS/Controls");
 import Grids = require("VSS/Controls/Grids");
 import Menus = require("VSS/Controls/Menus");
+import Dialogs = require("VSS/Controls/Dialogs");
 import WorkItemContracts = require("TFS/WorkItemTracking/Contracts");
 import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
 import TestClient = require("TFS/TestManagement/RestClient");
@@ -30,6 +31,8 @@ import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import CoreUtils = require("VSS/Utils/Core");
 import CtrlCombos = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
+
+
 import TestCaseDataService = require("scripts/TestCaseDataService");
 import Common = require("scripts/Common");
 
@@ -40,10 +43,10 @@ export class TestCaseView {
     private _paneToggler: DetailsToggle.DetailsPaneToggler;
     private _grid: Grids.Grid;
     private _menubar: Menus.MenuBar;
-    private _fields: any[];
+    private _fields: Common.ICustomColumnDef[];
     private _showTestResults: boolean = false;
 
-    private _commonField = [
+    private _commonField: Common.ICustomColumnDef[] = [
         { field: "System.Id", name: "Id", width: 75 },
         { field: "System.Title", name: "Title", width: 250 },
         { field: "System.State", name: "State", width: 75 },
@@ -178,9 +181,9 @@ export class TestCaseView {
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         var menuItems: any[] = [
             { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
-            { id: "latestTestResult", text: "Show TestResults", title: "Show latest test results", icon: "test-outcome-node-icon"            },
             { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
-           
+            { id: "column-options", text: "Column options", title: "Choose columns for the grid", },
+            { id: "latestTestResult", text: "Show TestResults", title: "Show latest test results", icon: "test-outcome-node-icon" },
             { id: "toggle", showText: false, title: "Show/hide details pane", icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align" }
         ];
 
@@ -204,7 +207,9 @@ export class TestCaseView {
                         view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
                         menubar.updateCommandStates([{ id: command, toggled: view._showTestResults }]);
                         break;
-                 
+                    case "column-options":
+                        view.opedColumnOptionsDlg();
+                        break;
                        
                     case "refresh":
                         view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
@@ -219,6 +224,37 @@ export class TestCaseView {
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
         this._menubar = menubar;
         menubar.updateCommandStates([{ id: "toggle", toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
+    }
+
+
+    private opedColumnOptionsDlg() {
+        var extensionContext = VSS.getExtensionContext();
+
+        var opts = {
+            title: "Column options",
+            buttons: null
+        };
+        var contributionConfig =
+            {
+                action: null,
+                currentFields: this._fields
+            };
+
+        VSS.getService<IHostDialogService>(VSS.ServiceIds.Dialog).then(
+            dialogService=> {
+                var extensionCtx = VSS.getExtensionContext();
+                // Build absolute contribution id for dialogContent
+                var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".columnOptionsForm";
+
+                // Show dialog
+                var dialogOptions = {
+                    title: "Column Options",
+                    width: 800,
+                    height: 600
+                };
+
+                dialogService.openDialog(contributionId, dialogOptions, contributionConfig);
+            });
     }
 
     private initFilter(view: TestCaseView) {
