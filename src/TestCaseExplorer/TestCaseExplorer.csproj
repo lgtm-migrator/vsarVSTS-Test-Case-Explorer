@@ -70,7 +70,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="scripts\ai.0.22.9-build00167.d.ts" />
     <TypeScriptCompile Include="scripts\app.ts" />
-    <TypeScriptCompile Include="scripts\columOptionsView.ts" />
+    <TypeScriptCompile Include="scripts\ColumnsOptionsView.ts" />
     <TypeScriptCompile Include="scripts\Common.ts" />
     <TypeScriptCompile Include="scripts\DetailsToggle.ts" />
     <TypeScriptCompile Include="scripts\DetailsView.ts" />

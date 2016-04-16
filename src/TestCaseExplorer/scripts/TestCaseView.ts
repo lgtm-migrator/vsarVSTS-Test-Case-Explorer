@@ -35,6 +35,7 @@ import WorkItemServices = require("TFS/WorkItemTracking/Services");
 
 import TestCaseDataService = require("scripts/TestCaseDataService");
 import Common = require("scripts/Common");
+import ColumnOptionsView = require("scripts/ColumnsOptionsView");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
 
@@ -243,6 +244,9 @@ export class TestCaseView {
         dlgContent.show();
         dlgContent.find("#columnOptionsDlg").show();
       
+        var coView: ColumnOptionsView.ColumnOptionsView = new ColumnOptionsView.ColumnOptionsView();
+        coView.Init(dlgContent, this._fields);
+
 
         var options: Dialogs.IModalDialogOptions = {
             width: 800,
