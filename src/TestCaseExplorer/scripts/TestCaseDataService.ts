@@ -88,13 +88,18 @@ export class testSuiteFilter implements ITestCaseFilter {
 
         });
 
-        Q.all(que).then(results => {
-            results.forEach(suites => {
-                var id = data[results.indexOf(suites)]["System.Id"];
-                flt._listTC[id] = suites.length;
-            });
-            deferred.resolve(flt);
-        });
+        Q.all(que).then(
+            results => {
+                results.forEach(suites => {
+                    var id = data[results.indexOf(suites)]["System.Id"];
+                    flt._listTC[id] = suites.length;
+                });
+                deferred.resolve(flt);
+            },
+            err=> {
+                deferred.reject(err);
+            }
+        );
 
         return deferred.promise();
     }
@@ -114,7 +119,7 @@ export class testSuiteFilter implements ITestCaseFilter {
     }
 }
 
-export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string, recursive: boolean): IPromise<any> {
+export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string, recursive: boolean, fieldLst:string[]): IPromise<any> {
     var typeField: string;
     switch (structureType) {
         case WorkItemContracts.TreeNodeStructureType.Area:
@@ -126,23 +131,23 @@ export function getTestCasesByProjectStructure(structureType: WorkItemContracts.
     }
 
     var wiqlWhere = "[" + typeField + "] " + (recursive ? "UNDER" : "=") + " '" + path + "'";
-    return getTestCasesByWiql(["System.Id"], wiqlWhere);
+    return getTestCasesByWiql(fieldLst, wiqlWhere);
 }
 
-export function getTestCasesByPriority(priority: string): IPromise<any> {
+export function getTestCasesByPriority(priority: string, fieldLst: string[]): IPromise<any> {
     var wiqlWhere: string;
     if (priority != "any") {
         wiqlWhere = "[Microsoft.VSTS.Common.Priority] = " + priority
     }
-    return getTestCasesByWiql(["System.Id"], wiqlWhere);
+    return getTestCasesByWiql(fieldLst, wiqlWhere);
 }
 
-export function getTestCasesByState(state: string): IPromise<any> {
+export function getTestCasesByState(state: string,  fieldLst: string[]): IPromise<any> {
     var wiqlWhere: string;
     if (state != "any") {
         wiqlWhere = "[System.State] = '" + state + "'";
     }
-    return getTestCasesByWiql(["System.Id"], wiqlWhere);
+    return getTestCasesByWiql(fieldLst, wiqlWhere);
 }
 
 function getRecursiveChildIds(id: number, lst: any[]): number[] {
@@ -154,7 +159,7 @@ function getRecursiveChildIds(id: number, lst: any[]): number[] {
     return ret;
 }
 
-export function getTestCasesByTestPlan(planId: number, suiteId: number, recursive: boolean): IPromise<any> {
+export function getTestCasesByTestPlan(planId: number, suiteId: number, fields: string[], recursive: boolean): IPromise<any> {
     var deferred = $.Deferred<any[]>();
     var testClient = TestClient.getClient();
 
@@ -171,41 +176,50 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
                 que.push(testClient.getTestCases(VSS.getWebContext().project.name, planId, s));
             });
 
-            Q.all(que).then(results => {
-                for (var n = 0; n < results.length; n++) {
-                    var r = results[n];
+            Q.all(que).then(
+                results => {
+                    for (var n = 0; n < results.length; n++) {
+                        var r = results[n];
 
-                    r.map(i => { return i.testCase.id; }).forEach(i => {
+                        r.map(i => { return i.testCase.id; }).forEach(i => {
 
-                        var x = tcIdList[i];
-                        if (x == null) {
-                            x = suitesList[n].name;
-                        }
-                        else if ($.isNumeric(x)) {
-                            x++;
-                        }
-                        else {
-                            x = 2;
-                        }
-                        tcIdList[i] = x;
-                    });
+                            var x = tcIdList[i];
+                            if (x == null) {
+                                x = suitesList[n].name;
+                            }
+                            else if ($.isNumeric(x)) {
+                                x++;
+                            }
+                            else {
+                                x = 2;
+                            }
+                            tcIdList[i] = x;
+                        });
 
-                    idList = idList.concat(r.map(i => { return i.testCase.id; }));
+                        idList = idList.concat(r.map(i => { return i.testCase.id; }));
+                    }
+
+                    if (idList.length > 0) {
+                        getTestCases(idList, fields).then(
+                            testCases => {
+                                deferred.resolve(testCases.map(tc => {
+                                    tc["Present.In.Suite"] = tcIdList[tc["System.Id"]];
+                                    return tc;
+                                }));
+                            },
+                            err=> {
+                                deferred.reject(err);
+                            });
+                    }
+                    else {
+                        deferred.resolve([]);
+                    }
+                },
+                err=> {
+                    deferred.reject(err);
                 }
 
-                if (idList.length > 0) {
-                    getTestCases(idList).then(testCases => {
-
-                        deferred.resolve(testCases.map(tc => {
-                            tc["Present.In.Suite"] = tcIdList[tc["System.Id"]];
-                            return tc;
-                        }));
-                    });
-                }
-                else {
-                    deferred.resolve([]);
-                }
-            });
+            );
         });
     }
     else {
@@ -215,7 +229,7 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
             }).map(Number);
 
             if (idList.length > 0) {
-                getTestCases(idList).then(testCases => {
+                getTestCases(idList, fields).then(testCases => {
                     deferred.resolve(testCases);
                 });
             }
@@ -227,13 +241,30 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, recursiv
     return deferred.promise();
 }
 
-function getTestCases(workItemIds: number[]): IPromise<any> {
+function getTestCases(workItemIds: number[], fields:string[]): IPromise<any> {
     var deferred = $.Deferred<any[]>();
     var workItemClient = WorkItemClient.getClient();
 
-    workItemClient.getWorkItems(workItemIds, this._fields).then(result => {
-        deferred.resolve(result.map(function (i) { i.fields["System.Id"] = i.id; fixAssignedToFields(i); return i.fields; }));
-    });
+    var size = 200;
+
+    var promises: IPromise<WorkItemContracts.WorkItem[]>[] = [];
+    while (workItemIds.length > 0) {
+        var idsToFetch = workItemIds.splice(0, size);
+        promises.push(workItemClient.getWorkItems(idsToFetch, fields));
+    }
+    
+    Q.all(promises).then(
+        resultSets => {
+            var data = []
+            resultSets.forEach(result=> {
+                data = data.concat(result.map(function (i) { i.fields["System.Id"] = i.id; fixAssignedToFields(i); return i.fields; }));
+            });
+            deferred.resolve(data);
+        },
+        err=> {
+            deferred.reject(err);
+        }
+    );
 
     return deferred.promise();
 }
@@ -251,27 +282,35 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
     var deferred = $.Deferred<any[]>();
     var workItemClient = WorkItemClient.getClient();
 
-    var wiql: string = "SELECT ";
-    fields.forEach(function (f) {
-        wiql += f + ", ";
-    });
-    wiql = wiql.substr(0, wiql.lastIndexOf(", "));
+    var wiql: string = "SELECT System.Id ";
+    //fields.forEach(function (f) {
+    //    wiql += f + ", ";
+    //});
+    //wiql = wiql.substr(0, wiql.lastIndexOf(", "));
     wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP 'Test Case Category'  " + (wiqlWhere ? " AND " + wiqlWhere : "") + " ORDER BY [System.Id]";
 
-    workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(result => {
-        if (result.workItems.length > 0) {
-            var ids = result.workItems.map(function (item) {
-                return item.id;
-            }).map(Number);
+    workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(
+        result => {
+            if (result.workItems.length > 0) {
+                var ids = result.workItems.map(function (item) {
+                    return item.id;
+                }).map(Number);
 
-            getTestCases(ids).then(testCases => {
-                deferred.resolve(testCases);
-            });
-        }
-        else {
-            deferred.resolve([]);
-        }
-    });
+                getTestCases(ids, fields).then(
+                    testCases => {
+                        deferred.resolve(testCases);
+                    },
+                    err=>  {
+                        deferred.reject(err);
+                    });
+            }
+            else {
+                deferred.resolve([]);
+            }
+        },
+        err => {
+            deferred.reject(err);
+        });
 
     return deferred.promise();
 }

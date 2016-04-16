@@ -137,7 +137,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             var deferred = $.Deferred();
             var view = this;
             var disableShowRecursive = (view._currentSource == "Priority" || view._currentSource == "State") ? true : false;
-            this._menubar.updateCommandStates([{ id: "show-recursive", disabled: disableShowRecursive }]);
+            this._menubar.updateCommandStates([{ id: "show-recursive", toggled: view._showRecursive, disabled: disableShowRecursive }]);
             TreeViewDataService.getNodes(pivot).then(function (data) {
                 treeview.rootNode.clear();
                 treeview.rootNode.addRange(data);
@@ -170,7 +170,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     drop: function (event, ui) {
                         var n = treeview.getNodeFromElement(event.target);
                         var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
-                        var field, value;
+                        var field = null, value;
                         switch (view._currentSource) {
                             case "Area path":
                                 field = "System.AreaPath";
@@ -189,22 +189,27 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                                 value = n.config.name;
                                 break;
                         }
-                        var noRemainingAssign = tcIds.length;
-                        tcIds.forEach(function (id) {
-                            var itemDiv = ui.helper.find("." + id);
-                            var txt = itemDiv.text();
-                            itemDiv.text("Saving " + txt);
-                            TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(function (data) {
-                                noRemainingAssign--;
-                                if (noRemainingAssign == 0) {
-                                    view.RefreshGrid();
-                                }
-                                itemDiv.text("Saved" + txt);
-                                ;
-                            }, function (err) {
-                                alert(err);
+                        if (field != null) {
+                            var noRemainingAssign = tcIds.length;
+                            tcIds.forEach(function (id) {
+                                var itemDiv = ui.helper.find("." + id);
+                                var txt = itemDiv.text();
+                                itemDiv.text("Saving " + txt);
+                                TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(function (data) {
+                                    noRemainingAssign--;
+                                    if (noRemainingAssign == 0) {
+                                        view.RefreshGrid();
+                                    }
+                                    itemDiv.text("Saved" + txt);
+                                    ;
+                                }, function (err) {
+                                    alert(err);
+                                });
                             });
-                        });
+                        }
+                        else {
+                            alert("Not supported in this version");
+                        }
                     }
                 });
                 deferred.resolve(data);

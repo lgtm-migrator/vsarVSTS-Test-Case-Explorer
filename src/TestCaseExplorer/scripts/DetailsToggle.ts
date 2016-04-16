@@ -50,42 +50,48 @@ export class DetailsPaneToggler {
         this._$farRightPaneHubPivot = farRightPanelCss;
 
         var toggler = this;
-        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
+            dataService=> {
 
-            var posReq = dataService.getValue("PanePosition", { scopeType: "User" });
-            var widthReq = dataService.getValue("PreviousDetailsPaneWidth", { scopeType: "User" });
-            var prevPanePosReq = dataService.getValue("PreviousPaneOnPosition", { scopeType: "User" });
+                var posReq = dataService.getValue("PanePosition", { scopeType: "User" });
+                var widthReq = dataService.getValue("PreviousDetailsPaneWidth", { scopeType: "User" });
+                var prevPanePosReq = dataService.getValue("PreviousPaneOnPosition", { scopeType: "User" });
 
 
-            Q.all([posReq, widthReq, prevPanePosReq]).then(data => {
-                var savedPanePosition: any = data[0];
-                var savedDetailsPaneWidth: any = data[1]
-                var prevPanePosition: any = data[2];
+                Q.all([posReq, widthReq, prevPanePosReq]).then(
+                    data => {
+                        var savedPanePosition: any = data[0];
+                        var savedDetailsPaneWidth: any = data[1]
+                        var prevPanePosition: any = data[2];
 
-                if (savedDetailsPaneWidth == null || savedDetailsPaneWidth == "") {
-                    savedDetailsPaneWidth = 160;
-                }
-                if (savedPanePosition == null || savedPanePosition == "") {
-                    savedPanePosition = "off";
-                }
+                        if (savedDetailsPaneWidth == null || savedDetailsPaneWidth == "") {
+                            savedDetailsPaneWidth = 160;
+                        }
+                        if (savedPanePosition == null || savedPanePosition == "") {
+                            savedPanePosition = "off";
+                        }
 
-                if (prevPanePosition != null && prevPanePosition != "" && prevPanePosition != "off") {
-                    toggler._previousPaneOnPosition = prevPanePosition;
-                }
-                else {
-                    toggler._previousPaneOnPosition = "right";
-                }
+                        if (prevPanePosition != null && prevPanePosition != "" && prevPanePosition != "off") {
+                            toggler._previousPaneOnPosition = prevPanePosition;
+                        }
+                        else {
+                            toggler._previousPaneOnPosition = "right";
+                        }
            
-                toggler.setTogglerAndPanesPosition(savedPanePosition, savedDetailsPaneWidth);
+                        toggler.setTogglerAndPanesPosition(savedPanePosition, savedDetailsPaneWidth);
 
-                toggler._splitter._element.on('changed', function () {
-                    toggler.saveWidth();
-                });
+                        toggler._splitter._element.on('changed', function () {
+                            toggler.saveWidth();
+                        });
 
-                deferred.resolve(toggler);
-            }, err => {
+                        deferred.resolve(toggler);
+                    }, err => {
 
-            });
+                    },
+                    err=> {
+                        console.log("Failed to get dataservice");
+                        console.log(err);
+                    });
         });
         return deferred.promise();
     }
@@ -114,11 +120,22 @@ export class DetailsPaneToggler {
         width = (width == 0 ? 200 : width);
         toggle._previousPaneOnWidth = width;
 
-        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
-            // Set value in user scope
-            dataService.setValue("PreviousDetailsPaneWidth", toggle._previousPaneOnWidth, { scopeType: "User" }).then(function (value) {
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
+            dataService=> {
+                // Set value in user scope
+                dataService.setValue("PreviousDetailsPaneWidth", toggle._previousPaneOnWidth, { scopeType: "User" }).then(
+                    value => {
+                        console.log("Save user pref " + value);
+                    },
+                    err=> {
+                        console.log("Failed to save user value PreviousDetailsPaneWidth");
+                        console.log(err);
+                    });
+            },
+            err=> {
+                console.log("Failed to get dataservice");
+                console.log(err);
             });
-        });
     }
 
     public _isTestCaseDetailsPaneOn = function () {
@@ -140,15 +157,31 @@ export class DetailsPaneToggler {
 
                 toggle._previousPaneOnPosition = toggle._PanePosition;
 
-                VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
-                    // Set value in user scope
-                    dataService.setValue("PreviousPaneOnPosition", toggle._PanePosition, { scopeType: "User" }).then(function (value) {
-                        console.log("User scoped key value is " + value);
+                VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
+                    dataService=> {
+                        // Set value in user scope
+                        dataService.setValue("PreviousPaneOnPosition", toggle._PanePosition, { scopeType: "User" }).then(
+                            value=> {
+                                console.log("User scoped key value is PreviousPaneOnPosition " + value);
+                            },
+                            err=> {
+                                console.log("Failed to save user value PreviousDetailsPaneWidth");
+                                console.log(err);
+                            });
+                        dataService.setValue("PreviousDetailsPaneWidth", toggle._previousPaneOnWidth, { scopeType: "User" }).then(
+                            value=> {
+                                console.log("User scoped key value is " + value);
+                            },
+                            err=> {
+                                console.log("Failed to save user value PreviousDetailsPaneWidth");
+                                console.log(err);
+                            }
+                        );
+                    },
+                    err=> {
+                        console.log("cant get dataservice");
                     });
-                    dataService.setValue("PreviousDetailsPaneWidth", toggle._previousPaneOnWidth, { scopeType: "User" }).then(function (value) {
-                        console.log("User scoped key value is " + value);
-                    });
-                });
+                    
             }
             this._PanePosition = position;
         }

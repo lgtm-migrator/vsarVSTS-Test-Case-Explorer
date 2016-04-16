@@ -123,6 +123,8 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var tstClient = TestClient.getClient();
         tstClient.getSuitesByTestCaseId(testCaseId).then(function (data) {
             deferred.resolve(data);
+        }, function (err) {
+            deferred.resolve(null);
         });
         return deferred.promise();
     }
@@ -133,8 +135,9 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var tstClient = TestClient.getClient();
         var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
         tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {
-            ;
             deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
         });
         return deferred.promise();
     }
@@ -170,6 +173,8 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
             var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null; }), null, data);
             deferred.resolve([tRoot]);
+        }, function (err) {
+            deferred.reject(err);
         });
         return deferred.promise();
     }
@@ -207,6 +212,8 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var client = WITClient.getClient();
         client.getRootNodes(VSS.getWebContext().project.name, 11).then(function (data) {
             deferred.resolve(convertToTreeNodes([data[structure]], ""));
+        }, function (err) {
+            deferred.reject(err);
         });
         return deferred.promise();
     }

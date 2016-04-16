@@ -1,4 +1,4 @@
-﻿/// <reference path="ai.0.21.5-build00175.d.ts" />
+﻿/// <reference path="ai.0.22.9-build00167.d.ts" />
 
 class TelemetryClient {
 
@@ -19,7 +19,7 @@ class TelemetryClient {
         try {
             var snippet: any = {
                 config: {
-                    instrumentationKey: "f83f44a3-3005-4754-bf97-f978931244a6",
+                    instrumentationKey: "b1d068b6-1388-43bb-b002-c6d9e9a45642",
                 }
             };
             var x = VSS.getExtensionContext();
@@ -31,6 +31,7 @@ class TelemetryClient {
             this.appInsightsClient.setAuthenticatedUserContext(webContext.user.id, webContext.collection.id);
         }
         catch (e) {
+            this.appInsightsClient = null;
             console.log(e);
         }
     }

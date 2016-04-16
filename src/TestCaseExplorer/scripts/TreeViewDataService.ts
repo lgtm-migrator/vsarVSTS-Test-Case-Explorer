@@ -136,9 +136,13 @@ export function getTestSuitesForTestCase(testCaseId: number): IPromise<any[]> {
     var deferred = $.Deferred<any[]>();
 
     var tstClient = TestClient.getClient();
-    tstClient.getSuitesByTestCaseId(testCaseId).then(function (data) {
-        deferred.resolve(data);
-    });
+    tstClient.getSuitesByTestCaseId(testCaseId).then(
+        data=> {
+            deferred.resolve(data);
+        },
+        err=> {
+            deferred.resolve(null);
+        });
     return deferred.promise();
 }
 
@@ -148,10 +152,14 @@ export function getTestResultsForTestCase(testCaseId: number): IPromise<any[]> {
     var tstClient = TestClient.getClient();
     var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
 
-    tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {
-        ;
-        deferred.resolve(data);
-    });
+    tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(
+        data=> {
+            deferred.resolve(data);
+        },
+        err=> {
+            deferred.reject(err);
+        }
+    );
     return deferred.promise();
 }
 
@@ -189,10 +197,16 @@ export function getTestPlanAndSuites(planId: number, testPlanName: string): IPro
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var tstClient = TestClient.getClient();
-    tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
-        var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null }), null, data);
-        deferred.resolve([tRoot]);
-    });
+    tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(
+        data=> {
+            var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null }), null, data);
+            deferred.resolve([tRoot]);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
     return deferred.promise();
 }
 
@@ -232,9 +246,14 @@ function getStructure(structure: Contracts.TreeStructureGroup): IPromise<TreeVie
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var client = WITClient.getClient();
-    client.getRootNodes(VSS.getWebContext().project.name, 11).then(function (data: Contracts.WorkItemClassificationNode[]) {
-        deferred.resolve(convertToTreeNodes([data[structure]], ""));
-    });
+    client.getRootNodes(VSS.getWebContext().project.name, 11).then(
+        function (data: Contracts.WorkItemClassificationNode[]) {
+            deferred.resolve(convertToTreeNodes([data[structure]], ""));
+        },
+        err=> {
+            deferred.reject(err);
+        }
+    );
 
     return deferred.promise();
 }

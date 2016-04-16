@@ -3,20 +3,89 @@ declare module Microsoft.ApplicationInsights {
         CRITICAL = 0,
         WARNING = 1,
     }
+    enum _InternalMessageId {
+        NONUSRACT_BrowserDoesNotSupportLocalStorage = 0,
+        NONUSRACT_BrowserCannotReadLocalStorage = 1,
+        NONUSRACT_BrowserCannotReadSessionStorage = 2,
+        NONUSRACT_BrowserCannotWriteLocalStorage = 3,
+        NONUSRACT_BrowserCannotWriteSessionStorage = 4,
+        NONUSRACT_BrowserFailedRemovalFromLocalStorage = 5,
+        NONUSRACT_BrowserFailedRemovalFromSessionStorage = 6,
+        NONUSRACT_CannotSendEmptyTelemetry = 7,
+        NONUSRACT_ClientPerformanceMathError = 8,
+        NONUSRACT_ErrorParsingAISessionCookie = 9,
+        NONUSRACT_ErrorPVCalc = 10,
+        NONUSRACT_ExceptionWhileLoggingError = 11,
+        NONUSRACT_FailedAddingTelemetryToBuffer = 12,
+        NONUSRACT_FailedMonitorAjaxAbort = 13,
+        NONUSRACT_FailedMonitorAjaxDur = 14,
+        NONUSRACT_FailedMonitorAjaxOpen = 15,
+        NONUSRACT_FailedMonitorAjaxRSC = 16,
+        NONUSRACT_FailedMonitorAjaxSend = 17,
+        NONUSRACT_FailedToAddHandlerForOnBeforeUnload = 18,
+        NONUSRACT_FailedToSendQueuedTelemetry = 19,
+        NONUSRACT_FailedToReportDataLoss = 20,
+        NONUSRACT_FlushFailed = 21,
+        NONUSRACT_MessageLimitPerPVExceeded = 22,
+        NONUSRACT_MissingRequiredFieldSpecification = 23,
+        NONUSRACT_NavigationTimingNotSupported = 24,
+        NONUSRACT_OnError = 25,
+        NONUSRACT_SessionRenewalDateIsZero = 26,
+        NONUSRACT_SenderNotInitialized = 27,
+        NONUSRACT_StartTrackEventFailed = 28,
+        NONUSRACT_StopTrackEventFailed = 29,
+        NONUSRACT_StartTrackFailed = 30,
+        NONUSRACT_StopTrackFailed = 31,
+        NONUSRACT_TelemetrySampledAndNotSent = 32,
+        NONUSRACT_TrackEventFailed = 33,
+        NONUSRACT_TrackExceptionFailed = 34,
+        NONUSRACT_TrackMetricFailed = 35,
+        NONUSRACT_TrackPVFailed = 36,
+        NONUSRACT_TrackPVFailedCalc = 37,
+        NONUSRACT_TrackTraceFailed = 38,
+        NONUSRACT_TransmissionFailed = 39,
+        USRACT_CannotSerializeObject = 40,
+        USRACT_CannotSerializeObjectNonSerializable = 41,
+        USRACT_CircularReferenceDetected = 42,
+        USRACT_ClearAuthContextFailed = 43,
+        USRACT_ExceptionTruncated = 44,
+        USRACT_IllegalCharsInName = 45,
+        USRACT_ItemNotInArray = 46,
+        USRACT_MaxAjaxPerPVExceeded = 47,
+        USRACT_MessageTruncated = 48,
+        USRACT_NameTooLong = 49,
+        USRACT_SampleRateOutOfRange = 50,
+        USRACT_SetAuthContextFailed = 51,
+        USRACT_SetAuthContextFailedAccountName = 52,
+        USRACT_StringValueTooLong = 53,
+        USRACT_StartCalledMoreThanOnce = 54,
+        USRACT_StopCalledWithoutStart = 55,
+        USRACT_TelemetryInitializerFailed = 56,
+        USRACT_TrackArgumentsNotSpecified = 57,
+        USRACT_UrlTooLong = 58,
+    }
+    class _InternalLogMessage {
+        message: string;
+        messageId: _InternalMessageId;
+        constructor(msgId: _InternalMessageId, msg: string, properties?: Object);
+        private static sanitizeDiagnosticText(text);
+    }
     class _InternalLogging {
         private static AiUserActionablePrefix;
+        private static AIInternalMessagePrefix;
         private static AiNonUserActionablePrefix;
         static enableDebugExceptions: () => boolean;
         static verboseLogging: () => boolean;
         static queue: any[];
         private static MAX_INTERNAL_MESSAGE_LIMIT;
         private static _messageCount;
-        static throwInternalNonUserActionable(severity: LoggingSeverity, message: string): void;
-        static throwInternalUserActionable(severity: LoggingSeverity, message: string): void;
+        static throwInternalNonUserActionable(severity: LoggingSeverity, message: _InternalLogMessage): void;
+        static throwInternalUserActionable(severity: LoggingSeverity, message: _InternalLogMessage): void;
         static warnToConsole(message: string): void;
         static resetInternalMessageCount(): void;
+        static clearInternalMessageLoggedTypes(): void;
         static setMaxInternalMessageLimit(limit: number): void;
-        static logInternalMessage(severity: LoggingSeverity, message: string): void;
+        private static logInternalMessage(severity, message);
         private static _areInternalMessagesThrottled();
     }
 }
@@ -24,17 +93,19 @@ declare module Microsoft.ApplicationInsights {
     class Util {
         private static document;
         static NotSpecified: string;
-        private static _getStorageObject();
+        private static _getLocalStorageObject();
+        private static _getVerifiedStorageObject(storageType);
         static canUseLocalStorage(): boolean;
         static getStorage(name: string): string;
         static setStorage(name: string, data: string): boolean;
         static removeStorage(name: string): boolean;
         private static _getSessionStorageObject();
         static canUseSessionStorage(): boolean;
+        static getSessionStorageKeys(): string[];
         static getSessionStorage(name: string): string;
         static setSessionStorage(name: string, data: string): boolean;
         static removeSessionStorage(name: string): boolean;
-        static setCookie(name: any, value: any): void;
+        static setCookie(name: any, value: any, domain?: any): void;
         static stringToBoolOrDefault(str: any): boolean;
         static getCookie(name: any): string;
         static deleteCookie(name: string): void;
@@ -44,9 +115,11 @@ declare module Microsoft.ApplicationInsights {
         static isError(obj: any): boolean;
         static isDate(obj: any): boolean;
         static toISOStringForIE8(date: Date): string;
+        static getIEVersion(userAgentStr?: string): number;
         static msToTimeSpan(totalms: number): string;
         static isCrossOriginError(message: string, url: string, lineNumber: number, columnNumber: number, error: Error): boolean;
         static dump(object: any): string;
+        static getExceptionName(object: any): string;
         static addEventHandler(eventName: string, callback: any): boolean;
     }
     class UrlHelper {
@@ -102,6 +175,8 @@ declare module Microsoft.ApplicationInsights {
         originalOnreadystatechage: any;
         xhrMonitoringState: XHRMonitoringState;
         clientFailure: number;
+        id: string;
+        constructor(id: string);
         getAbsoluteUrl(): string;
         getPathName(): string;
         CalculateMetrics: () => void;
@@ -115,6 +190,7 @@ declare module Microsoft.ApplicationInsights {
         private appInsights;
         private initialized;
         private static instrumentedByAppInsightsName;
+        private currentWindowHost;
         constructor(appInsights: Microsoft.ApplicationInsights.AppInsights);
         private Init();
         static DisabledPropertyName: string;
@@ -128,6 +204,14 @@ declare module Microsoft.ApplicationInsights {
         private instrumentAbort();
         private attachToOnReadyStateChange(xhr);
         private onAjaxComplete(xhr);
+    }
+}
+declare module Microsoft.ApplicationInsights {
+    class HashCodeScoreGenerator {
+        static INT_MAX_VALUE: number;
+        private static MIN_INPUT_LENGTH;
+        getHashCodeScore(key: string): number;
+        getHashCode(input: string): number;
     }
 }
 declare module Microsoft.ApplicationInsights {
@@ -298,14 +382,15 @@ declare module Microsoft.ApplicationInsights.Context {
 }
 declare module Microsoft.ApplicationInsights {
     class SamplingScoreGenerator {
-        static INT_MAX_VALUE: number;
-        static getScore(envelope: Telemetry.Common.Envelope): number;
-        static getSamplingHashCode(input: string): number;
+        private hashCodeGeneragor;
+        constructor();
+        getSamplingScore(envelope: Telemetry.Common.Envelope): number;
     }
 }
 declare module Microsoft.ApplicationInsights.Context {
     class Sample {
         sampleRate: number;
+        private samplingScoreGenerator;
         INT_MAX_VALUE: number;
         constructor(sampleRate: number);
         isSampledIn(envelope: Telemetry.Common.Envelope): boolean;
@@ -321,6 +406,7 @@ declare module Microsoft.ApplicationInsights.Context {
     interface ISessionConfig {
         sessionRenewalMs: () => number;
         sessionExpirationMs: () => number;
+        cookieDomain: () => string;
     }
     class Session {
         id: string;
@@ -333,8 +419,7 @@ declare module Microsoft.ApplicationInsights.Context {
         static renewalSpan: number;
         automaticSession: Session;
         config: ISessionConfig;
-        _sessionHandler: (sessionState: AI.SessionState, timestamp: number) => void;
-        constructor(config: ISessionConfig, sessionHandler: (sessionState: AI.SessionState, timestamp: number) => void);
+        constructor(config: ISessionConfig);
         update(): void;
         backup(): void;
         private initializeAutomaticSession();
@@ -349,6 +434,7 @@ declare module Microsoft.ApplicationInsights.Context {
         static cookieSeparator: string;
         static userCookieName: string;
         static authUserCookieName: string;
+        config: ITelemetryConfig;
         id: string;
         authenticatedId: string;
         accountId: string;
@@ -357,8 +443,25 @@ declare module Microsoft.ApplicationInsights.Context {
         storeRegion: string;
         setAuthenticatedUserContext(authenticatedUserId: string, accountId?: string): void;
         clearAuthenticatedUserContext(): void;
-        constructor(accountId: string);
+        constructor(config: ITelemetryConfig);
         private validateUserInput(id);
+    }
+}
+declare module Microsoft.ApplicationInsights {
+    class DataLossAnalyzer {
+        static enabled: boolean;
+        static appInsights: Microsoft.ApplicationInsights.AppInsights;
+        static issuesReportedForThisSession: any;
+        static LIMIT_PER_SESSION: number;
+        static ITEMS_QUEUED_KEY: string;
+        static ISSUES_REPORTED_KEY: string;
+        static reset(): void;
+        private static isEnabled();
+        static getIssuesReported(): number;
+        static incrementItemsQueued(): void;
+        static decrementItemsQueued(countOfItemsSentSuccessfully: number): void;
+        static getNumberOfLostItems(): number;
+        static reportLostItems(): void;
     }
 }
 interface XDomainRequest extends XMLHttpRequestEventTarget {
@@ -369,7 +472,6 @@ interface XDomainRequest extends XMLHttpRequestEventTarget {
 declare var XDomainRequest: {
     prototype: XDomainRequest;
     new (): XDomainRequest;
-    create(): XDomainRequest;
 };
 declare module Microsoft.ApplicationInsights {
     interface ISenderConfig {
@@ -384,17 +486,23 @@ declare module Microsoft.ApplicationInsights {
         private _lastSend;
         private _timeoutHandle;
         _config: ISenderConfig;
-        _sender: (payload: string, isAsync: boolean) => void;
+        _sender: (payload: string, isAsync: boolean, numberOfItemsInPayload: number) => void;
         constructor(config: ISenderConfig);
         send(envelope: Telemetry.Common.Envelope): void;
         private _getSizeInBytes(list);
         triggerSend(async?: boolean): void;
-        private _xhrSender(payload, isAsync);
+        private _xhrSender(payload, isAsync, countOfItemsInPayload);
         private _xdrSender(payload, isAsync);
-        static _xhrReadyStateChange(xhr: XMLHttpRequest, payload: string): void;
+        static _xhrReadyStateChange(xhr: XMLHttpRequest, payload: string, countOfItemsInPayload: number): void;
         static _xdrOnLoad(xdr: XDomainRequest, payload: string): void;
         static _onError(payload: string, message: string, event?: ErrorEvent): void;
-        static _onSuccess(payload: string): void;
+        static _onSuccess(payload: string, countOfItemsInPayload: number): void;
+    }
+}
+declare module Microsoft.ApplicationInsights {
+    class SplitTest {
+        private hashCodeGeneragor;
+        isEnabled(key: string, percentEnabled: number): boolean;
     }
 }
 declare module Microsoft.Telemetry {
@@ -524,6 +632,19 @@ declare module Microsoft.ApplicationInsights.Telemetry {
         constructor(exception: Error, handledAt?: string, properties?: Object, measurements?: Object);
         static CreateSimpleException(message: string, typeName: string, assembly: string, fileName: string, details: string, line: number, handledAt?: string): Telemetry.Exception;
     }
+    class _StackFrame extends AI.StackFrame implements ISerializable {
+        static regex: RegExp;
+        static baseSize: number;
+        sizeInBytes: number;
+        aiDataContract: {
+            level: FieldType;
+            method: FieldType;
+            assembly: FieldType;
+            fileName: FieldType;
+            line: FieldType;
+        };
+        constructor(frame: string, level: number);
+    }
 }
 declare module AI {
     class MetricData extends Microsoft.Telemetry.Domain {
@@ -650,24 +771,6 @@ declare module Microsoft.ApplicationInsights.Telemetry {
         static getDuration(start: any, end: any): number;
     }
 }
-declare module AI {
-    class SessionStateData extends Microsoft.Telemetry.Domain {
-        ver: number;
-        state: AI.SessionState;
-        constructor();
-    }
-}
-declare module Microsoft.ApplicationInsights.Telemetry {
-    class SessionTelemetry extends AI.SessionStateData implements ISerializable {
-        static envelopeType: string;
-        static dataType: string;
-        aiDataContract: {
-            ver: FieldType;
-            state: FieldType;
-        };
-        constructor(state: AI.SessionState);
-    }
-}
 declare module Microsoft.ApplicationInsights {
     interface ITelemetryConfig extends ISenderConfig {
         instrumentationKey: () => string;
@@ -675,8 +778,8 @@ declare module Microsoft.ApplicationInsights {
         sessionRenewalMs: () => number;
         sessionExpirationMs: () => number;
         sampleRate: () => number;
-        appUserId: () => string;
         endpointUrl: () => string;
+        cookieDomain: () => string;
     }
     class TelemetryContext {
         _config: ITelemetryConfig;
@@ -692,10 +795,9 @@ declare module Microsoft.ApplicationInsights {
         private telemetryInitializers;
         _sessionManager: Microsoft.ApplicationInsights.Context._SessionManager;
         constructor(config: ITelemetryConfig);
-        addTelemetryInitializer(telemetryInitializer: (envelope: Telemetry.Common.Envelope) => void): void;
+        addTelemetryInitializer(telemetryInitializer: (envelope: Telemetry.Common.Envelope) => boolean): void;
         track(envelope: Telemetry.Common.Envelope): Telemetry.Common.Envelope;
         private _track(envelope);
-        private static _sessionHandler(tc, sessionState, timestamp);
         private _applyApplicationContext(envelope, appContext);
         private _applyDeviceContext(envelope, deviceContext);
         private _applyInternalContext(envelope, internalContext);
@@ -790,6 +892,7 @@ declare module Microsoft.ApplicationInsights.Telemetry {
         static envelopeType: string;
         static dataType: string;
         aiDataContract: {
+            id: FieldType;
             ver: FieldType;
             name: FieldType;
             kind: FieldType;
@@ -807,7 +910,7 @@ declare module Microsoft.ApplicationInsights.Telemetry {
             properties: FieldType;
             resultCode: FieldType;
         };
-        constructor(name: string, commandName: string, value: number, success: boolean, resultCode: number);
+        constructor(id: string, name: string, commandName: string, value: number, success: boolean, resultCode: number);
     }
 }
 declare module Microsoft.ApplicationInsights {
@@ -817,7 +920,6 @@ declare module Microsoft.ApplicationInsights {
         endpointUrl: string;
         emitLineDelimitedJson: boolean;
         accountId: string;
-        appUserId: string;
         sessionRenewalMs: number;
         sessionExpirationMs: number;
         maxBatchSizeInBytes: number;
@@ -832,6 +934,10 @@ declare module Microsoft.ApplicationInsights {
         disableAjaxTracking: boolean;
         overridePageViewDuration: boolean;
         maxAjaxCallsPerView: number;
+        disableDataLossAnalysis: boolean;
+        disableCorrelationHeaders: boolean;
+        disableFlushOnBeforeUnload: boolean;
+        cookieDomain: string;
     }
     interface IAppInsightsInternal {
         sendPageViewInternal(name?: string, url?: string, duration?: number, properties?: Object, measurements?: Object): any;
@@ -856,7 +962,7 @@ declare module Microsoft.ApplicationInsights {
         startTrackEvent(name: string): void;
         stopTrackEvent(name: string, properties?: Object, measurements?: Object): void;
         trackEvent(name: string, properties?: Object, measurements?: Object): void;
-        trackAjax(absoluteUrl: string, pathName: string, totalTime: number, success: boolean, resultCode: number): void;
+        trackAjax(id: string, absoluteUrl: string, pathName: string, totalTime: number, success: boolean, resultCode: number): void;
         trackException(exception: Error, handledAt?: string, properties?: Object, measurements?: Object): void;
         trackMetric(name: string, average: number, sampleCount?: number, min?: number, max?: number, properties?: Object): void;
         trackTrace(message: string, properties?: Object): void;
@@ -902,6 +1008,13 @@ declare module AI {
         url: string;
         properties: any;
         measurements: any;
+        constructor();
+    }
+}
+declare module AI {
+    class SessionStateData extends Microsoft.Telemetry.Domain {
+        ver: number;
+        state: AI.SessionState;
         constructor();
     }
 }
