@@ -239,22 +239,51 @@ export class TestCaseView {
                 action: null,
                 currentFields: this._fields
             };
+        var dlgContent = $("#columnOptionsDlg").clone();
+        dlgContent.show();
+        dlgContent.find("#columnOptionsDlg").show();
+      
 
-        VSS.getService<IHostDialogService>(VSS.ServiceIds.Dialog).then(
-            dialogService=> {
-                var extensionCtx = VSS.getExtensionContext();
-                // Build absolute contribution id for dialogContent
-                var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".columnOptionsForm";
+        var options: Dialogs.IModalDialogOptions = {
+            width: 800,
+            height:500,
+            title: "Column Options",
+            content: dlgContent,
+            okCallback: (result: any) => {
+                $("<li />").text(result).appendTo(".person-list");
+            }
+        };
 
-                // Show dialog
-                var dialogOptions = {
-                    title: "Column Options",
-                    width: 800,
-                    height: 600
-                };
 
-                dialogService.openDialog(contributionId, dialogOptions, contributionConfig);
-            });
+        var dialog = Dialogs.show(Dialogs.ModalDialog, options);
+
+        //var dialogElement = dialog.getElement();
+        //// Monitor input changes
+        //dialogElement.on("input", "input", (e: JQueryEventObject) => {
+        //    // Set dialog result
+        //    dialog.setDialogResult(getValue(dialogElement));
+        //    // Update enabled status of ok button
+        //    dialog.updateOkButton(!isEmpty(dialogElement));
+        //});
+         
+
+       
+
+        //VSS.getService<IHostDialogService>(VSS.ServiceIds.Dialog).then(
+        //    dialogService=> {
+        //        var extensionCtx = VSS.getExtensionContext();
+        //        // Build absolute contribution id for dialogContent
+        //        var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".columnOptionsForm";
+
+        //        // Show dialog
+        //        var dialogOptions = {
+        //            title: "Column Options",
+        //            width: 800,
+        //            height: 600
+        //        };
+
+        //        dialogService.openDialog(contributionId, dialogOptions, contributionConfig);
+        //    });
     }
 
     private initFilter(view: TestCaseView) {

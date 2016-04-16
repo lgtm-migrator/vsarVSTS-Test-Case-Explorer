@@ -182,3 +182,38 @@
     border: 1px solid transparent;
     border-bottom: 0;
 }
+
+.list-container {
+    position: absolute;
+    left: 0px;
+    top: 23px;
+    right: 4em;
+    bottom: 0px;
+}
+.availble {
+    position: absolute;
+    left: 0px;
+    right: 50%;
+    top: 0px;
+    bottom: 0px;
+}
+.selected {
+    position: absolute;
+    left: 50%;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+}
+
+.column-options {
+    position: relative;
+    height: 100%;
+}
+
+.content {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+}

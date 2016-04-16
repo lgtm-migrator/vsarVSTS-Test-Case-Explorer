@@ -126,5 +126,64 @@
             </div>
         </div>
     </div>
+    <div id="columnOptionsDlg" style="display:none">
+        <div class="column-options no-sort">
+
+            <div class="columns">
+                <div class="content display">
+
+                    <div class="availble">
+                        <div class="header">
+                            <label for="display-available-list">Available columns</label>
+                        </div>
+                        <div id="grid-column-source" class="list-container"></div>
+                        <button id="cmdAdd">
+                            <span class="ui-button-text">
+                                <span class="icon icon-next-2"></span>
+                            </span>
+                        </button>
+                        <button id="cmdRemove">
+                            <span class="ui-button-text">
+                                <span class="icon icon-prev-2"></span>
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="selected">
+                        <div class="header">
+                            <label for="display-selected-list">Selected columns</label>
+                        </div>
+                        <div id="grid-selected-columns" class="list-container"></div>
+                        <div class="buttons">
+                            <div>
+                                <button id="cmdUp" title="Move Column Up" disabled="" class="move-up ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only ui-button-disabled ui-state-disabled" role="button">
+                                    <span class="ui-button-text">
+                                        <span class="icon icon-up"></span>
+                                    </span>
+                                </button>
+                            </div>
+                            <div>
+                                <button id="cmdDown" title="Move Column Down" disabled="" class="move-down ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only ui-button-disabled ui-state-disabled" role="button">
+                                    <span class="ui-button-text">
+                                        <span class="icon icon-down"></span>
+                                    </span>
+                                </button>
+                            </div>
+                            <br>
+                            <div title="Width" class="width-container">
+                                <label for="column-width">Width</label>
+                            </div>
+                            <div>
+                                <input disabled="" class="width textbox disabled" id="column-width" type="text">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+
+
+            </div>
 </body>
 </html>
