@@ -83,7 +83,7 @@ export class TestCaseView {
         this._selectedValue = value;
         this._showRecursive = showRecursive;
         this._selectedValueWithField = null;
-        this._fields = this._commonField;
+        
 
         var fieldLst:string[] = this._fields.map(f=> { return f.field });
 
@@ -171,7 +171,7 @@ export class TestCaseView {
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
         TelemetryClient.getClient().trackPageView("TestCaseView");
         this._paneToggler = paneToggler;
-
+        
         this._fields = this._commonField;
         this.initMenu(this, paneToggler);
         this.initFilter(this);
@@ -229,17 +229,10 @@ export class TestCaseView {
 
 
     private opedColumnOptionsDlg() {
+        var view = this;
         var extensionContext = VSS.getExtensionContext();
 
-        var opts = {
-            title: "Column options",
-            buttons: null
-        };
-        var contributionConfig =
-            {
-                action: null,
-                currentFields: this._fields
-            };
+     
         var dlgContent = $("#columnOptionsDlg").clone();
         dlgContent.show();
         dlgContent.find("#columnOptionsDlg").show();
@@ -254,12 +247,24 @@ export class TestCaseView {
             title: "Column Options",
             content: dlgContent,
             okCallback: (result: any) => {
-                $("<li />").text(result).appendTo(".person-list");
+                view._fields = coView.GetSelectedColumns();
+                view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
             }
         };
 
 
         var dialog = Dialogs.show(Dialogs.ModalDialog, options);
+        dialog.updateOkButton(true);
+        dialog.setDialogResult(true);
+
+        //var dialogElement = dialog.getElement();
+        //// Monitor input changes
+        //dialogElement.on("change", "select", (e: JQueryEventObject) => {
+        //    // Set dialog result
+        //    dialog.setDialogResult(true );
+        //    // Update enabled status of ok button
+        //    dialog.updateOkButton(true);
+        //});
 
         //var dialogElement = dialog.getElement();
         //// Monitor input changes
