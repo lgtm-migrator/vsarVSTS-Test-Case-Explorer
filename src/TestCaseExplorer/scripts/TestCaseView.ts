@@ -169,10 +169,15 @@ export class TestCaseView {
     }
 
     public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
+        var view = this;
         TelemetryClient.getClient().trackPageView("TestCaseView");
         this._paneToggler = paneToggler;
         
         this._fields = this._commonField;
+        this.loadColumnsSettings().then(
+            userColumns=> {
+                view._fields = userColumns;
+            });
         this.initMenu(this, paneToggler);
         this.initFilter(this);
         this.initGrid(this, selectCallBack);
@@ -249,6 +254,7 @@ export class TestCaseView {
             okCallback: (result: any) => {
                 view._fields = coView.GetSelectedColumns();
                 view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
+                view.saveColumnsSettings()
             }
         };
 
@@ -257,42 +263,41 @@ export class TestCaseView {
         dialog.updateOkButton(true);
         dialog.setDialogResult(true);
 
-        //var dialogElement = dialog.getElement();
-        //// Monitor input changes
-        //dialogElement.on("change", "select", (e: JQueryEventObject) => {
-        //    // Set dialog result
-        //    dialog.setDialogResult(true );
-        //    // Update enabled status of ok button
-        //    dialog.updateOkButton(true);
-        //});
+    }
 
-        //var dialogElement = dialog.getElement();
-        //// Monitor input changes
-        //dialogElement.on("input", "input", (e: JQueryEventObject) => {
-        //    // Set dialog result
-        //    dialog.setDialogResult(getValue(dialogElement));
-        //    // Update enabled status of ok button
-        //    dialog.updateOkButton(!isEmpty(dialogElement));
-        //});
-         
+    private saveColumnsSettings() {
+        var view = this;
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
+            dataService => {
+                // Set value in user scope
+                dataService.setValue("SelectedColumns_" + VSS.getWebContext().project.id, JSON.stringify(view._fields), { scopeType: "User" });
+            });
+    
+    }
 
-       
+    private loadColumnsSettings(): IPromise<Common.ICustomColumnDef[]> {
+        var view = this;
+        var deferred = $.Deferred<Common.ICustomColumnDef[]>();
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
+            dataService => {
+                // Set value in user scope
+                dataService.getValue("SelectedColumns_" + VSS.getWebContext().project.id).then(
+                    data=> {
+                        if (data != undefined) {
+                            deferred.resolve(JSON.parse(<string>data));
+                        }
+                        else {
+                            deferred.resolve(view._commonField);
+                        }
+                    },
+                    err=> {
+                        deferred.resolve(view._commonField);
+                    });
+                
+            });
 
-        //VSS.getService<IHostDialogService>(VSS.ServiceIds.Dialog).then(
-        //    dialogService=> {
-        //        var extensionCtx = VSS.getExtensionContext();
-        //        // Build absolute contribution id for dialogContent
-        //        var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".columnOptionsForm";
 
-        //        // Show dialog
-        //        var dialogOptions = {
-        //            title: "Column Options",
-        //            width: 800,
-        //            height: 600
-        //        };
-
-        //        dialogService.openDialog(contributionId, dialogOptions, contributionConfig);
-        //    });
+        return deferred.promise();
     }
 
     private initFilter(view: TestCaseView) {
