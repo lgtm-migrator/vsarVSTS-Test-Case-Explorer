@@ -92,13 +92,13 @@ export class TestCaseView {
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path, showRecursive, fieldLst);
                 title = "Test cases with area path: " + value.path;
                 this._selectedValueWithField = { "System.AreaPath": value.path };
-                this._fields = this._fields.concat([{ field: "System.AreaPath", name: "Area Path", width: 200 }]);
+                this._fields =  Common.MergeColumnLists(this._fields, [{ field: "System.AreaPath", name: "Area Path", width: 200 }]);
                 break;
             case "Iteration path":
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path, showRecursive, fieldLst);
                 title = "Test cases with iteration path: " + value.path;
                 this._selectedValueWithField = { "System.IterationPath": value.path };
-                this._fields = this._fields.concat([{ field: "System.IterationPath", name: "Iteration Path", width: 200 }]);
+                this._fields = Common.MergeColumnLists( this._fields, [{ field: "System.IterationPath", name: "Iteration Path", width: 200 }]);
                 break;
             case "Priority":
                 var priority: string = "any";
@@ -120,7 +120,7 @@ export class TestCaseView {
             case "Test plan":
                 
                 promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, fieldLst , showRecursive);
-                this._fields = this._fields.concat([{ field: "Present.In.Suite", name: "Present in suites", width: 150 }]);
+                this._fields =  Common.MergeColumnLists(this._fields, [{ field: "Present.In.Suite", name: "Present in suites", width: 150 }]);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
 
                 break;
@@ -136,7 +136,7 @@ export class TestCaseView {
                         { field: "Outcome", name: "Last Outcome", width: 100, getCellContents: Common.getTestResultCellContent },
                         { field: "TestedDate", name: "Last tested date", width: 150 }];
 
-                    view._fields = outcomeFields.concat(view._fields);
+                    view._fields = Common.MergeColumnLists(view._fields, outcomeFields);
 
                     TestCaseDataService.getTestResultsForTestCases(view._data.map(i=> { return i["System.Id"]; })).then(
                         data=> {

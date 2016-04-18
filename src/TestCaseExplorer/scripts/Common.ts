@@ -41,3 +41,13 @@ export interface ICustomColumnDef {
     width: number;
     getCellContents?: any;
 }
+
+export function MergeColumnLists(lst1: ICustomColumnDef[], lst2: ICustomColumnDef[]): ICustomColumnDef[] {
+    var a = lst1.concat(lst2)
+
+    var seen = {};
+    return a.filter(item=> {
+        return seen.hasOwnProperty(item.field) ? false : (seen[item.field] = true);
+    });
+    
+}
