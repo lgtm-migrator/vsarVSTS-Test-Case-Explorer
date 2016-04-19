@@ -97,6 +97,8 @@ export class ColumnOptionsView {
                 view.lstSelectedColumns.append($('<option>').val(f.field).text(f.name + " [" + f.width + "]").attr("columnWidth", f.width));
             });
         
+        view.lstAvailbleFields.on("dblclick", e=> { view.removeColumn() }); 
+
         this.lstSelectedColumns.change(e=> {
 
             view.lstSelectedColumns.find(':selected').each(function (i, o) {
@@ -154,23 +156,9 @@ export class ColumnOptionsView {
         });
         
         this.content.find('#cmdRemove').click(e => {
+            view.removeColumn();
 
-
-            view.lstSelectedColumns.find(':selected').each(function (i, selected) {
-                var txt = $(selected).text();
-                var refName = $(selected).val();
            
-                txt = txt.substring(0, txt.indexOf("[") - 1);
-
-                //Remove old
-                view.lstSelectedColumns.find("option:eq(" + $(selected).index() + ")").remove();
-
-                //Add to first list 
-                view.lstAvailbleFields.append($('<option>').val(refName).text(txt));
-              
-                view.sortSelectOptions();
-                
-            });
         });        
     }
 
@@ -195,6 +183,26 @@ export class ColumnOptionsView {
             txt = txt + " [" + defWidth + "]";
             view.lstSelectedColumns.append($('<option>').val(refName).text(txt).attr("columnWidth", defWidth));
             view.lstAvailbleFields.find("option:eq(" + $(selected).index() + ")").remove();
+        });
+    }
+
+    private removeColumn() {
+        var view = this;
+
+        view.lstSelectedColumns.find(':selected').each(function (i, selected) {
+            var txt = $(selected).text();
+            var refName = $(selected).val();
+
+            txt = txt.substring(0, txt.indexOf("[") - 1);
+
+            //Remove old
+            view.lstSelectedColumns.find("option:eq(" + $(selected).index() + ")").remove();
+
+            //Add to first list 
+            view.lstAvailbleFields.append($('<option>').val(refName).text(txt));
+
+            view.sortSelectOptions();
+
         });
     }
 

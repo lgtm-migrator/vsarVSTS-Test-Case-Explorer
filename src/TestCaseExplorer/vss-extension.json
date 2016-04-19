@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "id": "DEV-TestCaseExplorer",
-  "version": "0.0.1.1",
+  "version": "0.0.1.2",
   "name": "DEV://Test Case Explorer",
   "description": "Manage your test cases better. Find, filter, analyze usage of test cases, and more.",
   "publisher": "mskold",
