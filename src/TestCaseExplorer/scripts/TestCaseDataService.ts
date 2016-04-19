@@ -22,6 +22,7 @@ import TestClient = require("TFS/TestManagement/RestClient");
 import TestContracts = require("TFS/TestManagement/Contracts");
 import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
+import Common = require("scripts/Common");
 import Q = require("q");
 
 export enum filterMode {
@@ -287,7 +288,7 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
     //    wiql += f + ", ";
     //});
     //wiql = wiql.substr(0, wiql.lastIndexOf(", "));
-    wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP 'Test Case Category'  " + (wiqlWhere ? " AND " + wiqlWhere : "") + " ORDER BY [System.Id]";
+    wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().TestCaseCategoryName + "'  " + (wiqlWhere ? " AND " + wiqlWhere : "") + " ORDER BY [System.Id]";
 
     workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(
         result => {

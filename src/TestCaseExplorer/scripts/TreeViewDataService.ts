@@ -21,6 +21,8 @@ import TestClient = require("TFS/TestManagement/RestClient");
 import WITClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
 
+import Common = require("scripts/Common");
+
 export function getNodes(param) {
 
     switch (param) {
@@ -288,7 +290,7 @@ function getPrioriy(): IPromise<TreeView.TreeNode[]> {
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var client = WITClient.getClient();
-    client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
+    client.getWorkItemType(VSS.getWebContext().project.name, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(data=> {
         var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
 
         deferred.resolve(convertToTreeNodes(d, ""));

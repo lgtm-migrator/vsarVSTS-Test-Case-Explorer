@@ -31,8 +31,11 @@ import CoreUtils = require("VSS/Utils/Core");
 import CtrlCombos = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
 import TestCaseDataService = require("scripts/TestCaseDataService");
+import Common = require("scripts/Common");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
+
+
 
 export class TestCaseView {
 
@@ -166,7 +169,7 @@ export class TestCaseView {
                         break;
                     case "new-testcase":
                         WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
-                            workItemService.openNewWorkItem("Test Case", view._selectedValueWithField);
+                            workItemService.openNewWorkItem(Common.WIQLConstants.getWiqlConstants().TestCaseTypeName, view._selectedValueWithField);
                         });
                         break;
                     case "refresh":
@@ -461,4 +464,4 @@ function getSelectedWorkItemIds(grid: Grids.Grid): any[] {
     }
     return ids;
 };
-var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP 'Test Case Category') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [Source].[System.Id] mode(DoesNotContain)"
+var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().TestCaseCategoryName + "') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().RequirementsCategoryName+ "') ORDER BY [Source].[System.Id] mode(DoesNotContain)"
