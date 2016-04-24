@@ -216,61 +216,94 @@ export class TreeviewView {
                 treeview._setNodeExpansion(n, elem, true);
             });
 
-            $("li.node").droppable({
-                scope: "test-case-scope",
-                greedy: true,
-                tolerance: "pointer",
-                hoverClass: "droppable-hover",
-
-                drop: function (event, ui) {
-                    var n = treeview.getNodeFromElement(event.target);
-
-                    var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
-                    var field=null, value;
-                    switch (view._currentSource) {
-                        case "Area path":
-                            field = "System.AreaPath";
-                            value = n.config.path;
-                            break;
-                        case "Iteration path":
-                            field = "System.IterationPath";
-                            value = n.config.path;
-                            break;
-                        case "Priority":
-                            field = "Microsoft.VSTS.Common.Priority";
-                            value = n.config.name;
-                            break;
-                        case "State":
-                            field = "System.State";
-                            value = n.config.name;
-                            break;
-                    }
-
-                    if (field != null) {
-                        var noRemainingAssign = tcIds.length;
-
-                        tcIds.forEach(id => {
-                            var itemDiv = ui.helper.find("." + id);
-                            var txt = itemDiv.text();
-                            itemDiv.text("Saving " + txt);
-                            TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(
-                                data => {
-                                    noRemainingAssign--;
-                                    if (noRemainingAssign == 0) {
-                                        view.RefreshGrid()
-                                    }
-                                    itemDiv.text("Saved" + txt);;
-                                },
-                                err => {
-                                    alert(err);
-                                });
-                        });
-                    }
-                    else {
-                        alert("Not supported in this version");
-                    }
-                }
+            $("li.node").draggable({
+                revert: "invalid",
+                appendTo: document.body,
+                helper: "clone",
+                zIndex: 1000,
+                cursor: "move",
+                cursorAt: { top: -5, left: -5 },
+                //scope: TFS_Agile.DragDropScopes.ProductBacklog,
+                //start: this._draggableStart,
+                //stop: this._draggableStop,
+                //helper: this._draggableHelper,
+                //drag: this._draggableDrag,
+                refreshPositions: true                               
             });
+
+            $("li.node").droppable({
+                drop: handleDropEvent
+            });
+
+            function handleDropEvent(event, ui) {
+                var draggable = ui.draggable;
+                alert('The item with ID "' + draggable.attr('id') + '" was dropped onto me!');
+            }
+
+            //$("li.node").droppable({
+            //    scope: "TCExplorer.TreeView",
+            //    greedy: true,
+            //    tolerance: "pointer",
+            //    drop: function (event, ui) {
+            //        alert("drop!");
+            //    }
+            //});
+
+            //$("li.node").droppable({
+            //    scope: "test-case-scope",
+            //    greedy: true,
+            //    tolerance: "pointer",
+            //    hoverClass: "droppable-hover",
+
+            //    drop: function (event, ui) {
+            //        var n = treeview.getNodeFromElement(event.target);
+
+            //        var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
+            //        var field=null, value;
+            //        switch (view._currentSource) {
+            //            case "Area path":
+            //                field = "System.AreaPath";
+            //                value = n.config.path;
+            //                break;
+            //            case "Iteration path":
+            //                field = "System.IterationPath";
+            //                value = n.config.path;
+            //                break;
+            //            case "Priority":
+            //                field = "Microsoft.VSTS.Common.Priority";
+            //                value = n.config.name;
+            //                break;
+            //            case "State":
+            //                field = "System.State";
+            //                value = n.config.name;
+            //                break;
+            //        }
+
+            //        if (field != null) {
+            //            var noRemainingAssign = tcIds.length;
+
+            //            tcIds.forEach(id => {
+            //                var itemDiv = ui.helper.find("." + id);
+            //                var txt = itemDiv.text();
+            //                itemDiv.text("Saving " + txt);
+            //                TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(
+            //                    data => {
+            //                        noRemainingAssign--;
+            //                        if (noRemainingAssign == 0) {
+            //                            view.RefreshGrid()
+            //                        }
+            //                        itemDiv.text("Saved" + txt);;
+            //                    },
+            //                    err => {
+            //                        alert(err);
+            //                    });
+            //            });
+            //        }
+            //        else {
+            //            alert("Not supported in this version");
+            //        }
+            //    }
+            //});
             deferred.resolve(data);
         });
         return deferred.promise();
