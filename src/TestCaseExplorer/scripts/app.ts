@@ -16,6 +16,11 @@
 /// <reference path='ref/jquery/jquery.d.ts' />
 /// <reference path='ref/VSS.d.ts' />
 
+
+import Common = require("scripts/Common");
+Common.WIQLConstants.getWiqlConstants();
+
+
 import DetailsToggle = require("scripts/DetailsToggle");
 var paneToggler = new DetailsToggle.DetailsPaneToggler();
 

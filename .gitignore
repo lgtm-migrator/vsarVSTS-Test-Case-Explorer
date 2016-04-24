@@ -214,3 +214,4 @@ ModelManifest.xml
 src/TestCaseExplorer/scripts/*.js
 src/TestCaseExplorer/scripts/*.map
 
+/src/TestCaseExplorer/*.vsix
