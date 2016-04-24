@@ -266,6 +266,7 @@ export class TestCaseView {
             $dragTile.append($dragItemCount).append($dragItemType);
         }
 
+        $dragTile.data("DROP_ACTION", "ASSOCIATE");
         $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds);
         $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
         $dragTile.text(event.ctrlKey == true ? "Clone" : "Attach" + " " + selectedWorkItemIds.join("; "));

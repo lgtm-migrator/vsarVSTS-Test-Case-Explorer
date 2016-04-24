@@ -164,6 +164,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     treeview._setNodeExpansion(n, elem, true);
                 });
                 $("li.node").draggable({
+                    //           scope: "TCExplorer.TreeView",
                     revert: "invalid",
                     appendTo: document.body,
                     helper: function (event, ui) {
@@ -171,8 +172,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         var $dragTile;
                         var draggableItemText, numOfSelectedItems;
                         var dummy = {};
-                        dummy["System.Id"] = 100;
-                        dummy["System.Title"] = "Clone helper";
+                        dummy["SuiteId"] = view._treeview.getSelectedNode().id;
+                        dummy["Title"] = view._treeview.getSelectedNode().text;
+                        dummy["PlanId"] = view._treeview.getSelectedNode().config;
+                        dummy["Icon"] = view._treeview.getSelectedNode().icon;
                         var selectedWorkItemIds = [dummy];
                         numOfSelectedItems = selectedWorkItemIds.length;
                         $dragTile = $("<div />")
@@ -182,21 +185,25 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             .text(numOfSelectedItems);
                         var $dragType = $("<span />")
                             .addClass("drag-tile-drag-type")
-                            .text(event.ctrlKey == true ? "Clone" : "Attach");
+                            .text(event.ctrlKey == true ? "Copy" : "Clone");
                         var $dragHead = $("<div />")
                             .addClass("drag-tile-head")
                             .append($dragType)
                             .append($dragItemCount);
                         $dragTile.append($dragHead);
-                        $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(function (i) { return i["System.Id"]; }));
+                        $dragTile.data("DROP_ACTION", "CLONE");
+                        $dragTile.data("SUITE_ID", selectedWorkItemIds.map(function (i) { return i["SuiteId"]; }));
                         $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
                         var $dragLst = $("<div />")
                             .addClass("drag-tile-list");
                         selectedWorkItemIds.forEach(function (r) {
-                            var id = r["System.Id"];
-                            $dragLst.append($("<div />")
-                                .addClass(id.toString())
-                                .text(id + " " + r["System.Title"]));
+                            var id = r["SuiteId"];
+                            $dragLst.append($("<span />").append($("<span />")
+                                .addClass("icon")
+                                .addClass("tree-node-img ")
+                                .addClass(r["Icon"])
+                                .text("h"))
+                                .text(id + " " + r["Title"]));
                         });
                         $dragTile.append($dragLst);
                         return $dragTile;
@@ -211,75 +218,87 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     //drag: this._draggableDrag,
                     refreshPositions: true
                 });
-                $("li.node").droppable({
-                    drop: handleDropEvent
-                });
-                function handleDropEvent(event, ui) {
-                    var draggable = ui.draggable;
-                    alert('The item with ID "' + draggable.attr('id') + '" was dropped onto me!');
-                }
                 //$("li.node").droppable({
                 //    scope: "TCExplorer.TreeView",
-                //    greedy: true,
-                //    tolerance: "pointer",
-                //    drop: function (event, ui) {
-                //        alert("drop!");
-                //    }
+                //    drop: handleDropEvent
                 //});
-                //$("li.node").droppable({
-                //    scope: "test-case-scope",
-                //    greedy: true,
-                //    tolerance: "pointer",
-                //    hoverClass: "droppable-hover",
-                //    drop: function (event, ui) {
-                //        var n = treeview.getNodeFromElement(event.target);
-                //        var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
-                //        var field=null, value;
-                //        switch (view._currentSource) {
-                //            case "Area path":
-                //                field = "System.AreaPath";
-                //                value = n.config.path;
-                //                break;
-                //            case "Iteration path":
-                //                field = "System.IterationPath";
-                //                value = n.config.path;
-                //                break;
-                //            case "Priority":
-                //                field = "Microsoft.VSTS.Common.Priority";
-                //                value = n.config.name;
-                //                break;
-                //            case "State":
-                //                field = "System.State";
-                //                value = n.config.name;
-                //                break;
-                //        }
-                //        if (field != null) {
-                //            var noRemainingAssign = tcIds.length;
-                //            tcIds.forEach(id => {
-                //                var itemDiv = ui.helper.find("." + id);
-                //                var txt = itemDiv.text();
-                //                itemDiv.text("Saving " + txt);
-                //                TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(
-                //                    data => {
-                //                        noRemainingAssign--;
-                //                        if (noRemainingAssign == 0) {
-                //                            view.RefreshGrid()
-                //                        }
-                //                        itemDiv.text("Saved" + txt);;
-                //                    },
-                //                    err => {
-                //                        alert(err);
-                //                    });
-                //            });
-                //        }
-                //        else {
-                //            alert("Not supported in this version");
-                //        }
-                //    }
-                //});
+                //function handleDropEvent(event, ui) {
+                //    var draggable = ui.draggable;
+                //    alert('The item with ID "' + draggable.attr('id') + '" was dropped onto me!');
+                //}
+                ////$("li.node").droppable({
+                ////    scope: "TCExplorer.TreeView",
+                ////    greedy: true,
+                ////    tolerance: "pointer",
+                ////    drop: function (event, ui) {
+                ////        alert("drop!");
+                ////    }
+                ////});
+                $("li.node").droppable({
+                    //         scope: "test-case-scope",
+                    greedy: true,
+                    tolerance: "pointer",
+                    hoverClass: "droppable-hover",
+                    drop: function (event, ui) {
+                        var n = treeview.getNodeFromElement(event.target);
+                        var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
+                        switch (action) {
+                            case "ASSOCIATE":
+                                view.AssociateTestCase(ui, n);
+                                break;
+                            case "CLONE":
+                                alert("Code to do cloning");
+                                break;
+                        }
+                    }
+                });
                 deferred.resolve(data);
             });
             return deferred.promise();
+        };
+        TreeviewView.prototype.AssociateTestCase = function (ui, n) {
+            var view = this;
+            var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
+            var field = null, value;
+            switch (view._currentSource) {
+                case "Area path":
+                    field = "System.AreaPath";
+                    value = n.config.path;
+                    break;
+                case "Iteration path":
+                    field = "System.IterationPath";
+                    value = n.config.path;
+                    break;
+                case "Priority":
+                    field = "Microsoft.VSTS.Common.Priority";
+                    value = n.config.name;
+                    break;
+                case "State":
+                    field = "System.State";
+                    value = n.config.name;
+                    break;
+            }
+            if (field != null) {
+                var noRemainingAssign = tcIds.length;
+                tcIds.forEach(function (id) {
+                    var itemDiv = ui.helper.find("." + id);
+                    var txt = itemDiv.text();
+                    itemDiv.text("Saving " + txt);
+                    TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(function (data) {
+                        noRemainingAssign--;
+                        if (noRemainingAssign == 0) {
+                            view.RefreshGrid();
+                        }
+                        itemDiv.text("Saved" + txt);
+                        ;
+                    }, function (err) {
+                        alert(err);
+                    });
+                });
+            }
+            else {
+                alert("Not supported in this version");
+            }
         };
         return TreeviewView;
     }());

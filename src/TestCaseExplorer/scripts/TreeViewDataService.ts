@@ -122,7 +122,7 @@ export function getTestPlans(): IPromise<TreeView.TreeNode[]> {
         var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
 
         data.forEach(function (t) {
-            tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [] }], ""));
+            tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [], testPlanId: t.rootSuite.id }], ""));
         });
         tRoot[0].expanded = true;
         deferred.resolve(tRoot);
@@ -320,7 +320,7 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
         node.icon = item.icon;
 
         node.id = item.id;
-        node.config = { name: item.name, path: itemPath };
+        node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
 
         node.expanded = item.expanded;
         if (item.children && item.children.length > 0) {

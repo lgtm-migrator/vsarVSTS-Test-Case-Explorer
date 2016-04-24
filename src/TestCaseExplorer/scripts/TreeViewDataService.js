@@ -110,7 +110,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
             var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
             data.forEach(function (t) {
-                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [] }], ""));
+                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [], testPlanId: t.rootSuite.id }], ""));
             });
             tRoot[0].expanded = true;
             deferred.resolve(tRoot);
@@ -267,7 +267,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             var node = new TreeView.TreeNode(item.name);
             node.icon = item.icon;
             node.id = item.id;
-            node.config = { name: item.name, path: itemPath };
+            node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
             node.expanded = item.expanded;
             if (item.children && item.children.length > 0) {
                 node.addRange(convertToTreeNodes(item.children, itemPath));
