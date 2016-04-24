@@ -217,6 +217,7 @@ export class TreeviewView {
             });
 
             $("li.node").draggable({
+                scope: "TCExplorer.TreeView",
                 revert: "invalid",
                 appendTo: document.body,
                 helper: function (event, ui) {
@@ -277,6 +278,7 @@ export class TreeviewView {
             });
 
             $("li.node").droppable({
+                scope: "TCExplorer.TreeView",
                 drop: handleDropEvent
             });
 
@@ -294,61 +296,61 @@ export class TreeviewView {
             //    }
             //});
 
-            //$("li.node").droppable({
-            //    scope: "test-case-scope",
-            //    greedy: true,
-            //    tolerance: "pointer",
-            //    hoverClass: "droppable-hover",
+            $("li.node").droppable({
+                scope: "test-case-scope",
+                greedy: true,
+                tolerance: "pointer",
+                hoverClass: "droppable-hover",
 
-            //    drop: function (event, ui) {
-            //        var n = treeview.getNodeFromElement(event.target);
+                drop: function (event, ui) {
+                    var n = treeview.getNodeFromElement(event.target);
 
-            //        var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
-            //        var field=null, value;
-            //        switch (view._currentSource) {
-            //            case "Area path":
-            //                field = "System.AreaPath";
-            //                value = n.config.path;
-            //                break;
-            //            case "Iteration path":
-            //                field = "System.IterationPath";
-            //                value = n.config.path;
-            //                break;
-            //            case "Priority":
-            //                field = "Microsoft.VSTS.Common.Priority";
-            //                value = n.config.name;
-            //                break;
-            //            case "State":
-            //                field = "System.State";
-            //                value = n.config.name;
-            //                break;
-            //        }
+                    var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
+                    var field=null, value;
+                    switch (view._currentSource) {
+                        case "Area path":
+                            field = "System.AreaPath";
+                            value = n.config.path;
+                            break;
+                        case "Iteration path":
+                            field = "System.IterationPath";
+                            value = n.config.path;
+                            break;
+                        case "Priority":
+                            field = "Microsoft.VSTS.Common.Priority";
+                            value = n.config.name;
+                            break;
+                        case "State":
+                            field = "System.State";
+                            value = n.config.name;
+                            break;
+                    }
 
-            //        if (field != null) {
-            //            var noRemainingAssign = tcIds.length;
+                    if (field != null) {
+                        var noRemainingAssign = tcIds.length;
 
-            //            tcIds.forEach(id => {
-            //                var itemDiv = ui.helper.find("." + id);
-            //                var txt = itemDiv.text();
-            //                itemDiv.text("Saving " + txt);
-            //                TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(
-            //                    data => {
-            //                        noRemainingAssign--;
-            //                        if (noRemainingAssign == 0) {
-            //                            view.RefreshGrid()
-            //                        }
-            //                        itemDiv.text("Saved" + txt);;
-            //                    },
-            //                    err => {
-            //                        alert(err);
-            //                    });
-            //            });
-            //        }
-            //        else {
-            //            alert("Not supported in this version");
-            //        }
-            //    }
-            //});
+                        tcIds.forEach(id => {
+                            var itemDiv = ui.helper.find("." + id);
+                            var txt = itemDiv.text();
+                            itemDiv.text("Saving " + txt);
+                            TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(
+                                data => {
+                                    noRemainingAssign--;
+                                    if (noRemainingAssign == 0) {
+                                        view.RefreshGrid()
+                                    }
+                                    itemDiv.text("Saved" + txt);;
+                                },
+                                err => {
+                                    alert(err);
+                                });
+                        });
+                    }
+                    else {
+                        alert("Not supported in this version");
+                    }
+                }
+            });
             deferred.resolve(data);
         });
         return deferred.promise();
