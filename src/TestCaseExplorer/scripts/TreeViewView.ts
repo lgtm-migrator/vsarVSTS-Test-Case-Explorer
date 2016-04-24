@@ -219,7 +219,52 @@ export class TreeviewView {
             $("li.node").draggable({
                 revert: "invalid",
                 appendTo: document.body,
-                helper: "clone",
+                helper: function (event, ui) {
+                    //TODO - VISUAL for CLONE suite..
+                    var $dragTile;
+                    var draggableItemText, numOfSelectedItems;
+                    var dummy = {};
+                    dummy["System.Id"] = 100;
+                    dummy["System.Title"] = "Clone helper";
+
+                    var selectedWorkItemIds = [dummy];
+
+                    numOfSelectedItems = selectedWorkItemIds.length;
+                    $dragTile = $("<div />")
+                        .addClass("drag-tile")
+
+                    var $dragItemCount = $("<div />")
+                        .addClass("drag-tile-item-count")
+                        .text(numOfSelectedItems);
+                    var $dragType = $("<span />")
+                        .addClass("drag-tile-drag-type")
+                        .text(event.ctrlKey == true ? "Clone" : "Attach");
+
+                    var $dragHead = $("<div />")
+                        .addClass("drag-tile-head")
+                        .append($dragType)
+                        .append($dragItemCount);
+
+                    $dragTile.append($dragHead);
+                    $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i => { return i["System.Id"]; }));
+                    $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
+
+                    var $dragLst = $("<div />")
+                        .addClass("drag-tile-list")
+
+                    selectedWorkItemIds.forEach(r => {
+                        var id = r["System.Id"];
+                        $dragLst.append(
+                            $("<div />")
+                                .addClass(id.toString())
+                                .text(id + " " + r["System.Title"])
+                        );
+                    });
+                    $dragTile.append($dragLst);
+
+                    return $dragTile;
+                },
+
                 zIndex: 1000,
                 cursor: "move",
                 cursorAt: { top: -5, left: -5 },
