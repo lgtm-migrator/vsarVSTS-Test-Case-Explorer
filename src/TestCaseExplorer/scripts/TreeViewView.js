@@ -176,8 +176,8 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         dummy["Title"] = view._treeview.getSelectedNode().text;
                         dummy["PlanId"] = view._treeview.getSelectedNode().config;
                         dummy["Icon"] = view._treeview.getSelectedNode().icon;
-                        var selectedWorkItemIds = [dummy];
-                        numOfSelectedItems = selectedWorkItemIds.length;
+                        var selectedSuites = [dummy];
+                        numOfSelectedItems = selectedSuites.length;
                         $dragTile = $("<div />")
                             .addClass("drag-tile");
                         var $dragItemCount = $("<div />")
@@ -192,18 +192,19 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             .append($dragItemCount);
                         $dragTile.append($dragHead);
                         $dragTile.data("DROP_ACTION", "CLONE");
-                        $dragTile.data("SUITE_ID", selectedWorkItemIds.map(function (i) { return i["SuiteId"]; }));
+                        $dragTile.data("SUITE_ID", selectedSuites.map(function (i) { return i["SuiteId"]; }));
                         $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
                         var $dragLst = $("<div />")
                             .addClass("drag-tile-list");
-                        selectedWorkItemIds.forEach(function (r) {
+                        selectedSuites.forEach(function (r) {
                             var id = r["SuiteId"];
                             $dragLst.append($("<span />").append($("<span />")
                                 .addClass("icon")
                                 .addClass("tree-node-img ")
                                 .addClass(r["Icon"])
                                 .text("h"))
-                                .text(id + " " + r["Title"]));
+                                .text(id + " " + r["Title"])
+                                .addClass(id));
                         });
                         $dragTile.append($dragLst);
                         return $dragTile;
@@ -247,7 +248,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                                 view.AssociateTestCase(ui, n);
                                 break;
                             case "CLONE":
-                                alert("Code to do cloning");
+                                view.CloneTestSuite(ui, n);
                                 break;
                         }
                     }
@@ -299,6 +300,22 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             else {
                 alert("Not supported in this version");
             }
+        };
+        TreeviewView.prototype.CloneTestSuite = function (ui, n) {
+            var view = this;
+            var suiteId = ui.helper.data("SUITE_ID");
+            var itemDiv = ui.helper.find("." + suiteId);
+            var txt = itemDiv.text();
+            itemDiv.text("Saving " + txt);
+            //TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(
+            //    data => {
+            //      // DO REFRESH TREEVIEW 
+            //        view.RefreshGrid()
+            //        itemDiv.text("Saved" + txt);;
+            //    },
+            //    err => {
+            //        alert(err);
+            //    });
         };
         return TreeviewView;
     }());

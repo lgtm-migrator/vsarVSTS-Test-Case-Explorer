@@ -230,9 +230,9 @@ export class TreeviewView {
                     dummy["PlanId"] = view._treeview.getSelectedNode().config;
                     dummy["Icon"] = view._treeview.getSelectedNode().icon;
 
-                    var selectedWorkItemIds = [dummy];
+                    var selectedSuites = [dummy];
 
-                    numOfSelectedItems = selectedWorkItemIds.length;
+                    numOfSelectedItems = selectedSuites.length;
                     $dragTile = $("<div />")
                         .addClass("drag-tile")
 
@@ -250,13 +250,13 @@ export class TreeviewView {
 
                     $dragTile.append($dragHead);
                     $dragTile.data("DROP_ACTION", "CLONE");
-                    $dragTile.data("SUITE_ID", selectedWorkItemIds.map(i => { return i["SuiteId"]; }));
+                    $dragTile.data("SUITE_ID", selectedSuites.map(i => { return i["SuiteId"]; }));
                     $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
 
                     var $dragLst = $("<div />")
                         .addClass("drag-tile-list")
 
-                    selectedWorkItemIds.forEach(r => {
+                    selectedSuites.forEach(r => {
                         var id = r["SuiteId"];
                         $dragLst.append(
                             $("<span />").append(
@@ -265,8 +265,9 @@ export class TreeviewView {
                                     .addClass("tree-node-img ")
                                     .addClass(r["Icon"])
                                     .text("h")
-                                )
-                            .text(id + " " + r["Title"])
+                            )
+                                .text(id + " " + r["Title"])
+                                .addClass(id)
 
                         );
                     });
@@ -319,7 +320,7 @@ export class TreeviewView {
                             view.AssociateTestCase(ui, n);
                             break;
                         case "CLONE":
-                            alert("Code to do cloning");
+                            view.CloneTestSuite(ui,n);
                             break;
 
                     }
@@ -378,6 +379,28 @@ export class TreeviewView {
             alert("Not supported in this version");
         }
 
+    }
+
+
+
+    public CloneTestSuite(ui, n) {
+        var view = this;
+
+        var suiteId = ui.helper.data("SUITE_ID");
+        var itemDiv = ui.helper.find("." + suiteId);
+        var txt = itemDiv.text();
+        itemDiv.text("Saving " + txt);
+
+        //TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(
+        //    data => {
+        //      // DO REFRESH TREEVIEW 
+        //        view.RefreshGrid()
+        //        itemDiv.text("Saved" + txt);;
+        //    },
+        //    err => {
+        //        alert(err);
+        //    });
+       
     }
 }
 
