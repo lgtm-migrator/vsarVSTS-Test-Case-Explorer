@@ -12,8 +12,7 @@
 //    for the tree view.
 // </summary>
 //---------------------------------------------------------------------
-define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView"], function (require, exports, Contracts, TestClient, WITClient, TreeView) {
-    "use strict";
+define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "scripts/Common"], function (require, exports, Contracts, TestClient, WITClient, TreeView, Common) {
     function getNodes(param) {
         switch (param) {
             case "Area path":
@@ -110,7 +109,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
             var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
             data.forEach(function (t) {
-                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [], testPlanId: t.rootSuite.id }], ""));
+                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [] }], ""));
             });
             tRoot[0].expanded = true;
             deferred.resolve(tRoot);
@@ -241,7 +240,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     function getPrioriy() {
         var deferred = $.Deferred();
         var client = WITClient.getClient();
-        client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
+        client.getWorkItemType(VSS.getWebContext().project.name, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(function (data) {
             var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
             deferred.resolve(convertToTreeNodes(d, ""));
         });
@@ -267,7 +266,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             var node = new TreeView.TreeNode(item.name);
             node.icon = item.icon;
             node.id = item.id;
-            node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
+            node.config = { name: item.name, path: itemPath };
             node.expanded = item.expanded;
             if (item.children && item.children.length > 0) {
                 node.addRange(convertToTreeNodes(item.children, itemPath));
