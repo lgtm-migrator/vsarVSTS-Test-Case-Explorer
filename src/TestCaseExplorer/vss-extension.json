@@ -5,7 +5,7 @@
   "name": "DEV://Test Case Explorer",
   "description": "Manage your test cases better. Find, filter, analyze usage of test cases, and more.",
   "publisher": "mskold",
-
+   "baseUri": "https://localhost:44300/",
   "scopes": [
     "vso.work_write",
     "vso.test_write",
