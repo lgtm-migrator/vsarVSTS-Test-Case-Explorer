@@ -172,8 +172,10 @@ export class TestCaseView {
         var view = this;
         TelemetryClient.getClient().trackPageView("TestCaseView");
         this._paneToggler = paneToggler;
-        
+
         this._fields = this._commonField;
+        
+        
         this.loadColumnsSettings().then(
             userColumns=> {
                 view._fields = userColumns;
@@ -290,13 +292,41 @@ export class TestCaseView {
                             deferred.resolve(view._commonField);
                         }
                     },
-                    err=> {
-                        deferred.resolve(view._commonField);
+                    err => {
+                        view.localizeCommonFields().then(
+                            cmflds => {
+                                view._commonField = view._commonField;
+                                deferred.resolve(view._commonField);
+                            },
+                            err => {
+                                deferred.resolve(view._commonField);
+                            });
+
+                        
                     });
                 
             });
 
 
+        return deferred.promise();
+    }
+
+    private localizeCommonFields(): IPromise<Common.ICustomColumnDef[]> {
+        var view = this;
+        var deferred = $.Deferred<Common.ICustomColumnDef[]>();
+        var witClient: WorkItemClient.WorkItemTrackingHttpClient3 = WorkItemClient.getClient();
+        var ctx = VSS.getWebContext();
+        witClient.getWorkItemType(ctx.project.id, "Test Case").then(
+            wit => {
+                view._commonField.forEach(f => {
+                    f.name = wit["fieldInstances"].filter(i => { return i.refName = f.field })[0].name;
+                })
+                deferred.resolve(view._commonField);
+            },
+            err => {
+                deferred.resolve(view._commonField);
+            }
+        );
         return deferred.promise();
     }
 

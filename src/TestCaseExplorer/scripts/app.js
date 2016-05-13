@@ -13,7 +13,6 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "scripts/DetailsToggle", "scripts/DetailsView", "scripts/TestCaseView", "scripts/TreeViewView", "VSS/Controls", "VSS/Controls/Splitter"], function (require, exports, DetailsToggle, DetailsView, TestCaseView, TreeViewView, Controls, SplitterControls) {
-    "use strict";
     var paneToggler = new DetailsToggle.DetailsPaneToggler();
     var dv = new DetailsView.DetailsView();
     var tc = new TestCaseView.TestCaseView();
