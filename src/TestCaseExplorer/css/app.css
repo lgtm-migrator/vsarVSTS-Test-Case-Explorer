@@ -190,7 +190,7 @@
     right: 4em;
     bottom: 0px;
 }
-.availble {
+.columns .availble {
     position: absolute;
     left: 0px;
     right: 50%;
@@ -198,6 +198,14 @@
     bottom: 0px;
 }
 
+
+.columns .selected {
+    position: absolute;
+    left: 50%;
+    right: 0px;
+    top: 0px;
+    bottom: 0px;
+}
 
 .column-options {
     position: relative;

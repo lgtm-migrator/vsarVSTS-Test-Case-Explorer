@@ -83,7 +83,6 @@ export class TestCaseView {
         this._selectedValue = value;
         this._showRecursive = showRecursive;
         this._selectedValueWithField = null;
-        this._fields = this._commonField;
 
         var fieldLst:string[] = this._fields.map(f=> { return f.field });
 
@@ -120,7 +119,7 @@ export class TestCaseView {
             case "Test plan":
                 
                 promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, fieldLst , showRecursive);
-                this._fields =  Common.MergeColumnLists(this._fields, [{ field: "Present.In.Suite", name: "Present in suites", width: 150 }]);
+                this._fields =  Common.MergeColumnLists(this._fields, [{ field: "TC::Present.In.Suite", name: "Present in suites", width: 150 }]);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
 
                 break;
