@@ -12,7 +12,7 @@
 //    for the tree view.
 // </summary>
 //---------------------------------------------------------------------
-define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView"], function (require, exports, Contracts, TestClient, WITClient, TreeView) {
+define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "scripts/Common"], function (require, exports, Contracts, TestClient, WITClient, TreeView, Common) {
     function getNodes(param) {
         switch (param) {
             case "Area path":
@@ -215,7 +215,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     function getPrioriy() {
         var deferred = $.Deferred();
         var client = WITClient.getClient();
-        client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
+        client.getWorkItemType(VSS.getWebContext().project.name, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(function (data) {
             var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
             deferred.resolve(convertToTreeNodes(d, ""));
         });

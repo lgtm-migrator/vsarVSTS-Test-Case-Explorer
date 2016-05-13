@@ -83,7 +83,7 @@ export class TestCaseView {
         this._selectedValue = value;
         this._showRecursive = showRecursive;
         this._selectedValueWithField = null;
-        
+        this._fields = this._commonField;
 
         var fieldLst:string[] = this._fields.map(f=> { return f.field });
 
@@ -207,7 +207,7 @@ export class TestCaseView {
                         break;
                     case "new-testcase":
                         WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
-                            workItemService.openNewWorkItem("Test Case", view._selectedValueWithField);
+                            workItemService.openNewWorkItem(Common.WIQLConstants.getWiqlConstants().TestCaseTypeName, view._selectedValueWithField);
                         });
                         break;
                     case "latestTestResult":
@@ -607,4 +607,4 @@ function getSelectedWorkItemIds(grid: Grids.Grid): any[] {
     }
     return ids;
 };
-var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP 'Test Case Category') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP 'Requirement Category') ORDER BY [Source].[System.Id] mode(DoesNotContain)"
+var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().TestCaseCategoryName + "') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().RequirementsCategoryName+ "') ORDER BY [Source].[System.Id] mode(DoesNotContain)"

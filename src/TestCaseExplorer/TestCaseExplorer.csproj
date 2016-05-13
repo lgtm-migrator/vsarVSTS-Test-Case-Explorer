@@ -47,8 +47,6 @@
     <Content Include="img\image4.png" />
     <Content Include="img\image5.png" />
     <Content Include="img\image6.png" />
-    <Content Include="img\TestOutcome.png" />
-    <Content Include="columnoptions.html" />
     <Content Include="MIT-1.txt" />
     <Content Include="css\app.css" />
     <Content Include="img\Child-node-icon.png">
@@ -70,7 +68,6 @@
   <ItemGroup>
     <TypeScriptCompile Include="scripts\ai.0.22.9-build00167.d.ts" />
     <TypeScriptCompile Include="scripts\app.ts" />
-    <TypeScriptCompile Include="scripts\ColumnsOptionsView.ts" />
     <TypeScriptCompile Include="scripts\Common.ts" />
     <TypeScriptCompile Include="scripts\DetailsToggle.ts" />
     <TypeScriptCompile Include="scripts\DetailsView.ts" />
@@ -111,12 +108,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="vss-extension.public.json" />
+    <Content Include="vss-extension.team.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="mp_terms.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="vss-extension.TRbeta.json" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\WebApplications\Microsoft.WebApplication.targets')" />
