@@ -289,7 +289,14 @@ export class TestCaseView {
                             deferred.resolve(JSON.parse(<string>data));
                         }
                         else {
-                            deferred.resolve(view._commonField);
+                            view.localizeCommonFields().then(
+                                cmflds => {
+                                    view._commonField = view._commonField;
+                                    deferred.resolve(view._commonField);
+                                },
+                                err => {
+                                    deferred.resolve(view._commonField);
+                                });
                         }
                     },
                     err => {
@@ -301,12 +308,9 @@ export class TestCaseView {
                             err => {
                                 deferred.resolve(view._commonField);
                             });
-
                         
                     });
-                
             });
-
 
         return deferred.promise();
     }
@@ -316,10 +320,10 @@ export class TestCaseView {
         var deferred = $.Deferred<Common.ICustomColumnDef[]>();
         var witClient: WorkItemClient.WorkItemTrackingHttpClient3 = WorkItemClient.getClient();
         var ctx = VSS.getWebContext();
-        witClient.getWorkItemType(ctx.project.id, "Test Case").then(
+        witClient.getWorkItemType(ctx.project.id, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(
             wit => {
                 view._commonField.forEach(f => {
-                    f.name = wit["fieldInstances"].filter(i => { return i.refName = f.field })[0].name;
+                    f.name = wit["fieldInstances"].filter(i => { return i.referenceName === f.field })[0].name;
                 })
                 deferred.resolve(view._commonField);
             },
