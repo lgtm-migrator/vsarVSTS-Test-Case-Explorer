@@ -41,7 +41,7 @@ export class ColumnOptionsView {
         var witClient:WorkItemClient.WorkItemTrackingHttpClient3 = WorkItemClient.getClient();
         var ctx = VSS.getWebContext();
 
-        witClient.getWorkItemType(ctx.project.id, "Test Case").then(
+        witClient.getWorkItemType(ctx.project.id, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(
             wit=> {
                 view._avaibleFields = wit["fieldInstances"] // wit.fields.map(f=> { return f.field; });
                 view.setupAvailbleGrid()
@@ -97,7 +97,7 @@ export class ColumnOptionsView {
                 view.lstSelectedColumns.append($('<option>').val(f.field).text(f.name + " [" + f.width + "]").attr("columnWidth", f.width));
             });
         
-        view.lstAvailbleFields.on("dblclick", e=> { view.removeColumn() }); 
+        view.lstSelectedColumns.on("dblclick", e=> { view.removeColumn() }); 
 
         this.lstSelectedColumns.change(e=> {
 
