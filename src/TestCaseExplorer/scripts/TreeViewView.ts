@@ -74,20 +74,20 @@ export class TreeviewView {
 
         //Hook up change for cbo to redraw treeview
         $("#treeview-Cbo-container").change(function () {
-            view.StartLoading(true, "Loading pivot data");
             view._currentSource = cbo.getText();
-            TelemetryClient.getClient().trackPageView("TreeView." + cbo.getText());
-            view.LoadTreeview(view._currentSource, treeview).then(a => {
-                view.DoneLoading()
-            });
+            view.updateTreeView();
+            //view.StartLoading(true, "Loading pivot data");
+            //view._currentSource = cbo.getText();
+            //TelemetryClient.getClient().trackPageView("TreeView." + cbo.getText());
+            //view.LoadTreeview(view._currentSource, treeview).then(a => {
+            //    view.DoneLoading()
+            //});
 
-            view._menubar.updateCommandStates([{ id: "refresh", hidden: (view._currentSource == "Test Plan") }]);
-
-            VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
-                dataService => {
-                    // Set value in user scope
-                    dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" });
-                });
+            //VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
+            //    dataService => {
+            //        // Set value in user scope
+            //        dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" });
+            //    });
         });
 
         view._treeview = treeview;
@@ -109,6 +109,20 @@ export class TreeviewView {
 
             })
         });
+    }
+
+    private updateTreeView() {
+        this.StartLoading(true, "Loading pivot data");
+        TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
+        this.LoadTreeview(this._currentSource, this._treeview).then(a => {
+            this.DoneLoading()
+        });
+
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
+            dataService => {
+                // Set value in user scope
+                dataService.setValue("SelectedPivot", this._currentSource, { scopeType: "User" });
+            });
     }
 
     private initMenu(view: TreeviewView) {
@@ -137,9 +151,7 @@ export class TreeviewView {
                         ExpandTree(view._treeview, false);
                         break;
                     case "refresh":
-                        view.LoadTreeview("Test plan", view._treeview).then(a => {
-                            view.DoneLoading()
-                        });
+                        view.updateTreeView();
                         break;
                     default:
                         alert("Unhandled action: " + command);

@@ -45,17 +45,19 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             };
             //Hook up change for cbo to redraw treeview
             $("#treeview-Cbo-container").change(function () {
-                view.StartLoading(true, "Loading pivot data");
                 view._currentSource = cbo.getText();
-                TelemetryClient.getClient().trackPageView("TreeView." + cbo.getText());
-                view.LoadTreeview(view._currentSource, treeview).then(function (a) {
-                    view.DoneLoading();
-                });
-                view._menubar.updateCommandStates([{ id: "refresh", hidden: (view._currentSource == "Test Plan") }]);
-                VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
-                    // Set value in user scope
-                    dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" });
-                });
+                view.updateTreeView();
+                //view.StartLoading(true, "Loading pivot data");
+                //view._currentSource = cbo.getText();
+                //TelemetryClient.getClient().trackPageView("TreeView." + cbo.getText());
+                //view.LoadTreeview(view._currentSource, treeview).then(a => {
+                //    view.DoneLoading()
+                //});
+                //VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
+                //    dataService => {
+                //        // Set value in user scope
+                //        dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" });
+                //    });
             });
             view._treeview = treeview;
             //Add toolbar
@@ -71,6 +73,18 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     cbo.setText(selectedPivot);
                     view.LoadTreeview(cbo.getText(), treeview);
                 });
+            });
+        };
+        TreeviewView.prototype.updateTreeView = function () {
+            var _this = this;
+            this.StartLoading(true, "Loading pivot data");
+            TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
+            this.LoadTreeview(this._currentSource, this._treeview).then(function (a) {
+                _this.DoneLoading();
+            });
+            VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+                // Set value in user scope
+                dataService.setValue("SelectedPivot", _this._currentSource, { scopeType: "User" });
             });
         };
         TreeviewView.prototype.initMenu = function (view) {
@@ -98,9 +112,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             ExpandTree(view._treeview, false);
                             break;
                         case "refresh":
-                            view.LoadTreeview("Test plan", view._treeview).then(function (a) {
-                                view.DoneLoading();
-                            });
+                            view.updateTreeView();
                             break;
                         default:
                             alert("Unhandled action: " + command);
