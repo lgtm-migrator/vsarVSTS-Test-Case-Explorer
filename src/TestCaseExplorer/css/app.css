@@ -197,13 +197,7 @@
     top: 0px;
     bottom: 0px;
 }
-.selected {
-    position: absolute;
-    left: 50%;
-    right: 0px;
-    top: 0px;
-    bottom: 0px;
-}
+
 
 .column-options {
     position: relative;
