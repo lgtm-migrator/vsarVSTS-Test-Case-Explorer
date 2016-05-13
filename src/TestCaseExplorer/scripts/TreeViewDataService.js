@@ -109,7 +109,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
             var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
             data.forEach(function (t) {
-                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [] }], ""));
+                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [], testPlanId: t.rootSuite.id }], ""));
             });
             tRoot[0].expanded = true;
             deferred.resolve(tRoot);
@@ -266,7 +266,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             var node = new TreeView.TreeNode(item.name);
             node.icon = item.icon;
             node.id = item.id;
-            node.config = { name: item.name, path: itemPath };
+            node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
             node.expanded = item.expanded;
             if (item.children && item.children.length > 0) {
                 node.addRange(convertToTreeNodes(item.children, itemPath));
@@ -275,5 +275,53 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         });
         return a;
     }
+    function cloneTestPlan(sourcePlanId, targetPlanId, targetSuiteId) {
+        var deferred = $.Deferred();
+        var testCaseClient = TestClient.getClient();
+        var teamProjectName = VSS.getWebContext().project.name;
+        testCaseClient.getPlanById(teamProjectName, targetPlanId).then(function (testPlan) {
+            var cloneRequest = {
+                cloneOptions: {
+                    cloneRequirements: false,
+                    copyAllSuites: true,
+                    copyAncestorHierarchy: false,
+                    overrideParameters: {},
+                    destinationWorkItemType: "Test Case",
+                    relatedLinkComment: "Comment"
+                },
+                suiteIds: [targetSuiteId],
+                destinationTestPlan: testPlan
+            };
+            testCaseClient.cloneTestPlan(cloneRequest, teamProjectName, sourcePlanId).then(function (result) {
+                console.log("Clone test plan completed: " + result.completionDate);
+            });
+        });
+        return deferred.promise();
+    }
+    exports.cloneTestPlan = cloneTestPlan;
+    function cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId) {
+        var deferred = $.Deferred();
+        var testCaseClient = TestClient.getClient();
+        var teamProjectName = VSS.getWebContext().project.name;
+        var cloneRequest = {
+            cloneOptions: {
+                cloneRequirements: false,
+                copyAllSuites: true,
+                copyAncestorHierarchy: false,
+                overrideParameters: {},
+                destinationWorkItemType: "Test Case",
+                relatedLinkComment: "Comment"
+            },
+            destinationSuiteId: targetSuiteId,
+            destinationSuiteProjectName: teamProjectName
+        };
+        // TODO: check if this API is incorrectly documented, suite and plan is in opposite order
+        // TODO: clone with hierarchy does not work
+        testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(function (result) {
+            console.log("Clone test suite completed: " + result.completionDate);
+        });
+        return deferred.promise();
+    }
+    exports.cloneTestSuite = cloneTestSuite;
 });
 //# sourceMappingURL=TreeViewDataService.js.map

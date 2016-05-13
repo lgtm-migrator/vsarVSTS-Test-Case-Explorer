@@ -18,6 +18,7 @@
 
 import Contracts = require("TFS/WorkItemTracking/Contracts");
 import TestClient = require("TFS/TestManagement/RestClient");
+import TestContracts = require("TFS/TestManagement/Contracts");
 import WITClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
 
@@ -331,4 +332,59 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
         a.push(node);
     });
     return a;
+}
+
+export function cloneTestPlan(sourcePlanId: number, targetPlanId: number, targetSuiteId: number) : IPromise< any > {
+    var deferred = $.Deferred<any[]>();
+    var testCaseClient = TestClient.getClient();
+
+    var teamProjectName = VSS.getWebContext().project.name;
+    testCaseClient.getPlanById(teamProjectName, targetPlanId).then(testPlan => {
+        var cloneRequest: TestContracts.TestPlanCloneRequest = {
+            cloneOptions: {
+                cloneRequirements: false,
+                copyAllSuites: true,
+                copyAncestorHierarchy: false,
+                overrideParameters: {},
+                destinationWorkItemType: "Test Case",
+                relatedLinkComment: "Comment"
+            },
+            suiteIds: [targetSuiteId],
+            destinationTestPlan: testPlan
+        };
+
+        testCaseClient.cloneTestPlan(cloneRequest, teamProjectName, sourcePlanId).then(result => {
+            console.log("Clone test plan completed: " + result.completionDate);
+        });
+    });
+    
+    return deferred.promise();
+}
+
+export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number) : IPromise<any> {
+    var deferred = $.Deferred<any[]>();
+    var testCaseClient = TestClient.getClient();
+
+    var teamProjectName = VSS.getWebContext().project.name;
+   
+    var cloneRequest: TestContracts.TestSuiteCloneRequest = {
+        cloneOptions: {
+            cloneRequirements: false,
+            copyAllSuites: true,
+            copyAncestorHierarchy: false,
+            overrideParameters: {},
+            destinationWorkItemType: "Test Case",
+            relatedLinkComment: "Comment"
+        },
+        destinationSuiteId: targetSuiteId,
+        destinationSuiteProjectName: teamProjectName
+    };
+
+    // TODO: check if this API is incorrectly documented, suite and plan is in opposite order
+    // TODO: clone with hierarchy does not work
+    testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(result => {
+        console.log("Clone test suite completed: " + result.completionDate);
+    });
+
+    return deferred.promise();
 }

@@ -72,7 +72,7 @@ export class TreeviewView {
             }
         };
 
-        //Hock up chnage for cbo to redraw treeview
+        //Hook up change for cbo to redraw treeview
         $("#treeview-Cbo-container").change(function () {
             view.StartLoading(true, "Loading pivot data");
             view._currentSource = cbo.getText();
@@ -80,6 +80,8 @@ export class TreeviewView {
             view.LoadTreeview(view._currentSource, treeview).then(a => {
                 view.DoneLoading()
             });
+
+            view._menubar.updateCommandStates([{ id: "refresh", hidden: (view._currentSource == "Test Plan") }]);
 
             VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
                 dataService => {
@@ -115,6 +117,7 @@ export class TreeviewView {
             { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "child-node-icon" },
             { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
             { id: "collapse-all", showText: false, title: "Collapse all", icon: "icon-tree-collapse-all" },
+            { id: "refresh", showText: false, title: "Refresh treeview", icon: "icon-refresh" }
         ];
 
         var menubarOptions = {
@@ -132,6 +135,11 @@ export class TreeviewView {
                         break;
                     case "collapse-all":
                         ExpandTree(view._treeview, false);
+                        break;
+                    case "refresh":
+                        view.LoadTreeview("Test plan", view._treeview).then(a => {
+                            view.DoneLoading()
+                        });
                         break;
                     default:
                         alert("Unhandled action: " + command);
@@ -250,6 +258,7 @@ export class TreeviewView {
 
                     $dragTile.append($dragHead);
                     $dragTile.data("DROP_ACTION", "CLONE");
+                    $dragTile.data("PLAN_ID", selectedSuites.map(i => { return i["PlanId"]; }));
                     $dragTile.data("SUITE_ID", selectedSuites.map(i => { return i["SuiteId"]; }));
                     $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
 
@@ -279,41 +288,16 @@ export class TreeviewView {
                 zIndex: 1000,
                 cursor: "move",
                 cursorAt: { top: -5, left: -5 },
-                //scope: TFS_Agile.DragDropScopes.ProductBacklog,
-                //start: this._draggableStart,
-                //stop: this._draggableStop,
-                //helper: this._draggableHelper,
-                //drag: this._draggableDrag,
-                refreshPositions: true                               
+               refreshPositions: true                               
             });
 
-            //$("li.node").droppable({
-            //    scope: "TCExplorer.TreeView",
-            //    drop: handleDropEvent
-            //});
-
-            //function handleDropEvent(event, ui) {
-            //    var draggable = ui.draggable;
-            //    alert('The item with ID "' + draggable.attr('id') + '" was dropped onto me!');
-            //}
-
-            ////$("li.node").droppable({
-            ////    scope: "TCExplorer.TreeView",
-            ////    greedy: true,
-            ////    tolerance: "pointer",
-            ////    drop: function (event, ui) {
-            ////        alert("drop!");
-            ////    }
-            ////});
-
             $("li.node").droppable({
-       //         scope: "test-case-scope",
                 greedy: true,
                 tolerance: "pointer",
                 hoverClass: "droppable-hover",
 
-                drop: function (event, ui) {
-                    var n = treeview.getNodeFromElement(event.target);
+                drop: function (event, ui: JQueryUI.DroppableEventUIParam) {
+                    var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
                     var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
                     switch (action) {
                         case "ASSOCIATE":
@@ -380,30 +364,42 @@ export class TreeviewView {
         }
 
     }
+    
+    public CloneTestSuite(ui: JQueryUI.DroppableEventUIParam, n: TreeView.TreeNode) {
 
-
-
-    public CloneTestSuite(ui, n) {
         var view = this;
-
-        var suiteId = ui.helper.data("SUITE_ID");
-        var itemDiv = ui.helper.find("." + suiteId);
+        var plan = ui.helper.data("PLAN_ID");
+        var sourcePlanId: number = plan[0].testPlanId;
+        var sourceSuiteId: number = ui.helper.data("SUITE_ID");
+        var mode = ui.helper.data("MODE");
+        var itemDiv = ui.helper.find("." +sourceSuiteId);
         var txt = itemDiv.text();
         itemDiv.text("Saving " + txt);
 
-        //TreeViewDataService.AssignTestCasesToField(VSS.getWebContext().project.name, id, field, value).then(
-        //    data => {
-        //      // DO REFRESH TREEVIEW 
-        //        view.RefreshGrid()
-        //        itemDiv.text("Saved" + txt);;
-        //    },
-        //    err => {
-        //        alert(err);
-        //    });
-       
+        var targetPlanId: number = n.config.testPlanId;
+        var targetSuiteId: number = n.config.suiteId;
+
+        console.log("plan id: " + sourcePlanId);
+        console.log("suite id: " + sourceSuiteId);
+        console.log("mode: " + mode);
+        console.log("target plan id: " + targetPlanId);
+        console.log("target suite id: " + targetSuiteId);
+
+        // TODO: kolla om det finns target suite med samma namn?
+        var node = new TreeView.TreeNode(n.config.name);
+
+        //node.icon = icon-from-source-node?;
+        //node.id = id-from-clone-op?;
+        //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
+        n.add(node);
+        view._treeview.updateNode(n);
+
+        TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
+            // TODO: update progress 
+            // TODO: refresh tree when complete
+        }); 
     }
 }
-
 
 function ExpandTree(tree: TreeView.TreeView, nodeExpansion: boolean) {
     UtilsUI.walkTree.call(tree.rootNode, n => {
