@@ -13,7 +13,6 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "scripts/Common"], function (require, exports, Contracts, TestClient, WITClient, TreeView, Common) {
-    "use strict";
     function getNodes(param) {
         switch (param) {
             case "Area path":

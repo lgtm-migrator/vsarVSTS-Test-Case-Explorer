@@ -245,7 +245,7 @@ export class TestCaseView {
       
         var coView: ColumnOptionsView.ColumnOptionsView = new ColumnOptionsView.ColumnOptionsView();
           
-        var fieldsToManage = this._fields.filter(f => { return f.indexOf("TC::") == -1 });
+        var fieldsToManage = this._fields.filter(f => { return f.field.indexOf("TC::") == -1 });
         coView.Init(dlgContent, fieldsToManage );
 
 
