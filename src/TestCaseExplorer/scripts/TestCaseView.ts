@@ -244,7 +244,9 @@ export class TestCaseView {
         dlgContent.find("#columnOptionsDlg").show();
       
         var coView: ColumnOptionsView.ColumnOptionsView = new ColumnOptionsView.ColumnOptionsView();
-        coView.Init(dlgContent, this._fields);
+          
+        var fieldsToManage = this._fields.filter(f => { return f.indexOf("TC::") == -1 });
+        coView.Init(dlgContent, fieldsToManage );
 
 
         var options: Dialogs.IModalDialogOptions = {
