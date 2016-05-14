@@ -245,6 +245,11 @@ export class TestCaseView {
       
         var coView: ColumnOptionsView.ColumnOptionsView = new ColumnOptionsView.ColumnOptionsView();
           
+        view._grid._columns.forEach(c => {
+            var f = view._fields.filter(f => { return f.field === c.index })[0];
+            f.width = c.width;
+        });
+
         var fieldsToManage = this._fields.filter(f => { return f.field.indexOf("TC::") == -1 });
         coView.Init(dlgContent, fieldsToManage );
 
@@ -284,7 +289,7 @@ export class TestCaseView {
         VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
             dataService => {
                 // Set value in user scope
-                dataService.getValue("SelectedColumns_" + VSS.getWebContext().project.id).then(
+                dataService.getValue("SelectedColumns_" + VSS.getWebContext().project.id, { scopeType: "User" }).then(
                     data=> {
                         if (data != undefined) {
                             deferred.resolve(JSON.parse(<string>data));
@@ -494,6 +499,7 @@ export class TestCaseView {
                     workItemService.openWorkItem(item["System.Id"]);
                 });
             }
+
         };
 
         // Create the grid in a container element
@@ -509,6 +515,7 @@ export class TestCaseView {
             }
 
         });
+        
     }
 
     public updateTogle(paneToggler) {
