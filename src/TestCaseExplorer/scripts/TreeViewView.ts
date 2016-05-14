@@ -296,18 +296,32 @@ export class TreeviewView {
 
                     return $dragTile;
                 },
-
+                drag: function (e: any, ui) {
+                    console.log("moving..." + e.ctrlKey);
+                    $(this).css("cursor", "move");
+                },
                 zIndex: 1000,
                 cursor: "move",
                 cursorAt: { top: -5, left: -5 },
-               refreshPositions: true                               
+                refreshPositions: true,
+                stop: function () {
+                    // Set all draggable parts back to revert: false
+                    // This fixes elements after drag was cancelled with ESC key
+                    //$("li.node").draggable("option", { revert: false });
+                }                               
+            });
+
+            $(document).keyup(function (e) {
+                if (e.which === 27 || e.keyCode === 27) {
+                    console.log("cancelling drag...");
+                    $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+                }
             });
 
             $("li.node").droppable({
                 greedy: true,
                 tolerance: "pointer",
                 hoverClass: "droppable-hover",
-
                 drop: function (event, ui: JQueryUI.DroppableEventUIParam) {
                     var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
                     var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
@@ -316,6 +330,14 @@ export class TreeviewView {
                             view.AssociateTestCase(ui, n);
                             break;
                         case "CLONE":
+                            if (event.ctrlKey) {
+                                // TODO: clone
+                                console.log("Drop + clone");
+                            }
+                            else {
+                                // TODO: move
+                                console.log("Drop + move");
+                            }
                             view.CloneTestSuite(ui,n);
                             break;
 
@@ -407,11 +429,15 @@ export class TreeviewView {
         //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
         n.add(node);
         view._treeview.updateNode(n);
-        if (confirm("Are you sure you want to clone '" + sourcePlanName + "' to '" + n.config.name + "'?" )) {
+        if (confirm("Are you sure you want to clone '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
             TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
                 // TODO: update progress 
                 // TODO: refresh tree when complete
-            }); 
+            });
+        }
+        else {
+            // TODO: best way to cancel drag?
+            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
         }
     }
 }

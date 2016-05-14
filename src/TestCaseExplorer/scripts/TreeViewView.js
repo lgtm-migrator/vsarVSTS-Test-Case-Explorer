@@ -228,10 +228,25 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         $dragTile.append($dragLst);
                         return $dragTile;
                     },
+                    drag: function (e, ui) {
+                        console.log("moving..." + e.ctrlKey);
+                        $(this).css("cursor", "move");
+                    },
                     zIndex: 1000,
                     cursor: "move",
                     cursorAt: { top: -5, left: -5 },
-                    refreshPositions: true
+                    refreshPositions: true,
+                    stop: function () {
+                        // Set all draggable parts back to revert: false
+                        // This fixes elements after drag was cancelled with ESC key
+                        //$("li.node").draggable("option", { revert: false });
+                    }
+                });
+                $(document).keyup(function (e) {
+                    if (e.which === 27 || e.keyCode === 27) {
+                        console.log("cancelling drag...");
+                        $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+                    }
                 });
                 $("li.node").droppable({
                     greedy: true,
@@ -245,6 +260,14 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                                 view.AssociateTestCase(ui, n);
                                 break;
                             case "CLONE":
+                                if (event.ctrlKey) {
+                                    // TODO: clone
+                                    console.log("Drop + clone");
+                                }
+                                else {
+                                    // TODO: move
+                                    console.log("Drop + move");
+                                }
                                 view.CloneTestSuite(ui, n);
                                 break;
                         }
@@ -328,6 +351,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     // TODO: update progress 
                     // TODO: refresh tree when complete
                 });
+            }
+            else {
+                // TODO: best way to cancel drag?
+                $("li.node").draggable({ 'revert': true }).trigger('mouseup');
             }
         };
         return TreeviewView;
