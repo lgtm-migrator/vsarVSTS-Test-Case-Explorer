@@ -188,6 +188,7 @@ export class TestCaseView {
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         var menuItems: any[] = [
             { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
+            { id: "open-testcase", showText: false, title: "Open test case", icon: "bowtie-arrow-open", cssClass: "bowtie-icon" },
             { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
             { separator: true },
             { id: "column-options", text: "Column options", title: "Choose columns for the grid", noIcon: true },
@@ -208,6 +209,12 @@ export class TestCaseView {
                     case "new-testcase":
                         WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
                             workItemService.openNewWorkItem(Common.WIQLConstants.getWiqlConstants().TestCaseTypeName, view._selectedValueWithField);
+                        });
+                        break;
+                    case "open-testcase":
+                        WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
+                            var item = view._grid.getRowData(view._grid.getSelectedDataIndex());
+                            workItemService.openWorkItem(item["System.Id"]);
                         });
                         break;
                     case "latestTestResult":
