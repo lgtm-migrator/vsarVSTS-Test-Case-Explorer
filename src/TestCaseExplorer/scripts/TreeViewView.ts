@@ -423,17 +423,18 @@ export class TreeviewView {
         console.log("target plan id: " + targetPlanId);
         console.log("target suite id: " + targetSuiteId);
 
-        // TODO: kolla om det finns target suite med samma namn?
-        var node = new TreeView.TreeNode(sourcePlanName);
-
-        //node.icon = icon-from-source-node?;
-        //node.id = id-from-clone-op?;
-        //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
-        n.add(node);
-        view._treeview.updateNode(n);
         if (confirm("Are you sure you want to clone '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
             TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
-                // TODO: update progress 
+                // TODO: kolla om det finns target suite med samma namn?
+                var node = new TreeView.TreeNode(sourcePlanName);
+
+                //node.icon = icon-from-source-node?;
+                //node.id = id-from-clone-op?;
+                //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
+                n.add(node);
+                view._treeview.updateNode(n);
+
+                // TODO: update progress
                 // TODO: refresh tree when complete
             });
         }
