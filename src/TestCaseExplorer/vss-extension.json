@@ -1,13 +1,11 @@
 {
   "manifestVersion": 1,
   "id": "DEV-TestCaseExplorer",
-  "version": "0.0.1",
+  "version": "0.0.1.2",
   "name": "DEV://Test Case Explorer",
   "description": "Manage your test cases better. Find, filter, analyze usage of test cases, and more.",
   "publisher": "mskold",
-
-  "baseUri": "https://localhost:44300/",
-
+   
   "scopes": [
     "vso.work_write",
     "vso.test_write",
@@ -79,6 +77,18 @@
         "order": 100,
         "uri": "index.html"
       }
-    }
+    },
+    {
+          "id": "columnOptionsForm",
+          "targets": [
+              ".controls"
+          ],
+          "type": "ms.vss-web.control",
+          "properties": {
+              "uri": "columnoptions.html"
+          }
+      }
+     
+
   ]
 }

@@ -120,6 +120,25 @@ export class testSuiteFilter implements ITestCaseFilter {
     }
 }
 
+
+
+export function getTestResultsForTestCases(testCaseLst: number[]): IPromise<TestContracts.TestCaseResult[]> {
+    // Get an instance of the client
+    var deferred = $.Deferred<any[]>();
+    var tstClient = TestClient.getClient();
+    var q = { query: "Select * from TestResult  WHERE TestCaseId IN (" + testCaseLst.join(",") + ") ORDER BY CreationDate DESC" };
+
+    tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(
+        data=> {
+            deferred.resolve(data);
+        },
+        err=> {
+            deferred.reject(err);
+        }
+    );
+    return deferred.promise();
+}
+
 export function getTestCasesByProjectStructure(structureType: WorkItemContracts.TreeNodeStructureType, path: string, recursive: boolean, fieldLst:string[]): IPromise<any> {
     var typeField: string;
     switch (structureType) {
@@ -204,7 +223,7 @@ export function getTestCasesByTestPlan(planId: number, suiteId: number, fields: 
                         getTestCases(idList, fields).then(
                             testCases => {
                                 deferred.resolve(testCases.map(tc => {
-                                    tc["Present.In.Suite"] = tcIdList[tc["System.Id"]];
+                                    tc["TC::Present.In.Suite"] = tcIdList[tc["System.Id"]];
                                     return tc;
                                 }));
                             },
@@ -248,10 +267,12 @@ function getTestCases(workItemIds: number[], fields:string[]): IPromise<any> {
 
     var size = 200;
 
+    var fieldsToFetch = fields.filter(f => { return f.indexOf("TC::") == -1 });
+
     var promises: IPromise<WorkItemContracts.WorkItem[]>[] = [];
     while (workItemIds.length > 0) {
         var idsToFetch = workItemIds.splice(0, size);
-        promises.push(workItemClient.getWorkItems(idsToFetch, fields));
+        promises.push(workItemClient.getWorkItems(idsToFetch, fieldsToFetch));
     }
     
     Q.all(promises).then(

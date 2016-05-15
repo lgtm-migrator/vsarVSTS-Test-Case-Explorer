@@ -27,6 +27,7 @@ import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import Navigation = require("VSS/Controls/Navigation");
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
+import Common = require("scripts/Common");
 
 
 interface IPaneRefresh {
@@ -365,17 +366,7 @@ class testResultsPane implements IPaneRefresh {
             width: "100%",
             columns: [
                 {
-                    text: "Outcome", index: "Outcome", width: 75, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
-                        var outcome = this.getColumnValue(dataIndex, column.index);
-                        var d = $("<div class='grid-cell'/>").width(column.width || 100)
-                        var dIcon = $("<div class='testpoint-outcome-shade icon'/>");
-                        dIcon.addClass(TreeViewDataService.getIconFromTestOutcome(outcome));
-                        d.append(dIcon);
-                        var dTxt = $("<span />");
-                        dTxt.text(outcome);
-                        d.append(dTxt);
-                        return d;
-                    }
+                    text: "Outcome", index: "Outcome", width: 75, getCellContents: Common.getTestResultCellContent
                 },
 
                 { text: "Configuration", index: "Configuration", width: 75 },

@@ -44,31 +44,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return icon;
     }
     exports.getIconFromSuiteType = getIconFromSuiteType;
-    function getIconFromTestOutcome(outcome) {
-        var icon = "";
-        switch (outcome) {
-            case "NotApplicable":
-                icon = "icon-tfs-tcm-not-applicable";
-                break;
-            case "Blocked":
-                icon = "icon-tfs-tcm-block-test";
-                break;
-            case "Passed":
-                icon = "icon-tfs-build-status-succeeded";
-                break;
-            case "Failed":
-                icon = "icon-tfs-build-status-failed";
-                break;
-            case "None":
-                icon = "icon-tfs-tcm-block-test";
-                break;
-            case "DynamicTestSuite":
-                icon = "icon-tfs-build-status-succeeded";
-                break;
-        }
-        return icon;
-    }
-    exports.getIconFromTestOutcome = getIconFromTestOutcome;
     function mapTestCaseToSuite(project, tcId, suiteId, planId) {
         var client = TestClient.getClient();
         return client.addTestCasesToSuite(project, planId, suiteId, tcId);
