@@ -13,7 +13,6 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI) {
-    "use strict";
     var TreeviewView = (function () {
         function TreeviewView() {
         }
@@ -183,6 +182,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     treeview._setNodeExpansion(n, elem, true);
                 });
                 $("li.node").draggable({
+                    scope: "test-case-scope",
                     //           scope: "TCExplorer.TreeView",
                     revert: "invalid",
                     appendTo: document.body,
@@ -250,6 +250,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     }
                 });
                 $("li.node").droppable({
+                    scope: "test-case-scope",
                     greedy: true,
                     tolerance: "pointer",
                     hoverClass: "droppable-hover",
@@ -257,9 +258,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         var n = treeview.getNodeFromElement(event.target);
                         var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
                         switch (action) {
-                            case "ASSOCIATE":
-                                view.AssociateTestCase(ui, n);
-                                break;
                             case "CLONE":
                                 if (event.ctrlKey) {
                                     // TODO: clone
@@ -270,6 +268,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                                     console.log("Drop + move");
                                 }
                                 view.CloneTestSuite(ui, n);
+                                break;
+                            case "ASSOCIATE": // TODO: make sure to get associate event
+                            default:
+                                view.AssociateTestCase(ui, n);
                                 break;
                         }
                     }
@@ -359,7 +361,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             }
         };
         return TreeviewView;
-    }());
+    })();
     exports.TreeviewView = TreeviewView;
     function ExpandTree(tree, nodeExpansion) {
         UtilsUI.walkTree.call(tree.rootNode, function (n) {

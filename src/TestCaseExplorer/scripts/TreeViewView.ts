@@ -237,7 +237,8 @@ export class TreeviewView {
             });
 
             $("li.node").draggable({
-     //           scope: "TCExplorer.TreeView",
+                scope: "test-case-scope",
+                     //           scope: "TCExplorer.TreeView",
                 revert: "invalid",
                 appendTo: document.body,
                 helper: function (event, ui) {
@@ -319,16 +320,14 @@ export class TreeviewView {
             });
 
             $("li.node").droppable({
+                scope: "test-case-scope",
                 greedy: true,
                 tolerance: "pointer",
                 hoverClass: "droppable-hover",
-                drop: function (event, ui: JQueryUI.DroppableEventUIParam) {
+                drop: function (event: any, ui) {
                     var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
                     var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
                     switch (action) {
-                        case "ASSOCIATE":
-                            view.AssociateTestCase(ui, n);
-                            break;
                         case "CLONE":
                             if (event.ctrlKey) {
                                 // TODO: clone
@@ -340,7 +339,10 @@ export class TreeviewView {
                             }
                             view.CloneTestSuite(ui,n);
                             break;
-
+                        case "ASSOCIATE":   // TODO: make sure to get associate event
+                        default:
+                            view.AssociateTestCase(ui, n);
+                            break;
                     }
                 }
             });
