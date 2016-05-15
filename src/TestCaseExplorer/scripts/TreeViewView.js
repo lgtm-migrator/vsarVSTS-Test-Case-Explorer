@@ -13,7 +13,6 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI) {
-    "use strict";
     var TreeviewView = (function () {
         function TreeviewView() {
         }
@@ -92,9 +91,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             //var menuItems: Menus.IMenuItemSpec[] = [
             var menuItems = [
                 { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "child-node-icon" },
-                { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
-                { id: "collapse-all", showText: false, title: "Collapse all", icon: "icon-tree-collapse-all" },
-                { id: "refresh", showText: false, title: "Refresh treeview", icon: "icon-refresh" }
+                { id: "expand-all", showText: false, title: "Expand all", icon: "bowtie-toggle-expand-all", cssClass: "bowtie-icon" },
+                { id: "collapse-all", showText: false, title: "Collapse all", icon: "bowtie-toggle-collapse", cssClass: "bowtie-icon" },
+                { id: "refresh", showText: false, title: "Refresh treeview", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" }
             ];
             var menubarOptions = {
                 items: menuItems,
@@ -362,7 +361,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             }
         };
         return TreeviewView;
-    }());
+    })();
     exports.TreeviewView = TreeviewView;
     function ExpandTree(tree, nodeExpansion) {
         UtilsUI.walkTree.call(tree.rootNode, function (n) {

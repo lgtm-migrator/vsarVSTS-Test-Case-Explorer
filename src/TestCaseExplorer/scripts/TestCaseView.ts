@@ -188,11 +188,11 @@ export class TestCaseView {
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         var menuItems: any[] = [
             { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
             { separator: true },
             { id: "column-options", text: "Column options", title: "Choose columns for the grid", noIcon: true },
             //{ id: "latestTestResult", text: "Show TestResults", title: "Show latest test results", icon: "test-outcome-node-icon" },
-            { id: "toggle", showText: false, title: "Show/hide details pane", icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align" }
+            { id: "toggle", showText: false, title: "Show/hide details pane", icon: "bowtie-details-pane", cssClass: "right-align bowtie-icon" }
         ];
 
         var menubarOptions = {

@@ -197,7 +197,7 @@ class partOfTestSuitesPane implements IPaneRefresh {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestSuites"), options);
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
         ];
 
         var menubarOptions = {
@@ -381,7 +381,7 @@ class testResultsPane implements IPaneRefresh {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestResults"), options);
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
         ];
 
         var menubarOptions = {
@@ -451,7 +451,7 @@ class linkedRequirementsPane implements IPaneRefresh {
 
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
         ];
 
         var menubarOptions = {

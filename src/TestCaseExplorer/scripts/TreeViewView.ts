@@ -129,9 +129,9 @@ export class TreeviewView {
         //var menuItems: Menus.IMenuItemSpec[] = [
         var menuItems: any[] = [
             { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "child-node-icon" },
-            { id: "expand-all", showText: false, title: "Expand all", icon: "icon-tree-expand-all" },
-            { id: "collapse-all", showText: false, title: "Collapse all", icon: "icon-tree-collapse-all" },
-            { id: "refresh", showText: false, title: "Refresh treeview", icon: "icon-refresh" }
+            { id: "expand-all", showText: false, title: "Expand all", icon: "bowtie-toggle-expand-all", cssClass: "bowtie-icon" },
+            { id: "collapse-all", showText: false, title: "Collapse all", icon: "bowtie-toggle-collapse", cssClass: "bowtie-icon" },
+            { id: "refresh", showText: false, title: "Refresh treeview", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" }
         ];
 
         var menubarOptions = {
