@@ -189,7 +189,8 @@ export class TestCaseView {
         var menuItems: any[] = [
             { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
             { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
-            { id: "column-options", text: "Column options", title: "Choose columns for the grid", },
+            { separator: true },
+            { id: "column-options", text: "Column options", title: "Choose columns for the grid", noIcon: true },
             //{ id: "latestTestResult", text: "Show TestResults", title: "Show latest test results", icon: "test-outcome-node-icon" },
             { id: "toggle", showText: false, title: "Show/hide details pane", icon: "icon-tfs-tcm-associated-pane-toggle", cssClass: "right-align" }
         ];
