@@ -13,6 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "scripts/DetailsView", "scripts/TestCaseView", "scripts/TreeViewView", "VSS/Controls", "VSS/Controls/Splitter"], function (require, exports, Common, DetailsToggle, DetailsView, TestCaseView, TreeViewView, Controls, SplitterControls) {
+    "use strict";
     Common.WIQLConstants.getWiqlConstants();
     var paneToggler = new DetailsToggle.DetailsPaneToggler();
     var dv = new DetailsView.DetailsView();

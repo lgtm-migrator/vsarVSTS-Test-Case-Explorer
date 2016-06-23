@@ -52,7 +52,7 @@ export class DetailsView {
         var view = this;
 
         var panels = [
-            //{ id: "TestPlan", text: "Test plan", selected: true },
+            { id: "TestPlan", text: "Test plans" },
             { id: "TestSuites", text: "Test suites", selected: true },
             { id: "TestResults", text: "Test results" },
             { id: "Requirements", text: "Linked requirements" }
@@ -83,7 +83,7 @@ export class DetailsView {
             }
         });
 
-        view.ShowPanel(panels[0].id);
+        view.ShowPanel(panels[1].id);
     }
 
     public selectionChanged(id: string) {
@@ -165,7 +165,6 @@ export class DetailsView {
 }
 
 class partOfTestSuitesPane implements IPaneRefresh {
-
     private _grid;
 
     public initialize(view: DetailsView) {
@@ -230,7 +229,7 @@ class partOfTestSuitesPane implements IPaneRefresh {
     }
 
     public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
+        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuite");
         var pane = this;
         if (id == null) {
             pane._grid.setDataSource(null);
@@ -259,9 +258,9 @@ class testPlanPane implements IPaneRefresh {
     private _cbo: CtrlCombos.Combo;
     private _testPlans;
     private _view: DetailsView;
+    private _grid;
 
     public initialize(view: DetailsView) {
-        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
         this._view = view;
         var tpp = this;
 
@@ -340,6 +339,28 @@ class testPlanPane implements IPaneRefresh {
             zIndex: 1000,
             refreshPositions: true
         });
+
+        var menuItems: any[] = [
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+        ];
+
+        var menubarOptions = {
+            items: menuItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                switch (command) {
+
+                    case "refresh":
+                        view.Refresh();
+                        break;
+                    default:
+                        alert("Unhandled action: " + command);
+                        break;
+                }
+            }
+        };
+
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testPlan-container"), menubarOptions);
     }
 
     public show() {
@@ -352,8 +373,28 @@ class testPlanPane implements IPaneRefresh {
     }
 
     public masterIdChanged(id: string) {
+        TelemetryClient.getClient().trackPageView("Details.TestPlans");
+        //var pane = this;
+        //if (id == null) {
+        //    pane._grid.setDataSource(null);
+        //}
+        //else {
+        //    TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(
+        //        data => {
+        //            if (data != null) {
+        //                $("#details-gridTestSuites").show();
+        //                pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
+        //            }
+        //            else {
+        //                $("#details-gridTestSuites").hide();
+        //            }
 
-        //Nothing 
+        //        },
+        //        err => {
+        //            $("#details-gridTestSuites").hide();
+        //        }
+        //    );
+        //}
     }
 }
 
@@ -400,7 +441,7 @@ class testResultsPane implements IPaneRefresh {
             }
         };
 
-        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testSuite-container"), menubarOptions);
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-TestResults-container"), menubarOptions);
     }
 
     public hide() {
