@@ -18,8 +18,11 @@
 
 import Contracts = require("TFS/WorkItemTracking/Contracts");
 import TestClient = require("TFS/TestManagement/RestClient");
+import TestContracts = require("TFS/TestManagement/Contracts");
 import WITClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
+
+import Common = require("scripts/Common");
 
 export function getNodes(param) {
 
@@ -53,30 +56,6 @@ export function getIconFromSuiteType(suiteType): string {
     return icon;
 }
 
-export function getIconFromTestOutcome(outcome): string {
-    var icon: string = "";
-    switch (outcome) {
-        case "NotApplicable":
-            icon = "icon-tfs-tcm-not-applicable";
-            break;
-        case "Blocked":
-            icon = "icon-tfs-tcm-block-test";
-            break;
-        case "Passed":
-            icon = "icon-tfs-build-status-succeeded";
-            break;
-        case "Failed":
-            icon = "icon-tfs-build-status-failed";
-            break;
-        case "None":
-            icon = "icon-tfs-tcm-block-test";
-            break;
-        case "DynamicTestSuite":
-            icon = "icon-tfs-build-status-succeeded";
-            break
-    }
-    return icon;
-}
 export function mapTestCaseToSuite(project, tcId, suiteId, planId): IPromise<any> {
     var client = TestClient.getClient();
     return client.addTestCasesToSuite(project, planId, suiteId, tcId)
@@ -122,7 +101,7 @@ export function getTestPlans(): IPromise<TreeView.TreeNode[]> {
         var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
 
         data.forEach(function (t) {
-            tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [] }], ""));
+            tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [], testPlanId: t.rootSuite.id }], ""));
         });
         tRoot[0].expanded = true;
         deferred.resolve(tRoot);
@@ -136,9 +115,13 @@ export function getTestSuitesForTestCase(testCaseId: number): IPromise<any[]> {
     var deferred = $.Deferred<any[]>();
 
     var tstClient = TestClient.getClient();
-    tstClient.getSuitesByTestCaseId(testCaseId).then(function (data) {
-        deferred.resolve(data);
-    });
+    tstClient.getSuitesByTestCaseId(testCaseId).then(
+        data=> {
+            deferred.resolve(data);
+        },
+        err=> {
+            deferred.resolve(null);
+        });
     return deferred.promise();
 }
 
@@ -148,12 +131,17 @@ export function getTestResultsForTestCase(testCaseId: number): IPromise<any[]> {
     var tstClient = TestClient.getClient();
     var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
 
-    tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {
-        ;
-        deferred.resolve(data);
-    });
+    tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(
+        data=> {
+            deferred.resolve(data);
+        },
+        err=> {
+            deferred.reject(err);
+        }
+    );
     return deferred.promise();
 }
+
 
 export function getLinkedRequirementsForTestCase(testCaseId: number): IPromise<any[]> {
     // Get an instance of the client
@@ -189,10 +177,16 @@ export function getTestPlanAndSuites(planId: number, testPlanName: string): IPro
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var tstClient = TestClient.getClient();
-    tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
-        var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null }), null, data);
-        deferred.resolve([tRoot]);
-    });
+    tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(
+        data=> {
+            var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null }), null, data);
+            deferred.resolve([tRoot]);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
     return deferred.promise();
 }
 
@@ -232,9 +226,14 @@ function getStructure(structure: Contracts.TreeStructureGroup): IPromise<TreeVie
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var client = WITClient.getClient();
-    client.getRootNodes(VSS.getWebContext().project.name, 11).then(function (data: Contracts.WorkItemClassificationNode[]) {
-        deferred.resolve(convertToTreeNodes([data[structure]], ""));
-    });
+    client.getRootNodes(VSS.getWebContext().project.name, 11).then(
+        function (data: Contracts.WorkItemClassificationNode[]) {
+            deferred.resolve(convertToTreeNodes([data[structure]], ""));
+        },
+        err=> {
+            deferred.reject(err);
+        }
+    );
 
     return deferred.promise();
 }
@@ -269,7 +268,7 @@ function getPrioriy(): IPromise<TreeView.TreeNode[]> {
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var client = WITClient.getClient();
-    client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
+    client.getWorkItemType(VSS.getWebContext().project.name, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(data=> {
         var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
 
         deferred.resolve(convertToTreeNodes(d, ""));
@@ -301,7 +300,7 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
         node.icon = item.icon;
 
         node.id = item.id;
-        node.config = { name: item.name, path: itemPath };
+        node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
 
         node.expanded = item.expanded;
         if (item.children && item.children.length > 0) {
@@ -310,4 +309,59 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
         a.push(node);
     });
     return a;
+}
+
+export function cloneTestPlan(sourcePlanId: number, targetPlanId: number, targetSuiteId: number) : IPromise< any > {
+    var deferred = $.Deferred<any[]>();
+    var testCaseClient = TestClient.getClient();
+
+    var teamProjectName = VSS.getWebContext().project.name;
+    testCaseClient.getPlanById(teamProjectName, targetPlanId).then(testPlan => {
+        var cloneRequest: TestContracts.TestPlanCloneRequest = {
+            cloneOptions: {
+                cloneRequirements: false,
+                copyAllSuites: true,
+                copyAncestorHierarchy: false,
+                overrideParameters: {},
+                destinationWorkItemType: "Test Case",
+                relatedLinkComment: "Comment"
+            },
+            suiteIds: [targetSuiteId],
+            destinationTestPlan: testPlan
+        };
+
+        testCaseClient.cloneTestPlan(cloneRequest, teamProjectName, sourcePlanId).then(result => {
+            console.log("Clone test plan completed: " + result.completionDate);
+        });
+    });
+    
+    return deferred.promise();
+}
+
+export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number) : IPromise<any> {
+    var deferred = $.Deferred<any[]>();
+    var testCaseClient = TestClient.getClient();
+
+    var teamProjectName = VSS.getWebContext().project.name;
+   
+    var cloneRequest: TestContracts.TestSuiteCloneRequest = {
+        cloneOptions: {
+            cloneRequirements: false,
+            copyAllSuites: true,
+            copyAncestorHierarchy: false,
+            overrideParameters: {},
+            destinationWorkItemType: "Test Case",
+            relatedLinkComment: "Comment"
+        },
+        destinationSuiteId: targetSuiteId,
+        destinationSuiteProjectName: teamProjectName
+    };
+
+    // TODO: check if this API is incorrectly documented, suite and plan is in opposite order
+    // TODO: clone with hierarchy does not work
+    testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(result => {
+        console.log("Clone test suite completed: " + result.completionDate);
+    });
+
+    return deferred.promise();
 }

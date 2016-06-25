@@ -27,6 +27,8 @@ import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import Navigation = require("VSS/Controls/Navigation");
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
+import Common = require("scripts/Common");
+
 
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
@@ -50,7 +52,7 @@ export class DetailsView {
         var view = this;
 
         var panels = [
-            //{ id: "TestPlan", text: "Test plan", selected: true },
+            { id: "TestPlan", text: "Test plans" },
             { id: "TestSuites", text: "Test suites", selected: true },
             { id: "TestResults", text: "Test results" },
             { id: "Requirements", text: "Linked requirements" }
@@ -81,7 +83,7 @@ export class DetailsView {
             }
         });
 
-        view.ShowPanel(panels[0].id);
+        view.ShowPanel(panels[1].id);
     }
 
     public selectionChanged(id: string) {
@@ -163,7 +165,6 @@ export class DetailsView {
 }
 
 class partOfTestSuitesPane implements IPaneRefresh {
-
     private _grid;
 
     public initialize(view: DetailsView) {
@@ -195,7 +196,7 @@ class partOfTestSuitesPane implements IPaneRefresh {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestSuites"), options);
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
         ];
 
         var menubarOptions = {
@@ -228,15 +229,27 @@ class partOfTestSuitesPane implements IPaneRefresh {
     }
 
     public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
+        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuite");
         var pane = this;
         if (id == null) {
             pane._grid.setDataSource(null);
         }
         else {
-            TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(function (data) {
-                pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
-            });
+            TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(
+                data=> {
+                    if (data != null) {
+                        $("#details-gridTestSuites").show();
+                        pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
+                    }
+                    else {
+                        $("#details-gridTestSuites").hide();
+                    }
+                    
+                },
+                err => {
+                    $("#details-gridTestSuites").hide();
+                }
+            );
         }
     }
 }
@@ -245,9 +258,9 @@ class testPlanPane implements IPaneRefresh {
     private _cbo: CtrlCombos.Combo;
     private _testPlans;
     private _view: DetailsView;
+    private _grid;
 
     public initialize(view: DetailsView) {
-        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
         this._view = view;
         var tpp = this;
 
@@ -258,13 +271,16 @@ class testPlanPane implements IPaneRefresh {
 
         this._cbo = Controls.create(CtrlCombos.Combo, $("#details-cboTestPlan"), cboOptions);
 
-        TreeViewDataService.getTestPlans().then(function (data) {
-            tpp._testPlans = data[0].children;
-
-            tpp._cbo.setSource(tpp._testPlans.map(function (i) {
-                return i.text;
-            }));
-        });
+        TreeViewDataService.getTestPlans().then(
+            data=> {
+                tpp._testPlans = data[0].children;
+                tpp._cbo.setSource(tpp._testPlans.map(i=> { return i.text;}));
+            },
+            err=> {
+                console.log(err);
+                TelemetryClient.getClient().trackException(err);
+            }
+        );
 
         var treeOptionsTestPlan = {
             width: 400,
@@ -280,38 +296,40 @@ class testPlanPane implements IPaneRefresh {
         $("#details-cboTestPlan").change(function () {
             tpp._view.StartLoading(true, "Fetching test plan " + tpp._cbo.getText());
             var tp = tpp._testPlans[tpp._cbo.getSelectedIndex()];
-            TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(function (data) {
+            TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(
+                data=> {
+                    tpp._view.DoneLoading();
+                    treeviewTestPlan.rootNode.clear();
 
-                tpp._view.DoneLoading();
+                    treeviewTestPlan.rootNode.addRange(data);
+                    treeviewTestPlan._draw();
 
-                treeviewTestPlan.rootNode.clear();
+                    var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
 
-                treeviewTestPlan.rootNode.addRange(data);
-                treeviewTestPlan._draw();
-
-                var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
-
-                $("li.node").droppable({
-                    scope: "test-case-scope",
-                    greedy: true,
-                    tolerance: "pointer",
-                    hoverClass: "droppable-hover",
-                    drop: function (event, ui) {
-                        var n = treeviewTestPlan.getNodeFromElement(event.target);
-                        var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
-                        var tcId = ui.draggable.context.childNodes[0].textContent;
-                        //var x = grd.getDraggingRowInfo();
-                        //Grids.Grid.getInstance($("#grid-container"));
-                        var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
-                        var div = $("<div />").text(s);
-                        ui.draggable.context = div[0];
-                        TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
-                            data => { alert(s); },
-                            err => { alert(err); });
-                    }
+                    $("li.node").droppable({
+                        scope: "test-case-scope",
+                        greedy: true,
+                        tolerance: "pointer",
+                        hoverClass: "droppable-hover",
+                        drop: function (event, ui) {
+                            var n = treeviewTestPlan.getNodeFromElement(event.target);
+                            var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
+                            var tcId = ui.draggable.context.childNodes[0].textContent;
+                            //var x = grd.getDraggingRowInfo();
+                            //Grids.Grid.getInstance($("#grid-container"));
+                            var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
+                            var div = $("<div />").text(s);
+                            ui.draggable.context = div[0];
+                            TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
+                                data => { alert(s); },
+                                err => { alert(err); });
+                        }
+                    });
+                },
+                err=> {
+                    console.log("Err fetching test plans");
+                    console.log(err);
                 });
-
-            });
         });
 
         $(".ui-draggable").draggable({
@@ -321,58 +339,9 @@ class testPlanPane implements IPaneRefresh {
             zIndex: 1000,
             refreshPositions: true
         });
-    }
-
-    public show() {
-        $("#details-TestPlan").css("display", "block");
-        $("#details-title").text("Test plans");
-    }
-
-    public hide() {
-        $("#details-TestPlan").css("display", "none");
-    }
-
-    public masterIdChanged(id: string) {
-
-        //Nothing 
-    }
-}
-
-class testResultsPane implements IPaneRefresh {
-    private _grid;
-
-    public initialize(view: DetailsView) {
-        var options = {
-            height: "100%",
-            width: "100%",
-            columns: [
-                {
-                    text: "Outcome", index: "Outcome", width: 75, getCellContents: function (rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
-                        var outcome = this.getColumnValue(dataIndex, column.index);
-                        var d = $("<div class='grid-cell'/>").width(column.width || 100)
-                        var dIcon = $("<div class='testpoint-outcome-shade icon'/>");
-                        dIcon.addClass(TreeViewDataService.getIconFromTestOutcome(outcome));
-                        d.append(dIcon);
-                        var dTxt = $("<span />");
-                        dTxt.text(outcome);
-                        d.append(dTxt);
-                        return d;
-                    }
-                },
-
-                { text: "Configuration", index: "Configuration", width: 75 },
-                { text: "Run by", index: "RunBy", width: 150 },
-                { text: "Date ", index: "Date", width: 150 },
-                { text: "Duration", index: "suite", width: 150 }
-            ],
-            // This data source is rendered into the Grid columns defined above
-            source: null
-        };
-
-        this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestResults"), options);
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
         ];
 
         var menubarOptions = {
@@ -391,7 +360,88 @@ class testResultsPane implements IPaneRefresh {
             }
         };
 
-        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testSuite-container"), menubarOptions);
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testPlan-container"), menubarOptions);
+    }
+
+    public show() {
+        $("#details-TestPlan").css("display", "block");
+        $("#details-title").text("Test plans");
+    }
+
+    public hide() {
+        $("#details-TestPlan").css("display", "none");
+    }
+
+    public masterIdChanged(id: string) {
+        TelemetryClient.getClient().trackPageView("Details.TestPlans");
+        //var pane = this;
+        //if (id == null) {
+        //    pane._grid.setDataSource(null);
+        //}
+        //else {
+        //    TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(
+        //        data => {
+        //            if (data != null) {
+        //                $("#details-gridTestSuites").show();
+        //                pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
+        //            }
+        //            else {
+        //                $("#details-gridTestSuites").hide();
+        //            }
+
+        //        },
+        //        err => {
+        //            $("#details-gridTestSuites").hide();
+        //        }
+        //    );
+        //}
+    }
+}
+
+class testResultsPane implements IPaneRefresh {
+    private _grid;
+
+    public initialize(view: DetailsView) {
+        var options = {
+            height: "100%",
+            width: "100%",
+            columns: [
+                {
+                    text: "Outcome", index: "Outcome", width: 75, getCellContents: Common.getTestResultCellContent
+                },
+
+                { text: "Configuration", index: "Configuration", width: 75 },
+                { text: "Run by", index: "RunBy", width: 150 },
+                { text: "Date ", index: "Date", width: 150 },
+                { text: "Duration", index: "suite", width: 150 }
+            ],
+            // This data source is rendered into the Grid columns defined above
+            source: null
+        };
+
+        this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestResults"), options);
+
+        var menuItems: any[] = [
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+        ];
+
+        var menubarOptions = {
+            items: menuItems,
+            executeAction: function (args) {
+                var command = args.get_commandName();
+                switch (command) {
+
+                    case "refresh":
+                        view.Refresh();
+                        break;
+                    default:
+                        alert("Unhandled action: " + command);
+                        break;
+                }
+            }
+        };
+
+        var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-TestResults-container"), menubarOptions);
     }
 
     public hide() {
@@ -442,7 +492,7 @@ class linkedRequirementsPane implements IPaneRefresh {
 
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "icon-refresh" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
         ];
 
         var menubarOptions = {
@@ -484,6 +534,12 @@ class linkedRequirementsPane implements IPaneRefresh {
                     if (data != null) {
                         pane._grid.setDataSource(data.map(r => { return r.fields; }));
                     }
+                    else {
+                        pane._grid.setDataSource(null);
+                    }
+                },
+                err=> {
+                    pane._grid.setDataSource(null);
                 }
             );
         }

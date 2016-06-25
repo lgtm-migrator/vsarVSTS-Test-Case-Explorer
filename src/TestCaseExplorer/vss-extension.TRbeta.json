@@ -1,0 +1,10 @@
+{
+  "id": "dev-TestResult-TestCaseExplorer",
+  
+  "name": "BETA://TestResult-Test Case Explorer",
+  "publisher": "mskold",
+
+  "baseUri": null,
+
+  "public": false
+}

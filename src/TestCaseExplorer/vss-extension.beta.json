@@ -1,0 +1,10 @@
+{
+  "id": "Beta-TestCaseExplorer",
+  "name": "Beta://Test Case Explorer",
+  
+  "publisher": "alm-rangers",
+
+  "baseUri": null,
+
+  "public": false
+}

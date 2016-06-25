@@ -7,7 +7,5 @@
 
   "baseUri": null,
 
-  "public": true,
-
-  "version": "1.2.1"
+  "public": true
 }

@@ -12,7 +12,8 @@
 //    for the tree view.
 // </summary>
 //---------------------------------------------------------------------
-define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView"], function (require, exports, Contracts, TestClient, WITClient, TreeView) {
+define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "scripts/Common"], function (require, exports, Contracts, TestClient, WITClient, TreeView, Common) {
+    "use strict";
     function getNodes(param) {
         switch (param) {
             case "Area path":
@@ -44,31 +45,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return icon;
     }
     exports.getIconFromSuiteType = getIconFromSuiteType;
-    function getIconFromTestOutcome(outcome) {
-        var icon = "";
-        switch (outcome) {
-            case "NotApplicable":
-                icon = "icon-tfs-tcm-not-applicable";
-                break;
-            case "Blocked":
-                icon = "icon-tfs-tcm-block-test";
-                break;
-            case "Passed":
-                icon = "icon-tfs-build-status-succeeded";
-                break;
-            case "Failed":
-                icon = "icon-tfs-build-status-failed";
-                break;
-            case "None":
-                icon = "icon-tfs-tcm-block-test";
-                break;
-            case "DynamicTestSuite":
-                icon = "icon-tfs-build-status-succeeded";
-                break;
-        }
-        return icon;
-    }
-    exports.getIconFromTestOutcome = getIconFromTestOutcome;
     function mapTestCaseToSuite(project, tcId, suiteId, planId) {
         var client = TestClient.getClient();
         return client.addTestCasesToSuite(project, planId, suiteId, tcId);
@@ -109,7 +85,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
             var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
             data.forEach(function (t) {
-                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [] }], ""));
+                tRoot[0].addRange(convertToTreeNodes([{ name: t.name, id: t.id, children: [], testPlanId: t.rootSuite.id }], ""));
             });
             tRoot[0].expanded = true;
             deferred.resolve(tRoot);
@@ -123,6 +99,8 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var tstClient = TestClient.getClient();
         tstClient.getSuitesByTestCaseId(testCaseId).then(function (data) {
             deferred.resolve(data);
+        }, function (err) {
+            deferred.resolve(null);
         });
         return deferred.promise();
     }
@@ -133,8 +111,9 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var tstClient = TestClient.getClient();
         var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
         tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {
-            ;
             deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
         });
         return deferred.promise();
     }
@@ -170,6 +149,8 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
             var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null; }), null, data);
             deferred.resolve([tRoot]);
+        }, function (err) {
+            deferred.reject(err);
         });
         return deferred.promise();
     }
@@ -207,6 +188,8 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var client = WITClient.getClient();
         client.getRootNodes(VSS.getWebContext().project.name, 11).then(function (data) {
             deferred.resolve(convertToTreeNodes([data[structure]], ""));
+        }, function (err) {
+            deferred.reject(err);
         });
         return deferred.promise();
     }
@@ -233,7 +216,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     function getPrioriy() {
         var deferred = $.Deferred();
         var client = WITClient.getClient();
-        client.getWorkItemType(VSS.getWebContext().project.name, "Test case").then(function (data) {
+        client.getWorkItemType(VSS.getWebContext().project.name, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(function (data) {
             var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
             deferred.resolve(convertToTreeNodes(d, ""));
         });
@@ -259,7 +242,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             var node = new TreeView.TreeNode(item.name);
             node.icon = item.icon;
             node.id = item.id;
-            node.config = { name: item.name, path: itemPath };
+            node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
             node.expanded = item.expanded;
             if (item.children && item.children.length > 0) {
                 node.addRange(convertToTreeNodes(item.children, itemPath));
@@ -268,5 +251,53 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         });
         return a;
     }
+    function cloneTestPlan(sourcePlanId, targetPlanId, targetSuiteId) {
+        var deferred = $.Deferred();
+        var testCaseClient = TestClient.getClient();
+        var teamProjectName = VSS.getWebContext().project.name;
+        testCaseClient.getPlanById(teamProjectName, targetPlanId).then(function (testPlan) {
+            var cloneRequest = {
+                cloneOptions: {
+                    cloneRequirements: false,
+                    copyAllSuites: true,
+                    copyAncestorHierarchy: false,
+                    overrideParameters: {},
+                    destinationWorkItemType: "Test Case",
+                    relatedLinkComment: "Comment"
+                },
+                suiteIds: [targetSuiteId],
+                destinationTestPlan: testPlan
+            };
+            testCaseClient.cloneTestPlan(cloneRequest, teamProjectName, sourcePlanId).then(function (result) {
+                console.log("Clone test plan completed: " + result.completionDate);
+            });
+        });
+        return deferred.promise();
+    }
+    exports.cloneTestPlan = cloneTestPlan;
+    function cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId) {
+        var deferred = $.Deferred();
+        var testCaseClient = TestClient.getClient();
+        var teamProjectName = VSS.getWebContext().project.name;
+        var cloneRequest = {
+            cloneOptions: {
+                cloneRequirements: false,
+                copyAllSuites: true,
+                copyAncestorHierarchy: false,
+                overrideParameters: {},
+                destinationWorkItemType: "Test Case",
+                relatedLinkComment: "Comment"
+            },
+            destinationSuiteId: targetSuiteId,
+            destinationSuiteProjectName: teamProjectName
+        };
+        // TODO: check if this API is incorrectly documented, suite and plan is in opposite order
+        // TODO: clone with hierarchy does not work
+        testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(function (result) {
+            console.log("Clone test suite completed: " + result.completionDate);
+        });
+        return deferred.promise();
+    }
+    exports.cloneTestSuite = cloneTestSuite;
 });
 //# sourceMappingURL=TreeViewDataService.js.map
