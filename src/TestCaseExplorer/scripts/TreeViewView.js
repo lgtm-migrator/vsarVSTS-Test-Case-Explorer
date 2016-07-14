@@ -323,30 +323,13 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         //var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
                         var action = ui.helper.data("MODE"); // TODO: rename to action
                         //var ids = ui.helper.data("WORK_ITEM_IDS");
-                        var mode = "MOVE"; // TODO: refactor to enum
-                        if (event.ctrlKey)
-                            mode = "CLONE";
-                        if (event.shiftKey)
-                            mode = "ADD";
+                        var mode = view.getCurrentDragMode(event);
                         switch (action) {
                             case "TEST_SUITE":
-                                if (event.ctrlKey) {
-                                    view.CloneTestSuite(ui, n);
-                                }
-                                else if (event.shiftKey) {
-                                    view.AddTestSuite(ui, n);
-                                }
-                                else {
-                                    view.MoveTestSuite(ui, n);
-                                }
+                                view.processDropTestSuite(ui, n, mode);
                                 break;
                             case "TEST_CASE":
-                                if (view._currentSource == "Test plan") {
-                                    view.AssociateTestCase(ui, n, mode);
-                                }
-                                else {
-                                    view.UpdateTestCase(ui, n);
-                                }
+                                view.processDropTestCase(ui, n, view._currentSource, mode);
                                 break;
                             default:
                                 console.log("treeview::drop - undefined action");
@@ -358,22 +341,88 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             });
             return deferred.promise();
         };
+        // TODO: refactor to enum
+        TreeviewView.prototype.getCurrentDragMode = function (event) {
+            var mode = "MOVE";
+            if (event.ctrlKey)
+                mode = "CLONE";
+            if (event.shiftKey)
+                mode = "ADD";
+            return mode;
+        };
+        TreeviewView.prototype.processDropTestSuite = function (ui, n, mode) {
+            var _this = this;
+            var draggedNode = this._treeview.getNodeFromElement(ui.draggable);
+            draggedNode.config.name;
+            var sourcePlanName = draggedNode.config.name;
+            var sourcePlanId = draggedNode.config.testPlanId;
+            var sourceSuiteId = draggedNode.config.suiteId;
+            var targetPlanId = n.config.testPlanId;
+            var targetSuiteId = n.config.suiteId;
+            console.log("source plan name: " + sourcePlanName);
+            console.log("source plan id: " + sourcePlanId);
+            console.log("source suite id: " + sourceSuiteId);
+            console.log("mode: " + mode);
+            console.log("target plan id: " + targetPlanId);
+            console.log("target suite id: " + targetSuiteId);
+            if (confirm("Are you sure you want to " + mode + " '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
+                switch (mode) {
+                    case "MOVE":
+                        TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(function (result) {
+                            TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(function (result) {
+                                //this.updateTreeView();
+                                //this.updateGrid?
+                            });
+                        });
+                        break;
+                    case "CLONE":
+                        TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(function (result) {
+                            // TODO: kolla om det finns target suite med samma namn?
+                            var node = new TreeView.TreeNode(sourcePlanName);
+                            //node.icon = icon-from-source-node?;
+                            //node.id = id-from-clone-op?;
+                            //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
+                            n.add(node);
+                            _this._treeview.updateNode(n);
+                            // TODO: update progress
+                            // TODO: refresh tree when complete
+                            //view.updateTreeView();
+                        });
+                        break;
+                    case "ADD":
+                        TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(function (result) {
+                            //this.updateTreeView();
+                        });
+                        break;
+                }
+            }
+            else {
+                // TODO: best way to cancel drag?
+                $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+            }
+        };
+        TreeviewView.prototype.processDropTestCase = function (ui, n, pivot, mode) {
+            if (pivot == "Test plan") {
+                this.AssociateTestCase(ui, n, mode);
+            }
+            else {
+                this.UpdateTestCase(ui, n);
+            }
+        };
         TreeviewView.prototype.AssociateTestCase = function (ui, n, mode) {
             var view = this;
             var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
+            var targetPlanId = n.config.testPlanId;
+            var targetSuiteId = n.config.suiteId;
+            var sourcePlanId = view._currentNode.config.testPlanId;
+            var sourceSuiteId = view._currentNode.config.suiteId;
+            console.log("source plan id: " + sourcePlanId);
+            console.log("source suite id: " + sourceSuiteId);
+            console.log("target plan id: " + targetPlanId);
+            console.log("target suite id: " + targetSuiteId);
+            console.log("ids: " + tcIds.join(","));
             switch (mode) {
                 case "MOVE":
-                    var targetPlanId = n.config.testPlanId;
-                    var targetSuiteId = n.config.suiteId;
-                    var sourcePlanId = view._currentNode.config.testPlanId;
-                    var sourceSuiteId = view._currentNode.config.suiteId;
-                    //var sourcePlanId: number = plan[0].testPlanId;
-                    //var sourceSuiteId: number = ui.helper.data("SUITE_ID");
-                    console.log("source plan id: " + sourcePlanId);
-                    console.log("source suite id: " + sourceSuiteId);
-                    console.log("target plan id: " + targetPlanId);
-                    console.log("target suite id: " + targetSuiteId);
-                    console.log("ids: " + tcIds.join(","));
                     TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(function (result) {
                         TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(function (result) {
                             view.updateTreeView();
@@ -384,11 +433,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     alert("Clone tc to suite - not implemented!");
                     break;
                 case "ADD":
-                    var targetPlanId = n.config.testPlanId;
-                    var targetSuiteId = n.config.suiteId;
-                    console.log("target plan id: " + targetPlanId);
-                    console.log("target suite id: " + targetSuiteId);
-                    console.log("ids: " + tcIds.join(","));
                     TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(function (result) {
                         view.updateTreeView();
                     });
@@ -436,119 +480,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             }
             else {
                 alert("Not supported in this version");
-            }
-        };
-        TreeviewView.prototype.CloneTestSuite = function (ui, n) {
-            var view = this;
-            //var plan = ui.helper.data("PLAN_ID");
-            //var sourcePlanName: string = plan[0].name;
-            //var sourcePlanId: number = plan[0].testPlanId;
-            //var sourceSuiteId: number = ui.helper.data("SUITE_ID");
-            var mode = ui.helper.data("MODE");
-            //var itemDiv = ui.helper.find("." + sourceSuiteId);
-            //var txt = itemDiv.text();
-            //itemDiv.text("Saving " + txt);
-            var draggedNode = this._treeview.getNodeFromElement(ui.draggable);
-            draggedNode.config.name;
-            var sourcePlanName = draggedNode.config.name;
-            var sourcePlanId = draggedNode.config.testPlanId;
-            var sourceSuiteId = draggedNode.config.suiteId;
-            //var plan = ui.draggable.data("PLAN_ID");
-            //var sourcePlanName: string = plan[0].name;
-            //var sourcePlanId: number = plan[0].testPlanId;
-            //var sourceSuiteId: number = ui.draggable.data("SUITE_ID");
-            var targetPlanId = n.config.testPlanId;
-            var targetSuiteId = n.config.suiteId;
-            console.log("source plan name: " + sourcePlanName);
-            console.log("source plan id: " + sourcePlanId);
-            console.log("source suite id: " + sourceSuiteId);
-            console.log("mode: " + mode);
-            console.log("target plan id: " + targetPlanId);
-            console.log("target suite id: " + targetSuiteId);
-            if (confirm("Are you sure you want to clone '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
-                TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(function (result) {
-                    // TODO: kolla om det finns target suite med samma namn?
-                    var node = new TreeView.TreeNode(sourcePlanName);
-                    //node.icon = icon-from-source-node?;
-                    //node.id = id-from-clone-op?;
-                    //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
-                    n.add(node);
-                    view._treeview.updateNode(n);
-                    // TODO: update progress
-                    // TODO: refresh tree when complete
-                    //view.updateTreeView();
-                });
-            }
-            else {
-                // TODO: best way to cancel drag?
-                $("li.node").draggable({ 'revert': true }).trigger('mouseup');
-            }
-        };
-        TreeviewView.prototype.MoveTestSuite = function (ui, n) {
-            var view = this;
-            var plan = ui.helper.data("PLAN_ID");
-            var sourcePlanName = plan[0].name;
-            var sourcePlanId = plan[0].testPlanId;
-            var sourceSuiteId = ui.helper.data("SUITE_ID");
-            var mode = ui.helper.data("MODE");
-            var itemDiv = ui.helper.find("." + sourceSuiteId);
-            var txt = itemDiv.text();
-            itemDiv.text("Saving " + txt);
-            var targetPlanId = n.config.testPlanId;
-            var targetSuiteId = n.config.suiteId;
-            console.log("plan name: " + sourcePlanName);
-            console.log("plan id: " + sourcePlanId);
-            console.log("suite id: " + sourceSuiteId);
-            console.log("mode: " + mode);
-            console.log("target plan id: " + targetPlanId);
-            console.log("target suite id: " + targetSuiteId);
-            if (confirm("Are you sure you want to move '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
-                TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(function (result) {
-                    TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(function (result) {
-                        view.updateTreeView();
-                    });
-                });
-            }
-            else {
-                // TODO: best way to cancel drag?
-                $("li.node").draggable({ 'revert': true }).trigger('mouseup');
-            }
-        };
-        TreeviewView.prototype.AddTestSuite = function (ui, n) {
-            var view = this;
-            var plan = ui.helper.data("PLAN_ID");
-            var sourcePlanName = plan[0].name;
-            var sourcePlanId = plan[0].testPlanId;
-            var sourceSuiteId = ui.helper.data("SUITE_ID");
-            var mode = ui.helper.data("MODE");
-            var itemDiv = ui.helper.find("." + sourceSuiteId);
-            var txt = itemDiv.text();
-            itemDiv.text("Saving " + txt);
-            var targetPlanId = n.config.testPlanId;
-            var targetSuiteId = n.config.suiteId;
-            console.log("plan name: " + sourcePlanName);
-            console.log("plan id: " + sourcePlanId);
-            console.log("suite id: " + sourceSuiteId);
-            console.log("mode: " + mode);
-            console.log("target plan id: " + targetPlanId);
-            console.log("target suite id: " + targetSuiteId);
-            if (confirm("Are you sure you want to add '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
-                TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(function (result) {
-                    // TODO: kolla om det finns target suite med samma namn?
-                    var node = new TreeView.TreeNode(sourcePlanName);
-                    //node.icon = icon-from-source-node?;
-                    //node.id = id-from-clone-op?;
-                    //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
-                    n.add(node);
-                    view._treeview.updateNode(n);
-                    // TODO: update progress
-                    // TODO: refresh tree when complete
-                    view.updateTreeView();
-                });
-            }
-            else {
-                // TODO: best way to cancel drag?
-                $("li.node").draggable({ 'revert': true }).trigger('mouseup');
             }
         };
         return TreeviewView;
