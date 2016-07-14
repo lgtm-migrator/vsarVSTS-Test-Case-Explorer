@@ -272,25 +272,35 @@ export class TreeviewView {
                     //           scope: "TCExplorer.TreeView",
                     revert: "invalid",
                     appendTo: document.body,
+
                     helper: function (event, ui) {
                         var $dragTile;
-                        var draggableItemText, numOfSelectedItems;
+                        //var draggableItemText, numOfSelectedItems;
 
-                        var dummy = {};
-                        dummy["SuiteId"] = view._treeview.getSelectedNode().id;
-                        dummy["Title"] = view._treeview.getSelectedNode().text;
-                        dummy["PlanId"] = view._treeview.getSelectedNode().config;
-                        dummy["Icon"] = view._treeview.getSelectedNode().icon;
+                        var title = event.currentTarget.title;
+                        var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
 
-                        var selectedSuites = [dummy];
+                        //var dummy = {};
+                        //dummy["SuiteId"] = view._treeview.getSelectedNode().id;
+                        //dummy["Title"] = view._treeview.getSelectedNode().text;
+                        //dummy["PlanId"] = view._treeview.getSelectedNode().config;
+                        //dummy["Icon"] = view._treeview.getSelectedNode().icon;
 
-                        numOfSelectedItems = selectedSuites.length;
+                        //var selectedSuites = [dummy];
+
+                        //numOfSelectedItems = selectedSuites.length;
+
                         $dragTile = $("<div />")
                             .addClass("drag-tile")
 
-                        var $dragItemCount = $("<div />")
-                            .addClass("drag-tile-item-count")
-                            .text(numOfSelectedItems);
+                        //var $dragItemCount = $("<div />")
+                        //    .addClass("drag-tile-item-count")
+                        //    .text(numOfSelectedItems);
+
+                        var $dragItemTitle = $("<div />")
+                            .addClass("drag-tile-title")
+                            .text(title);
+
                         var $dragType = $("<span />")
                             .addClass("drag-tile-drag-type")
                             .text("Move");
@@ -299,12 +309,17 @@ export class TreeviewView {
                         var $dragHead = $("<div />")
                             .addClass("drag-tile-head")
                             .append($dragType)
-                            .append($dragItemCount);
+                            .append($dragItemTitle)
+                            //.append($dragItemCount);
 
                         $dragTile.append($dragHead);
+
                         //$dragTile.data("DROP_ACTION", "CLONE");
-                        $dragTile.data("PLAN_ID", selectedSuites.map(i => { return i["PlanId"]; }));
-                        $dragTile.data("SUITE_ID", selectedSuites.map(i => { return i["SuiteId"]; }));
+                        //$dragTile.data("PLAN_ID", selectedSuites.map(i => { return i["PlanId"]; }));
+                        //$dragTile.data("SUITE_ID", selectedSuites.map(i => { return i["SuiteId"]; }));
+
+                        $dragTile.data("PLAN_ID", draggedNode.config);
+                        $dragTile.data("SUITE_ID", draggedNode.id);
                         $dragTile.data("MODE", "TEST_SUITE");
 
                         //$dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
@@ -331,10 +346,10 @@ export class TreeviewView {
 
                         return $dragTile;
                     },
-                   distance: 10,
-                    cursor: "arrow",
+                    distance: 10,
                     cursorAt: { top: -5, left: -5 },
                     refreshPositions: true,
+                    scroll: true,
                     stop: function () {
                         // Set all draggable parts back to revert: false
                         // This fixes elements after drag was cancelled with ESC key
@@ -381,6 +396,7 @@ export class TreeviewView {
                 drop: function (event: any, ui) {
 
                     var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
+                    //var draggedNode: TreeView.TreeNode = this._treeview.getNodeFromElement(ui.draggable);
 
                     //var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
                     var action = ui.helper.data("MODE");  // TODO: rename to action
@@ -423,14 +439,12 @@ export class TreeviewView {
 
     public AssociateTestCase(ui, n, mode) {
         var view = this;
-
         var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
 
         switch (mode) {
             case "MOVE":
                 var targetPlanId: number = n.config.testPlanId;
                 var targetSuiteId: number = n.config.suiteId;
-                //var testCaseIds = ui.helper.data("WORK_ITEM_IDS");
                 var sourcePlanId: number = view._currentNode.config.testPlanId;
                 var sourceSuiteId: number = view._currentNode.config.suiteId;
                 //var sourcePlanId: number = plan[0].testPlanId;
@@ -451,51 +465,22 @@ export class TreeviewView {
                     }
                 );
 
-                //    .then(
-                //    data => {
-                //        TreeViewDataService.removeTestCaseToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
-                //            data => {
-                //        });
-                //    }
-                //);
-
                 break;
             case "CLONE":
                 alert("Clone tc to suite - not implemented!");
                 break;
             case "ADD":
-                //var view = this;
-                //var plan = ui.helper.data("PLAN_ID");
-                //var sourcePlanName: string = plan[0].name;
-                //var sourcePlanId: number = plan[0].testPlanId;
-                //var sourceSuiteId: number = ui.helper.data("SUITE_ID");
-                //var mode = ui.helper.data("MODE");
-                //var itemDiv = ui.helper.find("." + sourceSuiteId);
-                //var txt = itemDiv.text();
-                //itemDiv.text("Saving " + txt);
-
                 var targetPlanId: number = n.config.testPlanId;
                 var targetSuiteId: number = n.config.suiteId;
-                //var testCaseIds = ui.helper.data("WORK_ITEM_IDS");
 
-                //console.log("plan name: " + sourcePlanName);
-                //console.log("plan id: " + sourcePlanId);
-                //console.log("suite id: " + sourceSuiteId);
-                //console.log("mode: " + mode);
                 console.log("target plan id: " + targetPlanId);
                 console.log("target suite id: " + targetSuiteId);
                 console.log("ids: " + tcIds.join(","));
 
-                //TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, 1, targetSuiteId, targetPlanId);
                 TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
                     result => {
                         view.updateTreeView();
                 });
-
-                //TreeViewDataService.addTestCasesToSuite(1, 2, "3").then(
-                //    data => {
-                //    }
-                //);
                 break;
         }
     }
@@ -554,21 +539,33 @@ export class TreeviewView {
     public CloneTestSuite(ui: JQueryUI.DroppableEventUIParam, n: TreeView.TreeNode) {
 
         var view = this;
-        var plan = ui.helper.data("PLAN_ID");
-        var sourcePlanName: string = plan[0].name;
-        var sourcePlanId: number = plan[0].testPlanId;
-        var sourceSuiteId: number = ui.helper.data("SUITE_ID");
+        //var plan = ui.helper.data("PLAN_ID");
+        //var sourcePlanName: string = plan[0].name;
+        //var sourcePlanId: number = plan[0].testPlanId;
+        //var sourceSuiteId: number = ui.helper.data("SUITE_ID");
         var mode = ui.helper.data("MODE");
-        var itemDiv = ui.helper.find("." + sourceSuiteId);
-        var txt = itemDiv.text();
-        itemDiv.text("Saving " + txt);
+        //var itemDiv = ui.helper.find("." + sourceSuiteId);
+        //var txt = itemDiv.text();
+        //itemDiv.text("Saving " + txt);
+
+        var draggedNode: TreeView.TreeNode = this._treeview.getNodeFromElement(ui.draggable);
+        draggedNode.config.name
+
+        var sourcePlanName: string = draggedNode.config.name;
+        var sourcePlanId: number = draggedNode.config.testPlanId;
+        var sourceSuiteId: number = draggedNode.config.suiteId;
+
+        //var plan = ui.draggable.data("PLAN_ID");
+        //var sourcePlanName: string = plan[0].name;
+        //var sourcePlanId: number = plan[0].testPlanId;
+        //var sourceSuiteId: number = ui.draggable.data("SUITE_ID");
 
         var targetPlanId: number = n.config.testPlanId;
         var targetSuiteId: number = n.config.suiteId;
 
-        console.log("plan name: " + sourcePlanName);
-        console.log("plan id: " + sourcePlanId);
-        console.log("suite id: " + sourceSuiteId);
+        console.log("source plan name: " + sourcePlanName);
+        console.log("source plan id: " + sourcePlanId);
+        console.log("source suite id: " + sourceSuiteId);
         console.log("mode: " + mode);
         console.log("target plan id: " + targetPlanId);
         console.log("target suite id: " + targetSuiteId);

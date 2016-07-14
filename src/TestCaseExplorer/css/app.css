@@ -120,9 +120,15 @@
     border-width:1px;
     vertical-align:middle;
 }
+
 .drag-tile-item-count {
     font-size:large;
     font-weight:bold;
+    text-align:center;
+}
+
+.drag-tile-title {
+    font-size:x-small;
     text-align:center;
 }
 

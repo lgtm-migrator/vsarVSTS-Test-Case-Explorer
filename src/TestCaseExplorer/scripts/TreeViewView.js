@@ -220,19 +220,24 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         appendTo: document.body,
                         helper: function (event, ui) {
                             var $dragTile;
-                            var draggableItemText, numOfSelectedItems;
-                            var dummy = {};
-                            dummy["SuiteId"] = view._treeview.getSelectedNode().id;
-                            dummy["Title"] = view._treeview.getSelectedNode().text;
-                            dummy["PlanId"] = view._treeview.getSelectedNode().config;
-                            dummy["Icon"] = view._treeview.getSelectedNode().icon;
-                            var selectedSuites = [dummy];
-                            numOfSelectedItems = selectedSuites.length;
+                            //var draggableItemText, numOfSelectedItems;
+                            var title = event.currentTarget.title;
+                            var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
+                            //var dummy = {};
+                            //dummy["SuiteId"] = view._treeview.getSelectedNode().id;
+                            //dummy["Title"] = view._treeview.getSelectedNode().text;
+                            //dummy["PlanId"] = view._treeview.getSelectedNode().config;
+                            //dummy["Icon"] = view._treeview.getSelectedNode().icon;
+                            //var selectedSuites = [dummy];
+                            //numOfSelectedItems = selectedSuites.length;
                             $dragTile = $("<div />")
                                 .addClass("drag-tile");
-                            var $dragItemCount = $("<div />")
-                                .addClass("drag-tile-item-count")
-                                .text(numOfSelectedItems);
+                            //var $dragItemCount = $("<div />")
+                            //    .addClass("drag-tile-item-count")
+                            //    .text(numOfSelectedItems);
+                            var $dragItemTitle = $("<div />")
+                                .addClass("drag-tile-title")
+                                .text(title);
                             var $dragType = $("<span />")
                                 .addClass("drag-tile-drag-type")
                                 .text("Move");
@@ -240,11 +245,14 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             var $dragHead = $("<div />")
                                 .addClass("drag-tile-head")
                                 .append($dragType)
-                                .append($dragItemCount);
+                                .append($dragItemTitle);
+                            //.append($dragItemCount);
                             $dragTile.append($dragHead);
                             //$dragTile.data("DROP_ACTION", "CLONE");
-                            $dragTile.data("PLAN_ID", selectedSuites.map(function (i) { return i["PlanId"]; }));
-                            $dragTile.data("SUITE_ID", selectedSuites.map(function (i) { return i["SuiteId"]; }));
+                            //$dragTile.data("PLAN_ID", selectedSuites.map(i => { return i["PlanId"]; }));
+                            //$dragTile.data("SUITE_ID", selectedSuites.map(i => { return i["SuiteId"]; }));
+                            $dragTile.data("PLAN_ID", draggedNode.config);
+                            $dragTile.data("SUITE_ID", draggedNode.id);
                             $dragTile.data("MODE", "TEST_SUITE");
                             //$dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
                             //var $dragLst = $("<div />")
@@ -267,9 +275,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             return $dragTile;
                         },
                         distance: 10,
-                        cursor: "arrow",
                         cursorAt: { top: -5, left: -5 },
                         refreshPositions: true,
+                        scroll: true,
                         stop: function () {
                             // Set all draggable parts back to revert: false
                             // This fixes elements after drag was cancelled with ESC key
@@ -311,6 +319,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     },
                     drop: function (event, ui) {
                         var n = treeview.getNodeFromElement(event.target);
+                        //var draggedNode: TreeView.TreeNode = this._treeview.getNodeFromElement(ui.draggable);
                         //var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
                         var action = ui.helper.data("MODE"); // TODO: rename to action
                         //var ids = ui.helper.data("WORK_ITEM_IDS");
@@ -356,7 +365,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 case "MOVE":
                     var targetPlanId = n.config.testPlanId;
                     var targetSuiteId = n.config.suiteId;
-                    //var testCaseIds = ui.helper.data("WORK_ITEM_IDS");
                     var sourcePlanId = view._currentNode.config.testPlanId;
                     var sourceSuiteId = view._currentNode.config.suiteId;
                     //var sourcePlanId: number = plan[0].testPlanId;
@@ -371,45 +379,19 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             view.updateTreeView();
                         });
                     });
-                    //    .then(
-                    //    data => {
-                    //        TreeViewDataService.removeTestCaseToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
-                    //            data => {
-                    //        });
-                    //    }
-                    //);
                     break;
                 case "CLONE":
                     alert("Clone tc to suite - not implemented!");
                     break;
                 case "ADD":
-                    //var view = this;
-                    //var plan = ui.helper.data("PLAN_ID");
-                    //var sourcePlanName: string = plan[0].name;
-                    //var sourcePlanId: number = plan[0].testPlanId;
-                    //var sourceSuiteId: number = ui.helper.data("SUITE_ID");
-                    //var mode = ui.helper.data("MODE");
-                    //var itemDiv = ui.helper.find("." + sourceSuiteId);
-                    //var txt = itemDiv.text();
-                    //itemDiv.text("Saving " + txt);
                     var targetPlanId = n.config.testPlanId;
                     var targetSuiteId = n.config.suiteId;
-                    //var testCaseIds = ui.helper.data("WORK_ITEM_IDS");
-                    //console.log("plan name: " + sourcePlanName);
-                    //console.log("plan id: " + sourcePlanId);
-                    //console.log("suite id: " + sourceSuiteId);
-                    //console.log("mode: " + mode);
                     console.log("target plan id: " + targetPlanId);
                     console.log("target suite id: " + targetSuiteId);
                     console.log("ids: " + tcIds.join(","));
-                    //TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, 1, targetSuiteId, targetPlanId);
                     TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(function (result) {
                         view.updateTreeView();
                     });
-                    //TreeViewDataService.addTestCasesToSuite(1, 2, "3").then(
-                    //    data => {
-                    //    }
-                    //);
                     break;
             }
         };
@@ -458,19 +440,28 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         };
         TreeviewView.prototype.CloneTestSuite = function (ui, n) {
             var view = this;
-            var plan = ui.helper.data("PLAN_ID");
-            var sourcePlanName = plan[0].name;
-            var sourcePlanId = plan[0].testPlanId;
-            var sourceSuiteId = ui.helper.data("SUITE_ID");
+            //var plan = ui.helper.data("PLAN_ID");
+            //var sourcePlanName: string = plan[0].name;
+            //var sourcePlanId: number = plan[0].testPlanId;
+            //var sourceSuiteId: number = ui.helper.data("SUITE_ID");
             var mode = ui.helper.data("MODE");
-            var itemDiv = ui.helper.find("." + sourceSuiteId);
-            var txt = itemDiv.text();
-            itemDiv.text("Saving " + txt);
+            //var itemDiv = ui.helper.find("." + sourceSuiteId);
+            //var txt = itemDiv.text();
+            //itemDiv.text("Saving " + txt);
+            var draggedNode = this._treeview.getNodeFromElement(ui.draggable);
+            draggedNode.config.name;
+            var sourcePlanName = draggedNode.config.name;
+            var sourcePlanId = draggedNode.config.testPlanId;
+            var sourceSuiteId = draggedNode.config.suiteId;
+            //var plan = ui.draggable.data("PLAN_ID");
+            //var sourcePlanName: string = plan[0].name;
+            //var sourcePlanId: number = plan[0].testPlanId;
+            //var sourceSuiteId: number = ui.draggable.data("SUITE_ID");
             var targetPlanId = n.config.testPlanId;
             var targetSuiteId = n.config.suiteId;
-            console.log("plan name: " + sourcePlanName);
-            console.log("plan id: " + sourcePlanId);
-            console.log("suite id: " + sourceSuiteId);
+            console.log("source plan name: " + sourcePlanName);
+            console.log("source plan id: " + sourcePlanId);
+            console.log("source suite id: " + sourceSuiteId);
             console.log("mode: " + mode);
             console.log("target plan id: " + targetPlanId);
             console.log("target suite id: " + targetSuiteId);

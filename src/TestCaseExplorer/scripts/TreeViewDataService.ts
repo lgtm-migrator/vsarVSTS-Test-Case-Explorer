@@ -69,6 +69,7 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
     // Get an instance of the client
     var deferred = $.Deferred<TreeView.TreeNode[]>();
     var tstClient = TestClient.getClient();
+
     tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
 
         var tRoot = convertToTreeNodes([{ name: "Test plans", children: [] }], "");
