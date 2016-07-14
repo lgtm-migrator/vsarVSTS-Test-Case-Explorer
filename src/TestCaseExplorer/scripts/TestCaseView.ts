@@ -389,45 +389,7 @@ export class TestCaseView {
             }
         });
     }
-
-    //private dragableStart(event, ui) {
-    //    //    this._clearRowMouseDownEventInfo();
-    //}
-
-    /*
-    private helperMultiSelectDrag(event, ui) {
-        var $dragTile;
-        var draggableItemText, numOfSelectedItems;
-        var selectedWorkItemIds = this._selectedRows;
-        var grd = this;
-
-        numOfSelectedItems = selectedWorkItemIds.length;
-        $dragTile = $("<div />")
-            .addClass("drag-tile")
-
-        if (numOfSelectedItems === 1) {
-
-            $dragTile.text("") //this.getColumnValue(dataIndex, this._getTitleColumnIndex()) || "");
-        }
-        else {
-            var $dragItemCount = $("<div />")
-                .addClass("drag-tile-item-count")
-                .text(numOfSelectedItems);
-            var $dragItemType = $("<span />")
-                .addClass("drag-tile-item-type")
-                .text(draggableItemText);
-            $dragTile.append($dragItemCount).append($dragItemType);
-        }
-
-        $dragTile.data("DROP_ACTION", "ASSOCIATE");
-        $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds);
-        $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
-        $dragTile.text(event.ctrlKey == true ? "Clone" : "Attach" + " " + selectedWorkItemIds.join("; "));
-
-        return $dragTile;
-    }
-    */
-
+   
     private initGrid(view: TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
         var options: Grids.IGridOptions = {
             height: "100%",
@@ -461,7 +423,6 @@ export class TestCaseView {
                     var $dragType = $("<span />")
                         .addClass("drag-tile-drag-type")
                         .text(view._selectedPivot == "Test plan" ? "Move" : "Attach");
-                        //.text(event.ctrlKey == true ? "Clone" : "Attach");
 
                     var $dragHead = $("<div />")
                         .addClass("drag-tile-head")
@@ -471,28 +432,12 @@ export class TestCaseView {
                     $dragTile.append($dragHead);
 
                     $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i => { return i["System.Id"]; }));
-                    //$dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
                     $dragTile.data("MODE", "TEST_CASE");
-
-                    //var $dragLst = $("<div />")
-                    //    .addClass("drag-tile-list")
-
-                    //selectedWorkItemIds.forEach(r => {
-                    //    var id = r["System.Id"];
-                    //    $dragLst.append(
-                    //        $("<div />")
-                    //            .addClass(id.toString())
-                    //            .text(id + " " + r["System.Title"])
-                    //    );
-                    //});
-                    //$dragTile.append($dragLst);
 
                     return $dragTile;
                 }
             },
             openRowDetail: (index: number) => {
-                // Double clicking row or hitting enter key when the row is selected
-                // will cause this function to be executed
                 var item = this._grid.getRowData(index);
                 selectCallBack(item["System.Id"]);
                 WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
@@ -563,24 +508,6 @@ export class TestCaseView {
         }
 
         $("#grid-count").text("Showing " + this._grid._count + " of " + this._data.length + (this._data.length == 1 ? " test case" : " test cases"));
-
-        /*
-        $(".grid-row-normal").draggable({
-            revert: "invalid",
-            appendTo: document.body,
-            helper: "clone",
-            zIndex: 1000,
-            //cursor: "move",
-            cursorAt: { top: -5, left: -5 },
-            //scope: TFS_Agile.DragDropScopes.ProductBacklog,
-            //start: this._draggableStart,
-            //stop: this._draggableStop,
-            //helper: this._draggableHelper,
-            //drag: this._draggableDrag,
-            refreshPositions: true
-
-        });
-        */
     }
 
     public StartLoading(longRunning, message) {

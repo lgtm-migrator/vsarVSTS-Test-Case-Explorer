@@ -57,7 +57,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     }
     exports.AssignTestCasesToField = AssignTestCasesToField;
     function getTestPlansWithSuite() {
-        // Get an instance of the client
         var deferred = $.Deferred();
         var tstClient = TestClient.getClient();
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
@@ -79,7 +78,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     }
     exports.getTestPlansWithSuite = getTestPlansWithSuite;
     function getTestPlans() {
-        // Get an instance of the client
         var deferred = $.Deferred();
         var tstClient = TestClient.getClient();
         tstClient.getPlans(VSS.getWebContext().project.name).then(function (data) {
@@ -94,7 +92,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     }
     exports.getTestPlans = getTestPlans;
     function getTestSuitesForTestCase(testCaseId) {
-        // Get an instance of the client
         var deferred = $.Deferred();
         var tstClient = TestClient.getClient();
         tstClient.getSuitesByTestCaseId(testCaseId).then(function (data) {
@@ -106,7 +103,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     }
     exports.getTestSuitesForTestCase = getTestSuitesForTestCase;
     function getTestResultsForTestCase(testCaseId) {
-        // Get an instance of the client
         var deferred = $.Deferred();
         var tstClient = TestClient.getClient();
         var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
@@ -119,7 +115,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     }
     exports.getTestResultsForTestCase = getTestResultsForTestCase;
     function getLinkedRequirementsForTestCase(testCaseId) {
-        // Get an instance of the client
         var deferred = $.Deferred();
         var client = WITClient.getClient();
         var q = {
@@ -143,7 +138,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     }
     exports.getLinkedRequirementsForTestCase = getLinkedRequirementsForTestCase;
     function getTestPlanAndSuites(planId, testPlanName) {
-        // Get an instance of the client
         var deferred = $.Deferred();
         var tstClient = TestClient.getClient();
         tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(function (data) {
@@ -294,7 +288,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             destinationSuiteId: targetSuiteId,
             destinationSuiteProjectName: teamProjectName
         };
-        // TODO: clone with hierarchy does not work
+        // TODO: clone with hierarchy does not work?
         testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(function (data) {
             console.log("Clone test suite completed: " + data.completionDate);
             deferred.resolve(data);
@@ -356,7 +350,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     function cloneTestCaseToSuite(planId, suiteId, testCaseIds) {
         var deferred = $.Deferred();
         // TODO: not implemented...
-        //deferred.resolve(null);
         return deferred.promise();
     }
     exports.cloneTestCaseToSuite = cloneTestCaseToSuite;

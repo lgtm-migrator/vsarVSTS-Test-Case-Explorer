@@ -119,7 +119,6 @@ export class testSuiteFilter implements ITestCaseFilter {
 }
 
 export function getTestResultsForTestCases(testCaseLst: number[]): IPromise<TestContracts.TestCaseResult[]> {
-    // Get an instance of the client
     var deferred = $.Deferred<any[]>();
     var tstClient = TestClient.getClient();
     var q = { query: "Select * from TestResult  WHERE TestCaseId IN (" + testCaseLst.join(",") + ") ORDER BY CreationDate DESC" };

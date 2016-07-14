@@ -36,7 +36,6 @@ export class TreeviewView {
     private _currentNode: TreeView.TreeNode;
     private _currentSource: string;
     private _waitControl: StatusIndicator.WaitControl;
-    //private _isDragging 
 
     private listenToTheKey(e) {
         if (e.which === 27 || e.keyCode === 27) {
@@ -72,8 +71,6 @@ export class TreeviewView {
         view._callback = callback;
         var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
 
-        //window.onkeypress = this.listenToTheKey;
-        //view._treeview.onkeydown = this.listenToTheKey;
         window.onkeydown = this.listenToTheKey;
         window.onkeyup = this.listenToTheKey;
 
@@ -102,22 +99,9 @@ export class TreeviewView {
             }
         };
 
-        //Hook up change for cbo to redraw treeview
         $("#treeview-Cbo-container").change(function () {
             view._currentSource = cbo.getText();
             view.updateTreeView();
-            //view.StartLoading(true, "Loading pivot data");
-            //view._currentSource = cbo.getText();
-            //TelemetryClient.getClient().trackPageView("TreeView." + cbo.getText());
-            //view.LoadTreeview(view._currentSource, treeview).then(a => {
-            //    view.DoneLoading()
-            //});
-
-            //VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
-            //    dataService => {
-            //        // Set value in user scope
-            //        dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" });
-            //    });
         });
 
         view._treeview = treeview;
@@ -156,8 +140,8 @@ export class TreeviewView {
     }
 
     private initMenu(view: TreeviewView) {
-        //var menuItems: Menus.IMenuItemSpec[] = [
-        var menuItems: any[] = [
+        var menuItems: Menus.IMenuItemSpec[] = [
+        //var menuItems: any[] = [
             { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "child-node-icon" },
             { id: "expand-all", showText: false, title: "Expand all", icon: "bowtie-toggle-expand-all", cssClass: "bowtie-icon" },
             { id: "collapse-all", showText: false, title: "Collapse all", icon: "bowtie-toggle-collapse", cssClass: "bowtie-icon" },
@@ -269,33 +253,17 @@ export class TreeviewView {
             if (view._currentSource == "Test plan") {
                 $("li.node").draggable({
                     scope: "test-case-scope",
-                    //           scope: "TCExplorer.TreeView",
                     revert: "invalid",
                     appendTo: document.body,
 
                     helper: function (event, ui) {
                         var $dragTile;
-                        //var draggableItemText, numOfSelectedItems;
 
                         var title = event.currentTarget.title;
                         var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
 
-                        //var dummy = {};
-                        //dummy["SuiteId"] = view._treeview.getSelectedNode().id;
-                        //dummy["Title"] = view._treeview.getSelectedNode().text;
-                        //dummy["PlanId"] = view._treeview.getSelectedNode().config;
-                        //dummy["Icon"] = view._treeview.getSelectedNode().icon;
-
-                        //var selectedSuites = [dummy];
-
-                        //numOfSelectedItems = selectedSuites.length;
-
                         $dragTile = $("<div />")
                             .addClass("drag-tile")
-
-                        //var $dragItemCount = $("<div />")
-                        //    .addClass("drag-tile-item-count")
-                        //    .text(numOfSelectedItems);
 
                         var $dragItemTitle = $("<div />")
                             .addClass("drag-tile-title")
@@ -304,45 +272,17 @@ export class TreeviewView {
                         var $dragType = $("<span />")
                             .addClass("drag-tile-drag-type")
                             .text("Move");
-                        //.text(event.ctrlKey == true ? "Copy" : "Clone");
 
                         var $dragHead = $("<div />")
                             .addClass("drag-tile-head")
                             .append($dragType)
                             .append($dragItemTitle)
-                        //.append($dragItemCount);
 
                         $dragTile.append($dragHead);
-
-                        //$dragTile.data("DROP_ACTION", "CLONE");
-                        //$dragTile.data("PLAN_ID", selectedSuites.map(i => { return i["PlanId"]; }));
-                        //$dragTile.data("SUITE_ID", selectedSuites.map(i => { return i["SuiteId"]; }));
 
                         $dragTile.data("PLAN_ID", draggedNode.config);
                         $dragTile.data("SUITE_ID", draggedNode.id);
                         $dragTile.data("MODE", "TEST_SUITE");
-
-                        //$dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
-
-                        //var $dragLst = $("<div />")
-                        //    .addClass("drag-tile-list")
-
-                        //selectedSuites.forEach(r => {
-                        //    var id = r["SuiteId"];
-                        //    $dragLst.append(
-                        //        $("<span />").append(
-                        //            $("<span />")
-                        //                .addClass("icon")
-                        //                .addClass("tree-node-img ")
-                        //                .addClass(r["Icon"])
-                        //                .text("h")
-                        //        )
-                        //            .text(id + " " + r["Title"])
-                        //            .addClass(id)
-
-                        //    );
-                        //});
-                        //$dragTile.append($dragLst);
 
                         return $dragTile;
                     },
@@ -367,7 +307,6 @@ export class TreeviewView {
                     var text = $(this).text;
                     return true;
                 },
-                //hoverClass: "drag-hover",
                 over: function (e, ui) {
                     var target: any = e.target;
                     console.log("over " + target.title);
@@ -379,13 +318,6 @@ export class TreeviewView {
                     //else {
                     //    $(e.target).addClass("drag-hover-invalid");
                     //}
-
-                    //let dragInfo = getDragInfo(e, ui);
-                    //if (dragInfo) {
-                    //    $(e.target).addClass("accepted");
-                    //} else {
-                    //    $(e.target).addClass("rejected");
-                    //}
                 },
                 out: function (e, ui) {
                     var target: any = e.target;
@@ -396,12 +328,8 @@ export class TreeviewView {
                 drop: function (event: any, ui) {
 
                     var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
-                    //var draggedNode: TreeView.TreeNode = this._treeview.getNodeFromElement(ui.draggable);
 
-                    //var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
                     var action = ui.helper.data("MODE");  // TODO: rename to action
-                    //var ids = ui.helper.data("WORK_ITEM_IDS");
-
                     var mode = view.getCurrentDragMode(event);
 
                     switch (action) {

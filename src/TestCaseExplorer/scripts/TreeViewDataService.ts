@@ -66,7 +66,6 @@ export function AssignTestCasesToField(project, tcId: number, field, value): IPr
 }
 
 export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
-    // Get an instance of the client
     var deferred = $.Deferred<TreeView.TreeNode[]>();
     var tstClient = TestClient.getClient();
 
@@ -91,7 +90,6 @@ export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
 }
 
 export function getTestPlans(): IPromise<TreeView.TreeNode[]> {
-    // Get an instance of the client
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var tstClient = TestClient.getClient();
@@ -110,7 +108,6 @@ export function getTestPlans(): IPromise<TreeView.TreeNode[]> {
 }
 
 export function getTestSuitesForTestCase(testCaseId: number): IPromise<any[]> {
-    // Get an instance of the client
     var deferred = $.Deferred<any[]>();
 
     var tstClient = TestClient.getClient();
@@ -125,25 +122,22 @@ export function getTestSuitesForTestCase(testCaseId: number): IPromise<any[]> {
 }
 
 export function getTestResultsForTestCase(testCaseId: number): IPromise<any[]> {
-    // Get an instance of the client
     var deferred = $.Deferred<any[]>();
     var tstClient = TestClient.getClient();
     var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
 
     tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(
-        data=> {
+        data => {
             deferred.resolve(data);
         },
-        err=> {
+        err => {
             deferred.reject(err);
         }
     );
     return deferred.promise();
 }
 
-
 export function getLinkedRequirementsForTestCase(testCaseId: number): IPromise<any[]> {
-    // Get an instance of the client
     var deferred = $.Deferred<any[]>();
     var client = WITClient.getClient();
     var q = {
@@ -172,7 +166,6 @@ export function getLinkedRequirementsForTestCase(testCaseId: number): IPromise<a
 }
 
 export function getTestPlanAndSuites(planId: number, testPlanName: string): IPromise<TreeView.TreeNode[]> {
-    // Get an instance of the client
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var tstClient = TestClient.getClient();
@@ -362,7 +355,7 @@ export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targ
         destinationSuiteProjectName: teamProjectName
     };
 
-    // TODO: clone with hierarchy does not work
+    // TODO: clone with hierarchy does not work?
     testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(
         data => {
             console.log("Clone test suite completed: " + data.completionDate);
@@ -446,7 +439,6 @@ export function cloneTestCaseToSuite(planId: number, suiteId: number, testCaseId
     var deferred = $.Deferred<any[]>();
 
     // TODO: not implemented...
-    //deferred.resolve(null);
 
     return deferred.promise();
 }

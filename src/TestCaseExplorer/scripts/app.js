@@ -55,46 +55,4 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
         });
     }
 });
-/*
-
-var registrationForm = (function () {
-    var callbacks = [];
-
-    function inputChanged() {
-        // Execute registered callbacks
-        for (var i = 0; i < callbacks.length; i++) {
-            callbacks[i](isValid());
-        }
-    }
-
-    function isValid() {
-        // Check whether form is valid or not
-        return true;
-    }
-
-    function getFormData() {
-        // Get form values
-        return {
-            //name: name.value,
-            //dateOfBirth: dateOfBirth.value,
-            //email: email.value
-        };
-    }
-
-    return {
-        isFormValid: function () {
-            return isValid();
-        },
-        getFormData: function () {
-            return getFormData();
-        },
-        attachFormChanged: function (cb) {
-            callbacks.push(cb);
-        }
-    };
-})();
-
-// Register form object to be used accross this extension
-VSS.register("columnOptionsForm", registrationForm);
-*/ 
 //# sourceMappingURL=app.js.map

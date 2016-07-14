@@ -35,11 +35,11 @@ export interface TestCaseViewSelectedCallback { (value: string): void }
 
 export class ColumnOptionsView {
 
-    public _avaibleFields //: WorkItemContracts.WorkItemFieldReference[];
+    public _avaibleFields;
     public _selectedColumns: Common.ICustomColumnDef[];
 
-    private lstAvailbleFields: any;;
-    private lstSelectedColumns: any
+    private lstAvailbleFields: any;
+    private lstSelectedColumns: any;
     private content;
 
     public Init(content, selectedColumns: Common.ICustomColumnDef[]) {

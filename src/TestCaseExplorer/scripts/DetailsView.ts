@@ -213,7 +213,6 @@ class partOfTestSuitesPane implements IPaneRefresh {
         };
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testSuite-container"), menubarOptions);
-
     }
 
     public show() {
@@ -310,27 +309,20 @@ class testPlanPane implements IPaneRefresh {
                         accept: function (d) {
                             return true;
                         },
-                        //hoverClass: "droppable-hover",
                         drop: function (event, ui) {
                             var n = treeviewTestPlan.getNodeFromElement(event.target);
                             var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
                             var tcId = ui.draggable.context.childNodes[0].textContent;
-                            //var x = grd.getDraggingRowInfo();
-                            //Grids.Grid.getInstance($("#grid-container"));
+
                             var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
                             var div = $("<div />").text(s);
                             ui.draggable.context = div[0];
 
-                            //---MO
                             var targetPlanId: number = n.config.testPlanId;
                             var targetSuiteId: number = n.config.suiteId;
 
                             var ids = ui.helper.data("WORK_ITEM_IDS");
 
-                            //console.log("plan name: " + sourcePlanName);
-                            //console.log("plan id: " + sourcePlanId);
-                            //console.log("suite id: " + sourceSuiteId);
-                            //console.log("mode: " + mode);
                             console.log("target plan id: " + targetPlanId);
                             console.log("target suite id: " + targetSuiteId);
                             console.log("ids: " + ids);
@@ -346,14 +338,6 @@ class testPlanPane implements IPaneRefresh {
                     console.log(err);
                 });
         });
-
-        //$(".ui-draggable").draggable({
-        //    revert: true,
-        //    appendTo: document.body,
-        //    helper: "clone",
-        //    zIndex: 1000,
-        //    refreshPositions: true
-        //});
 
         var menuItems: any[] = [
             { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
@@ -389,27 +373,7 @@ class testPlanPane implements IPaneRefresh {
 
     public masterIdChanged(id: string) {
         TelemetryClient.getClient().trackPageView("Details.TestPlans");
-        //var pane = this;
-        //if (id == null) {
-        //    pane._grid.setDataSource(null);
-        //}
-        //else {
-        //    TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(
-        //        data => {
-        //            if (data != null) {
-        //                $("#details-gridTestSuites").show();
-        //                pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
-        //            }
-        //            else {
-        //                $("#details-gridTestSuites").hide();
-        //            }
-
-        //        },
-        //        err => {
-        //            $("#details-gridTestSuites").hide();
-        //        }
-        //    );
-        //}
+        // TODO: can we do something meaningful here?
     }
 }
 
