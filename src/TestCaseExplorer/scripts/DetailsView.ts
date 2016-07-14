@@ -13,9 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/jqueryui.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
+/// <reference path='../typings/tsd.d.ts' />
 /// <reference path="telemetryclient.ts" />
 
 import Controls = require("VSS/Controls");
@@ -28,7 +26,6 @@ import Navigation = require("VSS/Controls/Navigation");
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import Common = require("scripts/Common");
-
 
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
@@ -310,7 +307,10 @@ class testPlanPane implements IPaneRefresh {
                         scope: "test-case-scope",
                         greedy: true,
                         tolerance: "pointer",
-                        hoverClass: "droppable-hover",
+                        accept: function (d) {
+                            return true;
+                        },
+                        //hoverClass: "droppable-hover",
                         drop: function (event, ui) {
                             var n = treeviewTestPlan.getNodeFromElement(event.target);
                             var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
@@ -320,6 +320,21 @@ class testPlanPane implements IPaneRefresh {
                             var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
                             var div = $("<div />").text(s);
                             ui.draggable.context = div[0];
+
+                            //---MO
+                            var targetPlanId: number = n.config.testPlanId;
+                            var targetSuiteId: number = n.config.suiteId;
+
+                            var ids = ui.helper.data("WORK_ITEM_IDS");
+
+                            //console.log("plan name: " + sourcePlanName);
+                            //console.log("plan id: " + sourcePlanId);
+                            //console.log("suite id: " + sourceSuiteId);
+                            //console.log("mode: " + mode);
+                            console.log("target plan id: " + targetPlanId);
+                            console.log("target suite id: " + targetSuiteId);
+                            console.log("ids: " + ids);
+
                             TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
                                 data => { alert(s); },
                                 err => { alert(err); });
@@ -332,13 +347,13 @@ class testPlanPane implements IPaneRefresh {
                 });
         });
 
-        $(".ui-draggable").draggable({
-            revert: true,
-            appendTo: document.body,
-            helper: "clone",
-            zIndex: 1000,
-            refreshPositions: true
-        });
+        //$(".ui-draggable").draggable({
+        //    revert: true,
+        //    appendTo: document.body,
+        //    helper: "clone",
+        //    zIndex: 1000,
+        //    refreshPositions: true
+        //});
 
         var menuItems: any[] = [
             { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
@@ -406,10 +421,7 @@ class testResultsPane implements IPaneRefresh {
             height: "100%",
             width: "100%",
             columns: [
-                {
-                    text: "Outcome", index: "Outcome", width: 75, getCellContents: Common.getTestResultCellContent
-                },
-
+                { text: "Outcome", index: "Outcome", width: 75, getCellContents: Common.getTestResultCellContent },
                 { text: "Configuration", index: "Configuration", width: 75 },
                 { text: "Run by", index: "RunBy", width: 150 },
                 { text: "Date ", index: "Date", width: 150 },
@@ -490,7 +502,6 @@ class linkedRequirementsPane implements IPaneRefresh {
 
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridReq"), options);
 
-
         var menuItems: any[] = [
             { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
         ];
@@ -512,7 +523,6 @@ class linkedRequirementsPane implements IPaneRefresh {
         };
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-linkedReq-container"), menubarOptions);
-
     }
 
     public hide() {

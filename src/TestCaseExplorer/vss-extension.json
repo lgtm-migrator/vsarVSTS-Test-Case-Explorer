@@ -52,10 +52,6 @@
       "addressable": true
     },
     {
-      "path": "sdk",
-      "addressable": true
-    },
-    {
       "path": "img",
       "addressable": true
     },

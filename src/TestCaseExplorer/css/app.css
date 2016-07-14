@@ -141,9 +141,18 @@
    
 }
 
+.drag-hover {
+    background-color:#E0E9CC;
+}
+
+.drag-hover-invalid {
+    background-color:red;
+}
+
 .droppable-hover {
     background-color:lightgreen;
 }
+
 .test-count{
 
 }

@@ -13,10 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/jqueryui.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
-/// <reference path="telemetryclient.ts" />
+/// <reference path='../typings/tsd.d.ts' />
 
 import WorkItemContracts = require("TFS/WorkItemTracking/Contracts");
 import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
@@ -29,8 +26,8 @@ export class WIQLConstants {
     public TestCaseCategoryName: string = "Test Case Category";
     public RequirementsCategoryName: string = "Requirement Category";
 
-
     private static constants: WIQLConstants;
+
     public static getWiqlConstants(): WIQLConstants {
 
         if (!this.constants) {
@@ -40,8 +37,6 @@ export class WIQLConstants {
 
         return this.constants;
     }
-
-
 
     private Init() {
         try {
@@ -63,6 +58,7 @@ export class WIQLConstants {
         }
     }
 }
+
 export function getTestResultCellContent(rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
     var outcome = this.getColumnValue(dataIndex, column.index);
     var d = $("<div class='grid-cell'/>").width(column.width || 100)
@@ -114,5 +110,4 @@ export function MergeColumnLists(lst1: ICustomColumnDef[], lst2: ICustomColumnDe
     return a.filter(item => {
         return seen.hasOwnProperty(item.field) ? false : (seen[item.field] = true);
     });
-
 }

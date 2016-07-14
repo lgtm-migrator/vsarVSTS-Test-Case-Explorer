@@ -13,15 +13,13 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
+/// <reference path='../typings/tsd.d.ts' />
 
 import Contracts = require("TFS/WorkItemTracking/Contracts");
 import TestClient = require("TFS/TestManagement/RestClient");
 import TestContracts = require("TFS/TestManagement/Contracts");
 import WITClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
-
 import Common = require("scripts/Common");
 
 export function getNodes(param) {
@@ -311,14 +309,14 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
     return a;
 }
 
-export function cloneTestPlan(sourcePlanId: number, targetPlanId: number, targetSuiteId: number) : IPromise< any > {
-    var deferred = $.Deferred<any[]>();
+export function cloneTestPlan(sourcePlanId: number, targetPlanId: number, targetSuiteId: number): IPromise<TestContracts.CloneOperationInformation> {
+    var deferred = $.Deferred<TestContracts.CloneOperationInformation>();
     var testCaseClient = TestClient.getClient();
 
     var teamProjectName = VSS.getWebContext().project.name;
     testCaseClient.getPlanById(teamProjectName, targetPlanId).then(testPlan => {
         var cloneRequest: TestContracts.TestPlanCloneRequest = {
-            cloneOptions: {
+            options: {
                 cloneRequirements: false,
                 copyAllSuites: true,
                 copyAncestorHierarchy: false,
@@ -330,16 +328,22 @@ export function cloneTestPlan(sourcePlanId: number, targetPlanId: number, target
             destinationTestPlan: testPlan
         };
 
-        testCaseClient.cloneTestPlan(cloneRequest, teamProjectName, sourcePlanId).then(result => {
-            console.log("Clone test plan completed: " + result.completionDate);
-        });
+        testCaseClient.cloneTestPlan(cloneRequest, teamProjectName, sourcePlanId).then(
+            data => {
+                console.log("Clone test plan completed: " + data.completionDate);
+                deferred.resolve(data);
+            },
+            err => {
+                deferred.reject(err);
+            }
+        );
     });
     
     return deferred.promise();
 }
 
-export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number) : IPromise<any> {
-    var deferred = $.Deferred<any[]>();
+export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number) : IPromise<TestContracts.CloneOperationInformation> {
+    var deferred = $.Deferred<TestContracts.CloneOperationInformation>();
     var testCaseClient = TestClient.getClient();
 
     var teamProjectName = VSS.getWebContext().project.name;
@@ -351,17 +355,97 @@ export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targ
             copyAncestorHierarchy: false,
             overrideParameters: {},
             destinationWorkItemType: "Test Case",
-            relatedLinkComment: "Comment"
+            relatedLinkComment: "Cloned from test case explorer"
         },
         destinationSuiteId: targetSuiteId,
         destinationSuiteProjectName: teamProjectName
     };
 
-    // TODO: check if this API is incorrectly documented, suite and plan is in opposite order
     // TODO: clone with hierarchy does not work
-    testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(result => {
-        console.log("Clone test suite completed: " + result.completionDate);
-    });
+    testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(
+        data => {
+            console.log("Clone test suite completed: " + data.completionDate);
+            deferred.resolve(data);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
+    return deferred.promise();
+}
+
+export function addTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number): IPromise<any> {
+    var deferred = $.Deferred<any[]>();
+
+    //var tstClient = TestClient.getClient();
+    //tstClient.getTestSuiteById(VSS.getWebContext().project.name, planId, suiteId).then(
+    //    data => {
+    //        // same test plan: https://www.visualstudio.com/en-us/docs/integrate/api/test/suites#parent-suite
+    //        // different => add + remove
+    //        deferred.resolve(null);
+    //    },
+    //    err => {
+    //        deferred.reject(err);
+    //    }
+    //);
+
+    return deferred.promise();
+}
+
+export function removeTestSuite(planId: number, suiteId: number): IPromise<void> {
+    var deferred = $.Deferred<void>();
+
+    var tstClient = TestClient.getClient();
+    tstClient.deleteTestSuite(VSS.getWebContext().project.name, planId, suiteId).then(
+        data => {
+            deferred.resolve(data);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
+    return deferred.promise();
+}
+
+export function addTestCasesToSuite(planId: number, suiteId: number, testCaseIds: string): IPromise<TreeView.TreeNode[]> {
+    var deferred = $.Deferred<any[]>();
+
+    var tstClient = TestClient.getClient();
+    tstClient.addTestCasesToSuite(VSS.getWebContext().project.name, planId, suiteId, testCaseIds).then(
+        data => {
+            deferred.resolve(data);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
+    return deferred.promise();
+}
+
+export function removeTestCaseFromSuite(planId: number, suiteId: number, testCaseIds: string): IPromise<void> {
+    var deferred = $.Deferred<void>();
+
+    var tstClient = TestClient.getClient();
+    tstClient.removeTestCasesFromSuiteUrl(VSS.getWebContext().project.name, planId, suiteId, testCaseIds).then(
+        data => {
+            deferred.resolve(data);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
+    return deferred.promise();
+}
+
+export function cloneTestCaseToSuite(planId: number, suiteId: number, testCaseIds: string): IPromise<TreeView.TreeNode[]> {
+    var deferred = $.Deferred<any[]>();
+
+    // TODO: not implemented...
+    //deferred.resolve(null);
 
     return deferred.promise();
 }

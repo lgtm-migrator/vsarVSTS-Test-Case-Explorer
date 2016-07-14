@@ -128,7 +128,7 @@ var XDM;
             }
         };
         return XdmDeferred;
-    })();
+    }());
     var smallestRandom = parseInt("10000000000", 36);
     var maxSafeInteger = Number.MAX_SAFE_INTEGER || 9007199254740991;
     /**
@@ -175,7 +175,7 @@ var XDM;
             }
         };
         return XDMObjectRegistry;
-    })();
+    }());
     XDM.XDMObjectRegistry = XDMObjectRegistry;
     ;
     /**
@@ -585,7 +585,7 @@ var XDM;
             "jQuery"
         ];
         return XDMChannel;
-    })();
+    }());
     XDM.XDMChannel = XDMChannel;
     /**
     * Registry of XDM channels kept per target frame/window
@@ -661,12 +661,12 @@ var XDM;
             }
         };
         return XDMChannelManager;
-    })();
+    }());
     XDM.XDMChannelManager = XDMChannelManager;
 })(XDM || (XDM = {}));
 var VSS;
 (function (VSS) {
-    VSS.VssSDKVersion = 0.1;
+    VSS.VssSDKVersion = 2.0;
     VSS.VssSDKRestVersion = "2.2";
     var bodyElement;
     var webContext;
@@ -681,6 +681,131 @@ var VSS;
     var isReady = false;
     var readyCallbacks;
     var parentChannel = XDM.XDMChannelManager.get().addChannel(window.parent);
+    var shimmedLocalStorage;
+    var hostReadyForShimUpdates = false;
+    var Storage = (function () {
+        var changeCallback;
+        function invokeChangeCallback() {
+            if (changeCallback) {
+                changeCallback.call(this);
+            }
+        }
+        function Storage(changeCallback) {
+        }
+        Object.defineProperties(Storage.prototype, {
+            getItem: {
+                get: function () {
+                    return function (key) {
+                        var item = this["" + key];
+                        return typeof item === "undefined" ? null : item;
+                    };
+                }
+            },
+            setItem: {
+                get: function () {
+                    return function (key, value) {
+                        key = "" + key;
+                        var existingValue = this[key];
+                        var newValue = "" + value;
+                        if (existingValue !== newValue) {
+                            this[key] = newValue;
+                            invokeChangeCallback();
+                        }
+                    };
+                }
+            },
+            removeItem: {
+                get: function () {
+                    return function (key) {
+                        key = "" + key;
+                        if (typeof this[key] !== "undefined") {
+                            delete this[key];
+                            invokeChangeCallback();
+                        }
+                    };
+                }
+            },
+            clear: {
+                get: function () {
+                    return function () {
+                        var keys = Object.keys(this);
+                        if (keys.length > 0) {
+                            for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
+                                var key = keys_1[_i];
+                                delete this[key];
+                            }
+                            invokeChangeCallback();
+                        }
+                    };
+                }
+            },
+            key: {
+                get: function () {
+                    return function (index) {
+                        return Object.keys(this)[index];
+                    };
+                }
+            },
+            length: {
+                get: function () {
+                    return Object.keys(this).length;
+                }
+            }
+        });
+        return Storage;
+    }());
+    function shimSandboxedProperties() {
+        var updateSettingsTimeout;
+        function updateShimmedStorageCallback() {
+            // Talk to the host frame on a 50 ms delay in order to batch storage/cookie updates
+            if (!updateSettingsTimeout) {
+                updateSettingsTimeout = setTimeout(function () {
+                    updateSettingsTimeout = 0;
+                    updateHostSandboxedStorage();
+                }, 50);
+            }
+        }
+        // Override document.cookie if it is not available
+        var hasCookieSupport = false;
+        try {
+            hasCookieSupport = typeof document.cookie === "string";
+        }
+        catch (ex) {
+        }
+        if (!hasCookieSupport) {
+            Object.defineProperty(Document.prototype, "cookie", {
+                get: function () {
+                    return "";
+                },
+                set: function (value) {
+                }
+            });
+        }
+        // Override browser storage
+        var hasLocalStorage = false;
+        try {
+            hasLocalStorage = !!window.localStorage;
+        }
+        catch (ex) {
+        }
+        if (!hasLocalStorage) {
+            delete window.localStorage;
+            shimmedLocalStorage = new Storage(updateShimmedStorageCallback);
+            Object.defineProperty(window, "localStorage", { value: shimmedLocalStorage });
+            delete window.sessionStorage;
+            Object.defineProperty(window, "sessionStorage", { value: new Storage() });
+        }
+    }
+    if (!window["__vssNoSandboxShim"]) {
+        try {
+            shimSandboxedProperties();
+        }
+        catch (ex) {
+            if (window.console && window.console.warn) {
+                window.console.warn("Failed to shim support for sandboxed properties: " + ex.message + ". Set \"window.__vssNoSandboxShim = true\" in order to bypass the shim of sandboxed properties.");
+            }
+        }
+    }
     /**
     * Service Ids for core services (to be used in VSS.getService)
     */
@@ -715,7 +840,8 @@ var VSS;
         window.setTimeout(function () {
             var appHandshakeData = {
                 notifyLoadSucceeded: !initOptions.explicitNotifyLoaded,
-                extensionReusedCallback: initOptions.extensionReusedCallback
+                extensionReusedCallback: initOptions.extensionReusedCallback,
+                vssSDKVersion: VSS.VssSDKVersion
             };
             parentChannel.invokeRemoteMethod("initialHandshake", "VSS.HostControl", [appHandshakeData]).then(function (handshakeData) {
                 hostPageContext = handshakeData.pageContext;
@@ -723,6 +849,37 @@ var VSS;
                 initialConfiguration = handshakeData.initialConfig || {};
                 initialContribution = handshakeData.contribution;
                 extensionContext = handshakeData.extensionContext;
+                if (handshakeData.sandboxedStorage) {
+                    var updateNeeded = false;
+                    if (shimmedLocalStorage) {
+                        if (handshakeData.sandboxedStorage.localStorage) {
+                            // Merge host data in with any values already set.
+                            var newData = handshakeData.sandboxedStorage.localStorage;
+                            // Check for any properties written prior to the initial handshake
+                            for (var _i = 0, _a = Object.keys(shimmedLocalStorage); _i < _a.length; _i++) {
+                                var key = _a[_i];
+                                var value = shimmedLocalStorage.getItem(key);
+                                if (value !== newData[key]) {
+                                    newData[key] = value;
+                                    updateNeeded = true;
+                                }
+                            }
+                            // Update the stored values
+                            for (var _b = 0, _c = Object.keys(newData); _b < _c.length; _b++) {
+                                var key = _c[_b];
+                                shimmedLocalStorage.setItem(key, newData[key]);
+                            }
+                        }
+                        else if (shimmedLocalStorage.length > 0) {
+                            updateNeeded = true;
+                        }
+                    }
+                    hostReadyForShimUpdates = true;
+                    if (updateNeeded) {
+                        // Talk to host frame to issue update
+                        updateHostSandboxedStorage();
+                    }
+                }
                 if (usingPlatformScripts || usingPlatformStyles) {
                     setupAmdLoader();
                 }
@@ -733,6 +890,12 @@ var VSS;
         }, 0);
     }
     VSS.init = init;
+    function updateHostSandboxedStorage() {
+        var storage = {
+            localStorage: JSON.stringify(shimmedLocalStorage || {})
+        };
+        parentChannel.invokeRemoteMethod("updateSandboxedStorage", "VSS.HostControl", [storage]);
+    }
     /**
      * Ensures that the AMD loader from the host is configured and fetches a script (AMD) module
      * (and its dependencies). If no callback is supplied, this will still perform an asynchronous
@@ -761,7 +924,7 @@ var VSS;
         }
         if (loaderConfigured) {
             // Loader already configured, just issue require
-            window.require(modulesArray, callback);
+            issueVssRequire(modulesArray, callback);
         }
         else {
             if (!initOptions) {
@@ -777,11 +940,21 @@ var VSS;
                 }
             }
             ready(function () {
-                window.require(modulesArray, callback);
+                issueVssRequire(modulesArray, callback);
             });
         }
     }
     VSS.require = require;
+    function issueVssRequire(modules, callback) {
+        if (hostPageContext.diagnostics.bundlingEnabled) {
+            window.require(["VSS/Bundling"], function (VSS_Bundling) {
+                VSS_Bundling.requireModules(modules, callback);
+            });
+        }
+        else {
+            window.require(modules, callback);
+        }
+    }
     /**
     * Register a callback that gets called once the initial setup/handshake has completed.
     * If the initial setup is already completed, the callback is invoked at the end of the current call stack.
@@ -847,16 +1020,16 @@ var VSS;
     * @param context Optional context information to use when obtaining the service instance
     */
     function getService(contributionId, context) {
-        if (!context) {
-            context = {};
-        }
-        if (!context["webContext"]) {
-            context["webContext"] = getWebContext();
-        }
-        if (!context["extensionContext"]) {
-            context["extensionContext"] = getExtensionContext();
-        }
         return getServiceContribution(contributionId).then(function (serviceContribution) {
+            if (!context) {
+                context = {};
+            }
+            if (!context["webContext"]) {
+                context["webContext"] = getWebContext();
+            }
+            if (!context["extensionContext"]) {
+                context["extensionContext"] = getExtensionContext();
+            }
             return serviceContribution.getInstance(serviceContribution.id, context);
         });
     }
@@ -1015,6 +1188,9 @@ var VSS;
                 // If core scripts bundle exists and no core scripts already loaded by extension,
                 // we are free to add core bundle. otherwise, load core scripts individually.
                 scripts = [{ source: getAbsoluteUrl(hostPageContext.coreReferences.coreScriptsBundle.url, hostRootUri) }];
+            }
+            if (hostPageContext.coreReferences.extensionCoreReferences) {
+                scripts.push({ source: getAbsoluteUrl(hostPageContext.coreReferences.extensionCoreReferences.url, hostRootUri) });
             }
         }
         // Define a new config for extension loader

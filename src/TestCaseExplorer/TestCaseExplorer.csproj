@@ -41,6 +41,7 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="gruntfile.js" />
     <Content Include="img\image1.png" />
     <Content Include="img\image2.png" />
     <Content Include="img\image3.png" />
@@ -55,37 +56,26 @@
     <Content Include="img\Short-Icon.png" />
     <Content Include="img\testPlan.png" />
     <Content Include="index.html" />
-    <Content Include="sdk\scripts\ai.0.22.9-build00167.js" />
-    <Content Include="sdk\scripts\ai.0.22.9-build00167.min.js" />
-    <Content Include="sdk\scripts\q.js" />
-    <Content Include="sdk\scripts\VSS.SDK.js" />
-    <Content Include="sdk\scripts\VSS.SDK.min.js" />
+    <Content Include="scripts\ai.0.22.19-build00125.js" />
+    <Content Include="scripts\ai.0.22.19-build00125.min.js" />
     <Content Include="web.config">
       <SubType>Designer</SubType>
     </Content>
     <Content Include="package.json" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="scripts\ai.0.22.9-build00167.d.ts" />
+    <TypeScriptCompile Include="scripts\ai.0.22.19-build00125.d.ts" />
     <TypeScriptCompile Include="scripts\app.ts" />
     <TypeScriptCompile Include="scripts\ColumnsOptionsView.ts" />
     <TypeScriptCompile Include="scripts\Common.ts" />
     <TypeScriptCompile Include="scripts\DetailsToggle.ts" />
     <TypeScriptCompile Include="scripts\DetailsView.ts" />
-    <TypeScriptCompile Include="scripts\ref\jasmine\jasmine.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\jqueryui.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\jquery\jquery.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\knockout\knockout.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\q\Q.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\requirejs\require.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\tfs.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\tsd.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\vss.d.ts" />
     <TypeScriptCompile Include="scripts\TelemetryClient.ts" />
     <TypeScriptCompile Include="scripts\TestCaseDataService.ts" />
     <TypeScriptCompile Include="scripts\TestCaseView.ts" />
     <TypeScriptCompile Include="scripts\TreeViewDataService.ts" />
     <TypeScriptCompile Include="scripts\TreeViewView.ts" />
+    <TypeScriptCompile Include="typings\tsd.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="vss-extension.json" />

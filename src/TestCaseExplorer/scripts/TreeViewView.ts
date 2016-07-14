@@ -13,19 +13,16 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
+/// <reference path='../typings/tsd.d.ts' />
 /// <reference path="telemetryclient.ts" />
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
 import StatusIndicator = require("VSS/Controls/StatusIndicator");
-
 import Menus = require("VSS/Controls/Menus");
 import CtrlCombos = require("VSS/Controls/Combos");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import UtilsUI = require("VSS/Utils/UI");
-
 import Q = require("q");
 
 export interface TreeviewSelectedCallback { (type: string, value: string, showRecursive: boolean): void }
@@ -39,6 +36,34 @@ export class TreeviewView {
     private _currentNode: TreeView.TreeNode;
     private _currentSource: string;
     private _waitControl: StatusIndicator.WaitControl;
+    //private _isDragging 
+
+    private listenToTheKey(e) {
+        if (e.which === 27 || e.keyCode === 27) {
+            console.log("cancelling drag...");
+            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+        }
+        else {
+            var mode: string = "";
+            if (e.ctrlKey) {
+                console.log("clone...");
+                mode = "Clone";
+            }
+            else if (e.shiftKey) {
+                console.log("add...");
+                mode = "Add";
+            }
+            else {
+                console.log("move...");
+                mode = "Move";
+            }
+            var text = $(".drag-tile-drag-type").text();
+
+            if (text != "Attach") {
+                $(".drag-tile-drag-type").text(mode);
+            }
+        }
+    }
 
     public initialize(callback: TreeviewSelectedCallback) {
         TelemetryClient.getClient().trackPageView("TreeView");
@@ -46,6 +71,11 @@ export class TreeviewView {
         view._showRecursive = false;
         view._callback = callback;
         var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
+
+        //window.onkeypress = this.listenToTheKey;
+        //view._treeview.onkeydown = this.listenToTheKey;
+        window.onkeydown = this.listenToTheKey;
+        window.onkeyup = this.listenToTheKey;
 
         var cboOptions: CtrlCombos.IComboOptions = {
             mode: "drop",
@@ -236,122 +266,241 @@ export class TreeviewView {
                 treeview._setNodeExpansion(n, elem, true);
             });
 
-            $("li.node").draggable({
-                scope: "test-case-scope",
-                     //           scope: "TCExplorer.TreeView",
-                revert: "invalid",
-                appendTo: document.body,
-                helper: function (event, ui) {
-                    //TODO - VISUAL for CLONE suite..
-                    var $dragTile;
-                    var draggableItemText, numOfSelectedItems;
-                    var dummy = {};
-                    dummy["SuiteId"] = view._treeview.getSelectedNode().id;
-                    dummy["Title"] = view._treeview.getSelectedNode().text;
-                    dummy["PlanId"] = view._treeview.getSelectedNode().config;
-                    dummy["Icon"] = view._treeview.getSelectedNode().icon;
+            if (view._currentSource == "Test plan") {
+                $("li.node").draggable({
+                    scope: "test-case-scope",
+                    //           scope: "TCExplorer.TreeView",
+                    revert: "invalid",
+                    appendTo: document.body,
+                    helper: function (event, ui) {
+                        var $dragTile;
+                        var draggableItemText, numOfSelectedItems;
 
-                    var selectedSuites = [dummy];
+                        var dummy = {};
+                        dummy["SuiteId"] = view._treeview.getSelectedNode().id;
+                        dummy["Title"] = view._treeview.getSelectedNode().text;
+                        dummy["PlanId"] = view._treeview.getSelectedNode().config;
+                        dummy["Icon"] = view._treeview.getSelectedNode().icon;
 
-                    numOfSelectedItems = selectedSuites.length;
-                    $dragTile = $("<div />")
-                        .addClass("drag-tile")
+                        var selectedSuites = [dummy];
 
-                    var $dragItemCount = $("<div />")
-                        .addClass("drag-tile-item-count")
-                        .text(numOfSelectedItems);
-                    var $dragType = $("<span />")
-                        .addClass("drag-tile-drag-type")
-                        .text(event.ctrlKey == true ? "Copy" : "Clone");
+                        numOfSelectedItems = selectedSuites.length;
+                        $dragTile = $("<div />")
+                            .addClass("drag-tile")
 
-                    var $dragHead = $("<div />")
-                        .addClass("drag-tile-head")
-                        .append($dragType)
-                        .append($dragItemCount);
+                        var $dragItemCount = $("<div />")
+                            .addClass("drag-tile-item-count")
+                            .text(numOfSelectedItems);
+                        var $dragType = $("<span />")
+                            .addClass("drag-tile-drag-type")
+                            .text("Move");
+                        //.text(event.ctrlKey == true ? "Copy" : "Clone");
 
-                    $dragTile.append($dragHead);
-                    $dragTile.data("DROP_ACTION", "CLONE");
-                    $dragTile.data("PLAN_ID", selectedSuites.map(i => { return i["PlanId"]; }));
-                    $dragTile.data("SUITE_ID", selectedSuites.map(i => { return i["SuiteId"]; }));
-                    $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
+                        var $dragHead = $("<div />")
+                            .addClass("drag-tile-head")
+                            .append($dragType)
+                            .append($dragItemCount);
 
-                    var $dragLst = $("<div />")
-                        .addClass("drag-tile-list")
+                        $dragTile.append($dragHead);
+                        //$dragTile.data("DROP_ACTION", "CLONE");
+                        $dragTile.data("PLAN_ID", selectedSuites.map(i => { return i["PlanId"]; }));
+                        $dragTile.data("SUITE_ID", selectedSuites.map(i => { return i["SuiteId"]; }));
+                        $dragTile.data("MODE", "TEST_SUITE");
 
-                    selectedSuites.forEach(r => {
-                        var id = r["SuiteId"];
-                        $dragLst.append(
-                            $("<span />").append(
-                                $("<span />")
-                                    .addClass("icon")
-                                    .addClass("tree-node-img ")
-                                    .addClass(r["Icon"])
-                                    .text("h")
-                            )
-                                .text(id + " " + r["Title"])
-                                .addClass(id)
+                        //$dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
 
-                        );
-                    });
-                    $dragTile.append($dragLst);
+                        //var $dragLst = $("<div />")
+                        //    .addClass("drag-tile-list")
 
-                    return $dragTile;
-                },
-                drag: function (e: any, ui) {
-                    console.log("moving..." + e.ctrlKey);
-                    $(this).css("cursor", "move");
-                },
-                zIndex: 1000,
-                cursor: "move",
-                cursorAt: { top: -5, left: -5 },
-                refreshPositions: true,
-                stop: function () {
-                    // Set all draggable parts back to revert: false
-                    // This fixes elements after drag was cancelled with ESC key
-                    //$("li.node").draggable("option", { revert: false });
-                }                               
-            });
+                        //selectedSuites.forEach(r => {
+                        //    var id = r["SuiteId"];
+                        //    $dragLst.append(
+                        //        $("<span />").append(
+                        //            $("<span />")
+                        //                .addClass("icon")
+                        //                .addClass("tree-node-img ")
+                        //                .addClass(r["Icon"])
+                        //                .text("h")
+                        //        )
+                        //            .text(id + " " + r["Title"])
+                        //            .addClass(id)
 
-            $(document).keyup(function (e) {
-                if (e.which === 27 || e.keyCode === 27) {
-                    console.log("cancelling drag...");
-                    $("li.node").draggable({ 'revert': true }).trigger('mouseup');
-                }
-            });
+                        //    );
+                        //});
+                        //$dragTile.append($dragLst);
+
+                        return $dragTile;
+                    },
+                   distance: 10,
+                    cursor: "arrow",
+                    cursorAt: { top: -5, left: -5 },
+                    refreshPositions: true,
+                    stop: function () {
+                        // Set all draggable parts back to revert: false
+                        // This fixes elements after drag was cancelled with ESC key
+                        $("li.node").draggable("option", { revert: false });
+                    }
+                });
+            }
 
             $("li.node").droppable({
                 scope: "test-case-scope",
                 greedy: true,
                 tolerance: "pointer",
-                hoverClass: "droppable-hover",
+                accept: function (d) {
+                    var t = this;
+                    var text = $(this).text;
+                    return true;
+                },
+                //hoverClass: "drag-hover",
+                over: function (e, ui) {
+                    var target: any = e.target;
+                    console.log("over " + target.title);
+
+                    var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
+                    //if (n.type == "Static suite") {
+                    //    $(e.target).addClass("drag-hover");
+                    //}
+                    //else {
+                    //    $(e.target).addClass("drag-hover-invalid");
+                    //}
+
+                    //let dragInfo = getDragInfo(e, ui);
+                    //if (dragInfo) {
+                    //    $(e.target).addClass("accepted");
+                    //} else {
+                    //    $(e.target).addClass("rejected");
+                    //}
+                },
+                out: function (e, ui) {
+                    var target: any = e.target;
+                    console.log("out " + target.title);
+
+                    //$(e.target).removeClass("drag-hover drag-hover-invalid");
+                },
                 drop: function (event: any, ui) {
+
                     var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
-                    var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
+
+                    //var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
+                    var action = ui.helper.data("MODE");  // TODO: rename to action
+                    //var ids = ui.helper.data("WORK_ITEM_IDS");
+                    var mode = "MOVE";  // TODO: refactor to enum
+                    if (event.ctrlKey) mode = "CLONE";
+                    if (event.shiftKey) mode = "ADD";
+
                     switch (action) {
-                        case "CLONE":
+                        case "TEST_SUITE":
                             if (event.ctrlKey) {
-                                // TODO: clone
-                                console.log("Drop + clone");
+                                view.CloneTestSuite(ui, n);
+                            }
+                            else if (event.shiftKey) {
+                                view.AddTestSuite(ui, n);
                             }
                             else {
-                                // TODO: move
-                                console.log("Drop + move");
+                                view.MoveTestSuite(ui, n);
                             }
-                            view.CloneTestSuite(ui,n);
                             break;
-                        case "ASSOCIATE":   // TODO: make sure to get associate event
-                        default:
-                            view.AssociateTestCase(ui, n);
+                        case "TEST_CASE":   
+                            if (view._currentSource == "Test plan") {
+                                view.AssociateTestCase(ui, n, mode);
+                            }
+                            else {
+                                view.UpdateTestCase(ui, n);
+                            }
+                            break;
+                        default:    // TODO: verify this should not happen
+                            console.log("treeview::drop - undefined action");
                             break;
                     }
                 }
             });
             deferred.resolve(data);
         });
+
         return deferred.promise();
     }
 
-    public AssociateTestCase(ui,n ) {
+    public AssociateTestCase(ui, n, mode) {
+        var view = this;
+
+        var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
+
+        switch (mode) {
+            case "MOVE":
+                var targetPlanId: number = n.config.testPlanId;
+                var targetSuiteId: number = n.config.suiteId;
+                //var testCaseIds = ui.helper.data("WORK_ITEM_IDS");
+                var sourcePlanId: number = view._currentNode.config.testPlanId;
+                var sourceSuiteId: number = view._currentNode.config.suiteId;
+                //var sourcePlanId: number = plan[0].testPlanId;
+                //var sourceSuiteId: number = ui.helper.data("SUITE_ID");
+
+                console.log("source plan id: " + sourcePlanId);
+                console.log("source suite id: " + sourceSuiteId);
+                console.log("target plan id: " + targetPlanId);
+                console.log("target suite id: " + targetSuiteId);
+                console.log("ids: " + tcIds.join(","));
+
+                TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
+                    result => {
+                        TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(
+                            result => {
+                                view.updateTreeView();
+                            });
+                    }
+                );
+
+                //    .then(
+                //    data => {
+                //        TreeViewDataService.removeTestCaseToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
+                //            data => {
+                //        });
+                //    }
+                //);
+
+                break;
+            case "CLONE":
+                alert("Clone tc to suite - not implemented!");
+                break;
+            case "ADD":
+                //var view = this;
+                //var plan = ui.helper.data("PLAN_ID");
+                //var sourcePlanName: string = plan[0].name;
+                //var sourcePlanId: number = plan[0].testPlanId;
+                //var sourceSuiteId: number = ui.helper.data("SUITE_ID");
+                //var mode = ui.helper.data("MODE");
+                //var itemDiv = ui.helper.find("." + sourceSuiteId);
+                //var txt = itemDiv.text();
+                //itemDiv.text("Saving " + txt);
+
+                var targetPlanId: number = n.config.testPlanId;
+                var targetSuiteId: number = n.config.suiteId;
+                //var testCaseIds = ui.helper.data("WORK_ITEM_IDS");
+
+                //console.log("plan name: " + sourcePlanName);
+                //console.log("plan id: " + sourcePlanId);
+                //console.log("suite id: " + sourceSuiteId);
+                //console.log("mode: " + mode);
+                console.log("target plan id: " + targetPlanId);
+                console.log("target suite id: " + targetSuiteId);
+                console.log("ids: " + tcIds.join(","));
+
+                //TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, 1, targetSuiteId, targetPlanId);
+                TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
+                    result => {
+                        view.updateTreeView();
+                });
+
+                //TreeViewDataService.addTestCasesToSuite(1, 2, "3").then(
+                //    data => {
+                //    }
+                //);
+                break;
+        }
+    }
+
+    public UpdateTestCase(ui, n) {
         var view = this;
 
         var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
@@ -386,9 +535,9 @@ export class TreeviewView {
                     data => {
                         noRemainingAssign--;
                         if (noRemainingAssign == 0) {
-                            view.RefreshGrid()
+                            view.RefreshGrid();
                         }
-                        itemDiv.text("Saved" + txt);;
+                        itemDiv.text("Saved" + txt);
                     },
                     err => {
                         alert(err);
@@ -396,6 +545,7 @@ export class TreeviewView {
             });
         }
         else {
+
             alert("Not supported in this version");
         }
 
@@ -409,7 +559,7 @@ export class TreeviewView {
         var sourcePlanId: number = plan[0].testPlanId;
         var sourceSuiteId: number = ui.helper.data("SUITE_ID");
         var mode = ui.helper.data("MODE");
-        var itemDiv = ui.helper.find("." +sourceSuiteId);
+        var itemDiv = ui.helper.find("." + sourceSuiteId);
         var txt = itemDiv.text();
         itemDiv.text("Saving " + txt);
 
@@ -423,7 +573,7 @@ export class TreeviewView {
         console.log("target plan id: " + targetPlanId);
         console.log("target suite id: " + targetSuiteId);
 
-        if (confirm("Are you sure you want to clone '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
+        if(confirm("Are you sure you want to clone '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
             TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
                 // TODO: kolla om det finns target suite med samma namn?
                 var node = new TreeView.TreeNode(sourcePlanName);
@@ -436,6 +586,105 @@ export class TreeviewView {
 
                 // TODO: update progress
                 // TODO: refresh tree when complete
+                //view.updateTreeView();
+            });
+        }
+        else {
+            // TODO: best way to cancel drag?
+            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+        }
+    }
+
+    public MoveTestSuite(ui: JQueryUI.DroppableEventUIParam, n: TreeView.TreeNode) {
+
+        var view = this;
+        var plan = ui.helper.data("PLAN_ID");
+        var sourcePlanName: string = plan[0].name;
+        var sourcePlanId: number = plan[0].testPlanId;
+        var sourceSuiteId: number = ui.helper.data("SUITE_ID");
+        var mode = ui.helper.data("MODE");
+        var itemDiv = ui.helper.find("." + sourceSuiteId);
+        var txt = itemDiv.text();
+        itemDiv.text("Saving " + txt);
+
+        var targetPlanId: number = n.config.testPlanId;
+        var targetSuiteId: number = n.config.suiteId;
+
+        console.log("plan name: " + sourcePlanName);
+        console.log("plan id: " + sourcePlanId);
+        console.log("suite id: " + sourceSuiteId);
+        console.log("mode: " + mode);
+        console.log("target plan id: " + targetPlanId);
+        console.log("target suite id: " + targetSuiteId);
+
+        if (confirm("Are you sure you want to move '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
+
+            TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
+                result => {
+                    TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
+                        result => {
+                            view.updateTreeView();
+                        });
+                }
+            );
+
+            //TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
+            //    // TODO: kolla om det finns target suite med samma namn?
+            //    var node = new TreeView.TreeNode(sourcePlanName);
+
+            //    //node.icon = icon-from-source-node?;
+            //    //node.id = id-from-clone-op?;
+            //    //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
+            //    n.add(node);
+            //    view._treeview.updateNode(n);
+
+            //    // TODO: update progress
+            //    // TODO: refresh tree when complete
+            //    view.updateTreeView();
+            //});
+        }
+        else {
+            // TODO: best way to cancel drag?
+            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+        }
+    }
+
+    public AddTestSuite(ui: JQueryUI.DroppableEventUIParam, n: TreeView.TreeNode) {
+
+        var view = this;
+        var plan = ui.helper.data("PLAN_ID");
+        var sourcePlanName: string = plan[0].name;
+        var sourcePlanId: number = plan[0].testPlanId;
+        var sourceSuiteId: number = ui.helper.data("SUITE_ID");
+        var mode = ui.helper.data("MODE");
+        var itemDiv = ui.helper.find("." + sourceSuiteId);
+        var txt = itemDiv.text();
+        itemDiv.text("Saving " + txt);
+
+        var targetPlanId: number = n.config.testPlanId;
+        var targetSuiteId: number = n.config.suiteId;
+
+        console.log("plan name: " + sourcePlanName);
+        console.log("plan id: " + sourcePlanId);
+        console.log("suite id: " + sourceSuiteId);
+        console.log("mode: " + mode);
+        console.log("target plan id: " + targetPlanId);
+        console.log("target suite id: " + targetSuiteId);
+
+        if(confirm("Are you sure you want to add '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
+            TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
+                // TODO: kolla om det finns target suite med samma namn?
+                var node = new TreeView.TreeNode(sourcePlanName);
+
+                //node.icon = icon-from-source-node?;
+                //node.id = id-from-clone-op?;
+                //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
+                n.add(node);
+                view._treeview.updateNode(n);
+
+                // TODO: update progress
+                // TODO: refresh tree when complete
+                view.updateTreeView();
             });
         }
         else {

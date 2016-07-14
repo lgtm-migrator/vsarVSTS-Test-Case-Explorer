@@ -1,4 +1,4 @@
-﻿/// <reference path="ai.0.22.9-build00167.d.ts" />
+﻿/// <reference path="ai.0.22.19-build00125.d.ts" />
 
 class TelemetryClient {
 
@@ -19,7 +19,7 @@ class TelemetryClient {
         try {
             var snippet: any = {
                 config: {
-                    instrumentationKey: "b1d068b6-1388-43bb-b002-c6d9e9a45642",
+                    instrumentationKey: "12398d25-ec50-43a5-b1aa-e7ddb006a05e", //"b1d068b6-1388-43bb-b002-c6d9e9a45642",
                 }
             };
             var x = VSS.getExtensionContext();
@@ -104,5 +104,4 @@ class TelemetryClient {
             console.log(e);
         }
     }
-
 }

@@ -13,30 +13,24 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
+/// <reference path='../typings/tsd.d.ts' />
 
+console.log("Loading TestCaseExplorer version " + VSS.getExtensionContext().version) + "...";
 
 import Common = require("scripts/Common");
-Common.WIQLConstants.getWiqlConstants();
-
-
 import DetailsToggle = require("scripts/DetailsToggle");
-var paneToggler = new DetailsToggle.DetailsPaneToggler();
-
 import DetailsView = require("scripts/DetailsView");
-var dv = new DetailsView.DetailsView();
-
 import TestCaseView = require("scripts/TestCaseView");
-var tc = new TestCaseView.TestCaseView();
-tc.initialize(paneToggler, RefreshPane);
-
 import TreeViewView = require("scripts/TreeViewView");
-var tv = new TreeViewView.TreeviewView();
-
 import Controls = require("VSS/Controls");
 import SplitterControls = require("VSS/Controls/Splitter");
 
+Common.WIQLConstants.getWiqlConstants();
+var paneToggler = new DetailsToggle.DetailsPaneToggler();
+var dv = new DetailsView.DetailsView();
+var tc = new TestCaseView.TestCaseView();
+tc.initialize(paneToggler, RefreshPane);
+var tv = new TreeViewView.TreeviewView();
 
 var leftSplitter = <SplitterControls.Splitter>Controls.Enhancement.getInstance(SplitterControls.Splitter, $(".left-hub-splitter"));
 VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
@@ -78,6 +72,9 @@ function saveWidth() {
         });
     });
 }
+
+/*
+
 var registrationForm = (function () {
     var callbacks = [];
 
@@ -90,7 +87,7 @@ var registrationForm = (function () {
 
     function isValid() {
         // Check whether form is valid or not
-        return true; //!!(name.value) && !!(dateOfBirth.value) && !!(email.value);
+        return true; 
     }
 
     function getFormData() {
@@ -101,14 +98,6 @@ var registrationForm = (function () {
             //email: email.value
         };
     }
-
-    //var name = document.getElementById("inpName");
-    //var dateOfBirth = document.getElementById("inpDob");
-    //var email = document.getElementById("inpEmail");
-
-    //name.addEventListener("change", inputChanged);
-    //dateOfBirth.addEventListener("change", inputChanged);
-    //email.addEventListener("change", inputChanged);
 
     return {
         isFormValid: function () {
@@ -125,3 +114,4 @@ var registrationForm = (function () {
 
 // Register form object to be used accross this extension
 VSS.register("columnOptionsForm", registrationForm);
+*/

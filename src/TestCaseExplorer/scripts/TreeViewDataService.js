@@ -257,7 +257,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var teamProjectName = VSS.getWebContext().project.name;
         testCaseClient.getPlanById(teamProjectName, targetPlanId).then(function (testPlan) {
             var cloneRequest = {
-                cloneOptions: {
+                options: {
                     cloneRequirements: false,
                     copyAllSuites: true,
                     copyAncestorHierarchy: false,
@@ -268,8 +268,11 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 suiteIds: [targetSuiteId],
                 destinationTestPlan: testPlan
             };
-            testCaseClient.cloneTestPlan(cloneRequest, teamProjectName, sourcePlanId).then(function (result) {
-                console.log("Clone test plan completed: " + result.completionDate);
+            testCaseClient.cloneTestPlan(cloneRequest, teamProjectName, sourcePlanId).then(function (data) {
+                console.log("Clone test plan completed: " + data.completionDate);
+                deferred.resolve(data);
+            }, function (err) {
+                deferred.reject(err);
             });
         });
         return deferred.promise();
@@ -286,18 +289,76 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 copyAncestorHierarchy: false,
                 overrideParameters: {},
                 destinationWorkItemType: "Test Case",
-                relatedLinkComment: "Comment"
+                relatedLinkComment: "Cloned from test case explorer"
             },
             destinationSuiteId: targetSuiteId,
             destinationSuiteProjectName: teamProjectName
         };
-        // TODO: check if this API is incorrectly documented, suite and plan is in opposite order
         // TODO: clone with hierarchy does not work
-        testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(function (result) {
-            console.log("Clone test suite completed: " + result.completionDate);
+        testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(function (data) {
+            console.log("Clone test suite completed: " + data.completionDate);
+            deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
         });
         return deferred.promise();
     }
     exports.cloneTestSuite = cloneTestSuite;
+    function addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId) {
+        var deferred = $.Deferred();
+        //var tstClient = TestClient.getClient();
+        //tstClient.getTestSuiteById(VSS.getWebContext().project.name, planId, suiteId).then(
+        //    data => {
+        //        // same test plan: https://www.visualstudio.com/en-us/docs/integrate/api/test/suites#parent-suite
+        //        // different => add + remove
+        //        deferred.resolve(null);
+        //    },
+        //    err => {
+        //        deferred.reject(err);
+        //    }
+        //);
+        return deferred.promise();
+    }
+    exports.addTestSuite = addTestSuite;
+    function removeTestSuite(planId, suiteId) {
+        var deferred = $.Deferred();
+        var tstClient = TestClient.getClient();
+        tstClient.deleteTestSuite(VSS.getWebContext().project.name, planId, suiteId).then(function (data) {
+            deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
+        });
+        return deferred.promise();
+    }
+    exports.removeTestSuite = removeTestSuite;
+    function addTestCasesToSuite(planId, suiteId, testCaseIds) {
+        var deferred = $.Deferred();
+        var tstClient = TestClient.getClient();
+        tstClient.addTestCasesToSuite(VSS.getWebContext().project.name, planId, suiteId, testCaseIds).then(function (data) {
+            deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
+        });
+        return deferred.promise();
+    }
+    exports.addTestCasesToSuite = addTestCasesToSuite;
+    function removeTestCaseFromSuite(planId, suiteId, testCaseIds) {
+        var deferred = $.Deferred();
+        var tstClient = TestClient.getClient();
+        tstClient.removeTestCasesFromSuiteUrl(VSS.getWebContext().project.name, planId, suiteId, testCaseIds).then(function (data) {
+            deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
+        });
+        return deferred.promise();
+    }
+    exports.removeTestCaseFromSuite = removeTestCaseFromSuite;
+    function cloneTestCaseToSuite(planId, suiteId, testCaseIds) {
+        var deferred = $.Deferred();
+        // TODO: not implemented...
+        //deferred.resolve(null);
+        return deferred.promise();
+    }
+    exports.cloneTestCaseToSuite = cloneTestCaseToSuite;
 });
 //# sourceMappingURL=TreeViewDataService.js.map
