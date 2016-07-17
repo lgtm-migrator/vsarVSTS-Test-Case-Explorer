@@ -26,6 +26,7 @@ import Navigation = require("VSS/Controls/Navigation");
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import Common = require("scripts/Common");
+import LeftTreeView = require("scripts/TreeViewView");
 
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
@@ -38,14 +39,16 @@ export class DetailsView {
     public _selectedPane: IPaneRefresh;
     public _toggler: Toggler.DetailsPaneToggler;
     public _waitControl: StatusIndicator.WaitControl;
+    public _leftTreeView: LeftTreeView.TreeviewView;
 
     private _selectedMasterId: string
     private _PaneLst: IPaneRefresh[];
 
-    public initialize(paneToggler: Toggler.DetailsPaneToggler) {
+    public initialize(paneToggler: Toggler.DetailsPaneToggler, leftTreeView: LeftTreeView.TreeviewView) {
 
         this._PaneLst = [];
         this._toggler = paneToggler;
+        this._leftTreeView = leftTreeView;
         var view = this;
 
         var panels = [
@@ -255,6 +258,7 @@ class testPlanPane implements IPaneRefresh {
     private _testPlans;
     private _view: DetailsView;
     private _grid;
+    private _treeView: TreeView.TreeView;
 
     public initialize(view: DetailsView) {
         this._view = view;
@@ -279,15 +283,16 @@ class testPlanPane implements IPaneRefresh {
         );
 
         var treeOptionsTestPlan = {
-            width: 400,
-            height: "100%",
+            //width: 400,
+            //height: "100%",
             nodes: null
         };
 
         var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
+        this._treeView = treeviewTestPlan;
 
-        treeviewTestPlan.onItemClick = function (node, nodeElement, e) {
-        };
+        //treeviewTestPlan.onItemClick = function (node, nodeElement, e) {
+        //};
 
         $("#details-cboTestPlan").change(function () {
             tpp._view.StartLoading(true, "Fetching test plan " + tpp._cbo.getText());
@@ -300,36 +305,54 @@ class testPlanPane implements IPaneRefresh {
                     treeviewTestPlan.rootNode.addRange(data);
                     treeviewTestPlan._draw();
 
-                    var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
+                    //var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
 
                     $("li.node").droppable({
                         scope: "test-case-scope",
                         greedy: true,
                         tolerance: "pointer",
-                        accept: function (d) {
-                            return true;
-                        },
+                        //accept: function (d) {
+                        //    return true;
+                        //},
                         drop: function (event, ui) {
-                            var n = treeviewTestPlan.getNodeFromElement(event.target);
-                            var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
-                            var tcId = ui.draggable.context.childNodes[0].textContent;
 
-                            var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
-                            var div = $("<div />").text(s);
-                            ui.draggable.context = div[0];
+                            var n: TreeView.TreeNode = treeviewTestPlan.getNodeFromElement(event.target);
 
-                            var targetPlanId: number = n.config.testPlanId;
-                            var targetSuiteId: number = n.config.suiteId;
+                            var action = ui.helper.data("MODE");  // TODO: rename to action
+                            var mode = tpp.getCurrentDragMode(event);
 
-                            var ids = ui.helper.data("WORK_ITEM_IDS");
+                            switch (action) {
+                                case "TEST_SUITE":
+                                    tpp.processDropTestSuite(ui, n, mode);
+                                    break;
+                                case "TEST_CASE":
+                                    tpp.processDropTestCase(ui, n, mode);
+                                    break;
+                                default:    // TODO: verify this should not happen
+                                    console.log("treeview::drop - undefined action");
+                                    break;
+                            }
 
-                            console.log("target plan id: " + targetPlanId);
-                            console.log("target suite id: " + targetSuiteId);
-                            console.log("ids: " + ids);
+                            //var n = treeviewTestPlan.getNodeFromElement(event.target);
+                            //var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
+                            //var tcId = ui.draggable.context.childNodes[0].textContent;
 
-                            TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
-                                data => { alert(s); },
-                                err => { alert(err); });
+                            //var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
+                            //var div = $("<div />").text(s);
+                            //ui.draggable.context = div[0];
+
+                            //var targetPlanId: number = n.config.testPlanId;
+                            //var targetSuiteId: number = n.config.suiteId;
+
+                            //var ids = ui.helper.data("WORK_ITEM_IDS");
+
+                            //console.log("target plan id: " + targetPlanId);
+                            //console.log("target suite id: " + targetSuiteId);
+                            //console.log("ids: " + ids);
+
+                            //TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
+                            //    data => { alert(s); },
+                            //    err => { alert(err); });
                         }
                     });
                 },
@@ -360,6 +383,115 @@ class testPlanPane implements IPaneRefresh {
         };
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testPlan-container"), menubarOptions);
+    }
+
+    // TODO: refactor to enum
+    private getCurrentDragMode(event): string {
+        var mode = "MOVE";
+        if (event.ctrlKey) mode = "CLONE";
+        if (event.shiftKey) mode = "ADD";
+        return mode;
+    }
+
+    private processDropTestSuite(ui, n, mode) {
+
+        var draggedNode: TreeView.TreeNode = this._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
+        draggedNode.config.name
+
+        var sourcePlanName: string = draggedNode.config.name;
+        var sourcePlanId: number = draggedNode.config.testPlanId;
+        var sourceSuiteId: number = draggedNode.config.suiteId;
+        var targetPlanId: number = n.config.testPlanId;
+        var targetSuiteId: number = n.config.suiteId;
+
+        console.log("source plan name: " + sourcePlanName);
+        console.log("source plan id: " + sourcePlanId);
+        console.log("source suite id: " + sourceSuiteId);
+        console.log("mode: " + mode);
+        console.log("target plan id: " + targetPlanId);
+        console.log("target suite id: " + targetSuiteId);
+
+        if (confirm("Are you sure you want to " + mode + " '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
+
+            switch (mode) {
+                case "MOVE":
+                    TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
+                        result => {
+                            TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
+                                result => {
+                                    //this.updateTreeView();
+                                    //this.updateGrid?
+                                });
+                        }
+                    );
+                    break;
+                case "CLONE":
+                    TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
+                        // TODO: kolla om det finns target suite med samma namn?
+                        var node = new TreeView.TreeNode(sourcePlanName);
+
+                        //node.icon = icon-from-source-node?;
+                        //node.id = id-from-clone-op?;
+                        //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
+                        n.add(node);
+                        this._treeView.updateNode(n);
+
+                        // TODO: update progress
+                        // TODO: refresh tree when complete
+                        //view.updateTreeView();
+                    });
+                    break;
+                case "ADD":
+                    TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
+                        result => {
+                            //this.updateTreeView();
+                        }
+                    );
+                    break;
+            }
+        }
+        else {
+            // TODO: best way to cancel drag?
+            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+        }
+
+    }
+
+    public processDropTestCase(ui, n, mode) {
+        var view = this;
+        var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
+        var targetPlanId: number = n.config.testPlanId;
+        var targetSuiteId: number = n.config.suiteId;
+        var sourcePlanId: number = this._view._leftTreeView._currentNode.config.testPlanId;
+        var sourceSuiteId: number = this._view._leftTreeView._currentNode.config.suiteId;
+
+        console.log("source plan id: " + sourcePlanId);
+        console.log("source suite id: " + sourceSuiteId);
+        console.log("target plan id: " + targetPlanId);
+        console.log("target suite id: " + targetSuiteId);
+        console.log("ids: " + tcIds.join(","));
+
+        switch (mode) {
+            case "MOVE":
+                TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
+                    result => {
+                        TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(
+                            result => {
+                                //view.updateTreeView();
+                            });
+                    }
+                );
+                break;
+            case "CLONE":
+                alert("Clone tc to suite - not implemented!");
+                break;
+            case "ADD":
+                TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
+                    result => {
+                        //view.updateTreeView();
+                    });
+                break;
+        }
     }
 
     public show() {

@@ -31,9 +31,9 @@ export class TreeviewView {
 
     private _showRecursive: boolean;
     private _menubar: Menus.MenuBar;
-    private _treeview: TreeView.TreeView;
+    public _treeview: TreeView.TreeView;
     private _callback: TreeviewSelectedCallback;
-    private _currentNode: TreeView.TreeNode;
+    public _currentNode: TreeView.TreeNode;
     private _currentSource: string;
     private _waitControl: StatusIndicator.WaitControl;
 
@@ -255,7 +255,6 @@ export class TreeviewView {
                     scope: "test-case-scope",
                     revert: "invalid",
                     appendTo: document.body,
-
                     helper: function (event, ui) {
                         var $dragTile;
 

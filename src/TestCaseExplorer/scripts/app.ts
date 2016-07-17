@@ -50,7 +50,7 @@ paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(functi
 });
 
 tv.initialize(RefreshGrid);
-dv.initialize(paneToggler);
+dv.initialize(paneToggler, tv);
 
 function RefreshGrid(pivot: string, value: string, showRecursive: boolean): void {
     tc.RefreshGrid(pivot, value, showRecursive);
