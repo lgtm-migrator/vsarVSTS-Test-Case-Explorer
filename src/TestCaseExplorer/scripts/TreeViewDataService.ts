@@ -372,6 +372,8 @@ export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targ
 export function addTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number): IPromise<any> {
     var deferred = $.Deferred<any[]>();
 
+    alert("Add test suite not yet implemented!");
+
     //var tstClient = TestClient.getClient();
     //tstClient.getTestSuiteById(VSS.getWebContext().project.name, planId, suiteId).then(
     //    data => {
@@ -439,6 +441,7 @@ export function cloneTestCaseToSuite(planId: number, suiteId: number, testCaseId
     var deferred = $.Deferred<any[]>();
 
     // TODO: not implemented...
+    alert("Clonse test case not yet implemented!");
 
     return deferred.promise();
 }

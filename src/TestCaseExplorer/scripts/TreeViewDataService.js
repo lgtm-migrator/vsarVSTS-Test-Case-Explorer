@@ -300,6 +300,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     exports.cloneTestSuite = cloneTestSuite;
     function addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId) {
         var deferred = $.Deferred();
+        alert("Add test suite not yet implemented!");
         //var tstClient = TestClient.getClient();
         //tstClient.getTestSuiteById(VSS.getWebContext().project.name, planId, suiteId).then(
         //    data => {
@@ -350,6 +351,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     function cloneTestCaseToSuite(planId, suiteId, testCaseIds) {
         var deferred = $.Deferred();
         // TODO: not implemented...
+        alert("Clonse test case not yet implemented!");
         return deferred.promise();
     }
     exports.cloneTestCaseToSuite = cloneTestCaseToSuite;
