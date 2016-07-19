@@ -265,9 +265,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         var action = ui.helper.data("MODE"); // TODO: rename to action
                         var mode = view.getCurrentDragMode(event);
                         switch (action) {
-                            case "TEST_SUITE":
-                                view.processDropTestSuite(ui, n, mode);
-                                break;
                             case "TEST_CASE":
                                 view.processDropTestCase(ui, n, view._currentSource, mode);
                                 break;
@@ -290,93 +287,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 mode = "ADD";
             return mode;
         };
-        TreeviewView.prototype.processDropTestSuite = function (ui, n, mode) {
-            var _this = this;
-            var draggedNode = this._treeview.getNodeFromElement(ui.draggable);
-            draggedNode.config.name;
-            var sourcePlanName = draggedNode.config.name;
-            var sourcePlanId = draggedNode.config.testPlanId;
-            var sourceSuiteId = draggedNode.config.suiteId;
-            var targetPlanId = n.config.testPlanId;
-            var targetSuiteId = n.config.suiteId;
-            console.log("source plan name: " + sourcePlanName);
-            console.log("source plan id: " + sourcePlanId);
-            console.log("source suite id: " + sourceSuiteId);
-            console.log("mode: " + mode);
-            console.log("target plan id: " + targetPlanId);
-            console.log("target suite id: " + targetSuiteId);
-            if (confirm("Are you sure you want to " + mode + " '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
-                switch (mode) {
-                    case "MOVE":
-                        TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(function (result) {
-                            TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(function (result) {
-                                //this.updateTreeView();
-                                //this.updateGrid?
-                            });
-                        });
-                        break;
-                    case "CLONE":
-                        TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(function (result) {
-                            // TODO: kolla om det finns target suite med samma namn?
-                            var node = new TreeView.TreeNode(sourcePlanName);
-                            //node.icon = icon-from-source-node?;
-                            //node.id = id-from-clone-op?;
-                            //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
-                            n.add(node);
-                            _this._treeview.updateNode(n);
-                            // TODO: update progress
-                            // TODO: refresh tree when complete
-                            //view.updateTreeView();
-                        });
-                        break;
-                    case "ADD":
-                        TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(function (result) {
-                            //this.updateTreeView();
-                        });
-                        break;
-                }
-            }
-            else {
-                // TODO: best way to cancel drag?
-                $("li.node").draggable({ 'revert': true }).trigger('mouseup');
-            }
-        };
         TreeviewView.prototype.processDropTestCase = function (ui, n, pivot, mode) {
-            if (pivot == "Test plan") {
-                this.AssociateTestCase(ui, n, mode);
-            }
-            else {
+            if (pivot != "Test plan") {
                 this.UpdateTestCase(ui, n);
-            }
-        };
-        TreeviewView.prototype.AssociateTestCase = function (ui, n, mode) {
-            var view = this;
-            var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
-            var targetPlanId = n.config.testPlanId;
-            var targetSuiteId = n.config.suiteId;
-            var sourcePlanId = view._currentNode.config.testPlanId;
-            var sourceSuiteId = view._currentNode.config.suiteId;
-            console.log("source plan id: " + sourcePlanId);
-            console.log("source suite id: " + sourceSuiteId);
-            console.log("target plan id: " + targetPlanId);
-            console.log("target suite id: " + targetSuiteId);
-            console.log("ids: " + tcIds.join(","));
-            switch (mode) {
-                case "MOVE":
-                    TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(function (result) {
-                        TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(function (result) {
-                            view.updateTreeView();
-                        });
-                    });
-                    break;
-                case "CLONE":
-                    alert("Clone tc to suite - not implemented!");
-                    break;
-                case "ADD":
-                    TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(function (result) {
-                        view.updateTreeView();
-                    });
-                    break;
             }
         };
         TreeviewView.prototype.UpdateTestCase = function (ui, n) {
