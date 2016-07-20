@@ -91,6 +91,11 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 });
             });
         };
+        TreeviewView.prototype.removePlanOrSuite = function () {
+            if (confirm("Are you sure you want to delete test suite " + this._currentNode.text + "?")) {
+                TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId);
+            }
+        };
         TreeviewView.prototype.updateTreeView = function () {
             var _this = this;
             this.StartLoading(true, "Loading pivot data");
@@ -109,6 +114,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "child-node-icon" },
                 { id: "expand-all", showText: false, title: "Expand all", icon: "bowtie-toggle-expand-all", cssClass: "bowtie-icon" },
                 { id: "collapse-all", showText: false, title: "Collapse all", icon: "bowtie-toggle-collapse", cssClass: "bowtie-icon" },
+                { id: "remove", showText: false, title: "Delete", icon: "bowtie-edit-delete", cssClass: "bowtie-icon" },
                 { id: "refresh", showText: false, title: "Refresh treeview", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" }
             ];
             var menubarOptions = {
@@ -126,6 +132,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             break;
                         case "collapse-all":
                             ExpandTree(view._treeview, false);
+                            break;
+                        case "remove":
+                            view.removePlanOrSuite();
                             break;
                         case "refresh":
                             view.updateTreeView();

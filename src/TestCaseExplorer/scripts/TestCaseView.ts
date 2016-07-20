@@ -33,6 +33,7 @@ import WorkItemServices = require("TFS/WorkItemTracking/Services");
 import TestCaseDataService = require("scripts/TestCaseDataService");
 import Common = require("scripts/Common");
 import ColumnOptionsView = require("scripts/ColumnsOptionsView");
+import TreeViewDataService = require("scripts/TreeViewDataService");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
 
@@ -182,6 +183,7 @@ export class TestCaseView {
         var menuItems: any[] = [
             { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
             { id: "open-testcase", showText: false, title: "Open test case", icon: "icon-open" },
+            { id: "remove-testcase", showText: false, title: "Remove test case from this suite", icon: "bowtie-edit-delete", cssClass: "bowtie-icon" },
             { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
             { separator: true },
             { id: "column-options", text: "Column options", title: "Choose columns for the grid", noIcon: true },
@@ -210,6 +212,9 @@ export class TestCaseView {
                             workItemService.openWorkItem(item["System.Id"]);
                         });
                         break;
+                    case "remove-testcase":
+                        view.removeTestCase();
+                        break;
                     case "latestTestResult":
                         view._showTestResults = !view._showTestResults ;
                         view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
@@ -218,7 +223,6 @@ export class TestCaseView {
                     case "column-options":
                         view.openColumnOptionsDlg();
                         break;
-                       
                     case "refresh":
                         view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
                         break;
@@ -232,6 +236,13 @@ export class TestCaseView {
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#menu-container"), menubarOptions);
         this._menubar = menubar;
         menubar.updateCommandStates([{ id: "toggle", toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
+    }
+
+    private removeTestCase() {
+        if (confirm("Are you sure you want to remove the selected test cases from the suite?")) {
+            var testCaseIds = this._selectedRows.map(i => { return i["System.Id"]; }).join(",");
+            TreeViewDataService.removeTestCaseFromSuite(this._selectedValue.testPlanId, this._selectedValue.suiteId, testCaseIds);
+        }
     }
 
     private openColumnOptionsDlg() {
