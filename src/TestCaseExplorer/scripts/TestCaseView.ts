@@ -182,7 +182,7 @@ export class TestCaseView {
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         var menuItems: any[] = [
             { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
-            { id: "open-testcase", showText: false, title: "Open test case", icon: "icon-open" },
+            { id: "open-testcase", showText: false, title: "Open test case", icon: "bowtie-arrow-open", cssClass: "bowtie-icon" },
             { id: "remove-testcase", showText: false, title: "Remove test case from this suite", icon: "bowtie-edit-delete", cssClass: "bowtie-icon" },
             { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
             { separator: true },
