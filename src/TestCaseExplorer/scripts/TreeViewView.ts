@@ -125,6 +125,14 @@ export class TreeviewView {
         });
     }
 
+    private openTestSuite() {
+        var url = VSS.getWebContext().collection.uri;
+        var project = VSS.getWebContext().project.name;
+        var planId = this._currentNode.config.testPlanId;
+        var suiteId = this._currentNode.config.suiteId
+        window.parent.location.href = url + project + "/_testManagement?planId=" + planId + "&suiteId=" + suiteId;
+    }
+
     private removePlanOrSuite() {
         if (confirm("Are you sure you want to delete test suite " + this._currentNode.text + "?")) {
             TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId);
@@ -151,6 +159,7 @@ export class TreeviewView {
             { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "bowtie-row-child", cssClass: "bowtie-icon" },
             { id: "expand-all", showText: false, title: "Expand all", icon: "bowtie-toggle-expand-all", cssClass: "bowtie-icon" },
             { id: "collapse-all", showText: false, title: "Collapse all", icon: "bowtie-toggle-collapse", cssClass: "bowtie-icon" },
+            { id: "open-testsuite", showText: false, title: "Jump to test plan", icon: "bowtie-arrow-open", cssClass: "bowtie-icon" },
             { id: "remove", showText: false, title: "Delete", icon: "bowtie-edit-delete", cssClass: "bowtie-icon" },
             { id: "refresh", showText: false, title: "Refresh treeview", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" }
         ];
@@ -170,6 +179,9 @@ export class TreeviewView {
                         break;
                     case "collapse-all":
                         ExpandTree(view._treeview, false);
+                        break;
+                    case "open-testsuite":
+                        view.openTestSuite();
                         break;
                     case "remove":
                         view.removePlanOrSuite();
