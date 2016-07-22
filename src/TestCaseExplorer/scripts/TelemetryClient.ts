@@ -19,7 +19,8 @@ class TelemetryClient {
         try {
             var snippet: any = {
                 config: {
-                    instrumentationKey: "b1d068b6-1388-43bb-b002-c6d9e9a45642",
+                    instrumentationKey: "12398d25-ec50-43a5-b1aa-e7ddb006a05e",
+                    // TODO: use this production key: instrumentationKey: "b1d068b6-1388-43bb-b002-c6d9e9a45642",
                 }
             };
             var x = VSS.getExtensionContext();
