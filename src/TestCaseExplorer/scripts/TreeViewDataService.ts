@@ -436,12 +436,3 @@ export function removeTestCaseFromSuite(planId: number, suiteId: number, testCas
 
     return deferred.promise();
 }
-
-export function cloneTestCaseToSuite(planId: number, suiteId: number, testCaseIds: string): IPromise<TreeView.TreeNode[]> {
-    var deferred = $.Deferred<any[]>();
-
-    // TODO: not implemented...
-    alert("Clonse test case not yet implemented!");
-
-    return deferred.promise();
-}

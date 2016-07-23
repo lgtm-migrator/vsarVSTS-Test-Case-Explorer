@@ -465,9 +465,6 @@ class testPlanPane implements IPaneRefresh {
                     }
                 );
                 break;
-            case "CLONE":
-                alert("Clone tc to suite - not implemented!");
-                break;
             case "ADD":
                 TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
                     result => {

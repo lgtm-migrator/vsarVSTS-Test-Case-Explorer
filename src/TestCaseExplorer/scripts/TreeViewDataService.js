@@ -348,12 +348,5 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return deferred.promise();
     }
     exports.removeTestCaseFromSuite = removeTestCaseFromSuite;
-    function cloneTestCaseToSuite(planId, suiteId, testCaseIds) {
-        var deferred = $.Deferred();
-        // TODO: not implemented...
-        alert("Clonse test case not yet implemented!");
-        return deferred.promise();
-    }
-    exports.cloneTestCaseToSuite = cloneTestCaseToSuite;
 });
 //# sourceMappingURL=TreeViewDataService.js.map
