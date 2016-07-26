@@ -193,6 +193,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             var view = this;
             var disableShowRecursive = (view._currentSource == "Priority" || view._currentSource == "State") ? true : false;
             this._menubar.updateCommandStates([{ id: "show-recursive", toggled: view._showRecursive, disabled: disableShowRecursive }]);
+            var hideRemove = (view._currentSource == "Test plan") ? false : true;
+            this._menubar.updateCommandStates([{ id: "remove", hidden: hideRemove }]);
+            var hideOpenSuite = (view._currentSource == "Test plan") ? false : true;
+            this._menubar.updateCommandStates([{ id: "open-testsuite", hidden: hideOpenSuite }]);
             TreeViewDataService.getNodes(pivot).then(function (data) {
                 treeview.rootNode.clear();
                 treeview.rootNode.addRange(data);
