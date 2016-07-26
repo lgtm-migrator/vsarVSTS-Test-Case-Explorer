@@ -76,6 +76,7 @@ export class TestCaseView {
         this.StartLoading(true, "Fetching data");
         var promise: IPromise<any>;
         var title: string;
+        var fields: Common.ICustomColumnDef[];
 
         this._selectedPivot = pivot;
         this._selectedValue = value;
@@ -86,18 +87,27 @@ export class TestCaseView {
 
         switch (pivot) {
             case "Area path":
+                if (fieldLst.indexOf("System.AreaPath") == -1) {
+                    fieldLst.push("System.AreaPath");
+                }
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path, showRecursive, fieldLst);
                 title = "Test cases with area path: " + value.path;
                 this._selectedValueWithField = { "System.AreaPath": value.path };
-                this._fields =  Common.MergeColumnLists(this._fields, [{ field: "System.AreaPath", name: "Area Path", width: 200 }]);
+                fields =  Common.MergeColumnLists(this._fields, [{ field: "System.AreaPath", name: "Area Path", width: 200 }]);
                 break;
             case "Iteration path":
+                if (fieldLst.indexOf("System.IterationPath") == -1) {
+                    fieldLst.push("System.IterationPath");
+                }
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path, showRecursive, fieldLst);
                 title = "Test cases with iteration path: " + value.path;
                 this._selectedValueWithField = { "System.IterationPath": value.path };
-                this._fields = Common.MergeColumnLists( this._fields, [{ field: "System.IterationPath", name: "Iteration Path", width: 200 }]);
+                fields = Common.MergeColumnLists( this._fields, [{ field: "System.IterationPath", name: "Iteration Path", width: 200 }]);
                 break;
             case "Priority":
+                if (fieldLst.indexOf("Microsoft.VSTS.Common.Priority") == -1) {
+                    fieldLst.push("Microsoft.VSTS.Common.Priority");
+                }
                 var priority: string = "any";
                 if (value.name != "Priority") {
                     priority = value.name;
@@ -105,18 +115,23 @@ export class TestCaseView {
                 }
                 promise = TestCaseDataService.getTestCasesByPriority(priority, fieldLst);
                 title = "Test cases with priority: " + priority;
+                fields = Common.MergeColumnLists(this._fields, [{ field: "Microsoft.VSTS.Common.Priority", name: "Priority", width: 200 }]);
                 break;
             case "State":
+                if (fieldLst.indexOf("System.State") == -1) {
+                    fieldLst.push("System.State");
+                }
                 var state: string = "any";
                 if (value.name != "States") {
                     state = value.name;
                 }
                 promise = TestCaseDataService.getTestCasesByState(state, fieldLst)
                 title = "Test cases with state: " + state;
+                fields = Common.MergeColumnLists(this._fields, [{ field: "System.State", name: "State", width: 200 }]);
                 break;
             case "Test plan":
                 promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, fieldLst , showRecursive);
-                this._fields =  Common.MergeColumnLists(this._fields, [{ field: "TC::Present.In.Suite", name: "Present in suites", width: 150 }]);
+                fields =  Common.MergeColumnLists(this._fields, [{ field: "TC::Present.In.Suite", name: "Present in suites", width: 150 }]);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
                 break;
         }
@@ -131,7 +146,7 @@ export class TestCaseView {
                         { field: "Outcome", name: "Last Outcome", width: 100, getCellContents: Common.getTestResultCellContent },
                         { field: "TestedDate", name: "Last tested date", width: 150 }];
 
-                    view._fields = Common.MergeColumnLists(view._fields, outcomeFields);
+                    fields = Common.MergeColumnLists(view._fields, outcomeFields);
 
                     TestCaseDataService.getTestResultsForTestCases(view._data.map(i=> { return i["System.Id"]; })).then(
                         data=> {
@@ -143,12 +158,12 @@ export class TestCaseView {
                                 row["TestedBy"] = r.runBy.displayName;
                                 row["TestDuration"] = r.durationInMs;
                             });
-                            view.DoRefreshGrid();
+                            view.DoRefreshGrid(fields);
                         },
                         err=> {
                         });
                 }
-                    view.DoRefreshGrid();
+                    view.DoRefreshGrid(fields);
 
                 view.DoneLoading();
             },
@@ -257,7 +272,9 @@ export class TestCaseView {
           
         view._grid._columns.forEach(c => {
             var f = view._fields.filter(f => { return f.field === c.index })[0];
-            f.width = c.width;
+            if (f) {
+                f.width = c.width;
+            }
         });
 
         var fieldsToManage = this._fields.filter(f => { return f.field.indexOf("TC::") == -1 });
@@ -390,7 +407,7 @@ export class TestCaseView {
                 filterPromise.then(
                     filter => {
                         view._currentFilter = filter;
-                        view.DoRefreshGrid();
+                        view.DoRefreshGrid(view._fields);
                     },
                     err=> {
                         TelemetryClient.getClient().trackException(err);
@@ -508,9 +525,9 @@ export class TestCaseView {
         }
     }
 
-    private DoRefreshGrid() {
+    private DoRefreshGrid(fields) {
 
-        var columns = this._fields.map(function (f) {
+        var columns = fields.map(function (f) {
             return { index: f.field, text: f.name, width: f.width, getCellContents: f.getCellContents};
         });
 
