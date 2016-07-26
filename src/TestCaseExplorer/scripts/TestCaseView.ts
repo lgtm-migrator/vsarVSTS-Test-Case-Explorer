@@ -465,10 +465,13 @@ export class TestCaseView {
             var item = view._grid.getRowData(view._grid.getSelectedDataIndex());
             view._selectedRows = getSelectedWorkItemIds(view._grid);
 
-            if (item != null) {
-                var s = item["System.Id"];
-                selectCallBack(s);
+            var id = null;
+            if ((view._selectedRows.length == 1) && item != null) {
+                id = item["System.Id"];
             }
+            view._menubar.updateCommandStates([{ id: "open-testcase", disabled: (view._selectedRows.length != 1) }]);
+            view._menubar.updateCommandStates([{ id: "remove-testcase", disabled: (view._selectedRows.length == 0) }]);
+            selectCallBack(id);
         });
     }
 
@@ -516,6 +519,10 @@ export class TestCaseView {
         }
         else {
             this._grid.setDataSource(this._data, null, columns);
+        }
+
+        if (this._data.length > 0) {
+            this._grid.setSelectedRowIndex(0);
         }
 
         $("#grid-count").text("Showing " + this._grid._count + " of " + this._data.length + (this._data.length == 1 ? " test case" : " test cases"));
