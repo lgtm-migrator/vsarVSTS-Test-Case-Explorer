@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Clone test suite</title>
+    <link rel="stylesheet" type="text/css" href="css/app.css">
+</head>
+<body>
+    <div class="clone-info">
+        <div class="description1">This operation will clone</div>
+        <div class="sourceSuite" id="sourceSuite">$(SourceSuite)</div>
+        <div class="description2">to</div>
+        <div class="targeSuite" id="targetSuite">$(TargetSuite)</div>
+        <div class="description3">.</div>
+    </div>
+    <br />
+    <br />
+    <div>Do you also want to clone child suites and associated requirements?</div>
+    <br />
+    <div>
+        <input type="checkbox" id="cloneChildSuites" />
+        <label for="cloneChildSuites">Clone child suites</label>
+    </div>
+    <div>
+        <input type="checkbox" id="cloneRequirements" />
+        <label for="cloneRequirements">Clone requirements</label>
+    </div>
+
+    <script src="scripts/lib/VSS.SDK.js"></script>
+    <script type="text/javascript">
+        VSS.init({
+            explicitNotifyLoaded: true,
+            usePlatformScripts: true,
+            usePlatformStyles: true
+        });
+
+         VSS.ready(function () {
+             require(["scripts/CloneTestSuiteForm"], function (dialog) { });
+        });
+    </script>
+</body>
+</html>

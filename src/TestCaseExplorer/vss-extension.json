@@ -42,9 +42,13 @@
     "color": "rgb(51,65,133)",
     "theme": "dark"
   },
-    "files": [
+  "files": [
     {
       "path": "index.html",
+      "addressable": true
+    },
+    {
+      "path": "clone-testsuite-form.html",
       "addressable": true
     },
     {
@@ -75,16 +79,22 @@
       }
     },
     {
-          "id": "columnOptionsForm",
-          "targets": [
-              ".controls"
-          ],
-          "type": "ms.vss-web.control",
-          "properties": {
-              "uri": "columnoptions.html"
-          }
+      "id": "columnOptionsForm",
+      "targets": [
+        ".controls"
+      ],
+      "type": "ms.vss-web.control",
+      "properties": {
+        "uri": "columnoptions.html"
       }
-     
-
+    },
+    {
+      "id": "clone-testsuite-form",
+      "type": "ms.vss-web.control",
+      "targets": [],
+      "properties": {
+        "uri": "clone-testsuite-form.html"
+      }
+    }
   ]
 }

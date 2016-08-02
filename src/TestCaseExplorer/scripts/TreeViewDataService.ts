@@ -336,7 +336,7 @@ export function cloneTestPlan(sourcePlanId: number, targetPlanId: number, target
     return deferred.promise();
 }
 
-export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number) : IPromise<TestContracts.CloneOperationInformation> {
+export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number, cloneChildSuites: boolean, cloneRequirements: boolean) : IPromise<TestContracts.CloneOperationInformation> {
     var deferred = $.Deferred<TestContracts.CloneOperationInformation>();
     var testCaseClient = TestClient.getClient();
 
@@ -344,9 +344,9 @@ export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targ
    
     var cloneRequest: TestContracts.TestSuiteCloneRequest = {
         cloneOptions: {
-            cloneRequirements: false,
-            copyAllSuites: true,
-            copyAncestorHierarchy: false,
+            cloneRequirements: cloneRequirements,
+            copyAllSuites: cloneChildSuites,
+            copyAncestorHierarchy: false,    // TODO: what does this do ???
             overrideParameters: {},
             destinationWorkItemType: "Test Case",
             relatedLinkComment: "Cloned from test case explorer"

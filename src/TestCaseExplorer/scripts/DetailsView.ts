@@ -27,6 +27,7 @@ import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import Common = require("scripts/Common");
 import LeftTreeView = require("scripts/TreeViewView");
+import CloneTestSuite = require("scripts/CloneTestSuiteForm");
 
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
@@ -378,9 +379,11 @@ class testPlanPane implements IPaneRefresh {
         var draggedNode: TreeView.TreeNode = this._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
         draggedNode.config.name
 
+        // TODO: Refactor, rename sourcePlanName to sourceSuiteName
         var sourcePlanName: string = draggedNode.config.name;
         var sourcePlanId: number = draggedNode.config.testPlanId;
         var sourceSuiteId: number = draggedNode.config.suiteId;
+        var targetPlanName: string = n.config.name;
         var targetPlanId: number = n.config.testPlanId;
         var targetSuiteId: number = n.config.suiteId;
 
@@ -388,10 +391,11 @@ class testPlanPane implements IPaneRefresh {
         console.log("source plan id: " + sourcePlanId);
         console.log("source suite id: " + sourceSuiteId);
         console.log("mode: " + mode);
+        console.log("target plan name: " + targetPlanName);
         console.log("target plan id: " + targetPlanId);
         console.log("target suite id: " + targetSuiteId);
 
-        if (confirm("Are you sure you want to " + mode + " '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
+        if (confirm("Are you sure you want to " + mode + " '" + sourcePlanName + "' to '" + targetPlanName + "'?")) {
 
             switch (mode) {
                 case "MOVE":
@@ -406,8 +410,9 @@ class testPlanPane implements IPaneRefresh {
                     );
                     break;
                 case "CLONE":
-                    TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
-                        this.refreshTestPlan();
+                    this.showCloneTestSuite(this, sourcePlanName, sourcePlanId, sourceSuiteId, targetPlanName, targetPlanId, targetSuiteId);
+                    //TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
+                        //this.refreshTestPlan();
 
                         //// TODO: kolla om det finns target suite med samma namn?
                         //var node = new TreeView.TreeNode(sourcePlanName);
@@ -421,7 +426,7 @@ class testPlanPane implements IPaneRefresh {
                         //// TODO: update progress
                         //// TODO: refresh tree when complete
                         ////view.updateTreeView();
-                    });
+                    //});
                     break;
                 case "ADD":
                     TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
@@ -437,6 +442,44 @@ class testPlanPane implements IPaneRefresh {
             $("li.node").draggable({ 'revert': true }).trigger('mouseup');
         }
 
+    }
+
+    private cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements) {
+        console.log("cloning test suite...");
+        TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements).then(result => {
+            this.refreshTestPlan();
+        });
+    }
+
+    private showCloneTestSuite(view: testPlanPane, sourcePlanName: string, sourcePlanId: number, sourceSuiteId: number, targetPlanName: string, targetPlanId: number, targetSuiteId: number) {
+        VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
+            
+            var cloneTestSiteForm: CloneTestSuite.CloneTestSuiteForm;
+            var extensionCtx = VSS.getExtensionContext();
+            var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".clone-testsuite-form";
+
+            var dialogOptions = {
+                title: "Clone Test Suite",
+                width: 500,
+                height: 300,
+                okText: "Clone",
+                getDialogResult: function () {
+                    return cloneTestSiteForm ? cloneTestSiteForm.getFormData() : null;
+                },
+                okCallback: function (result: CloneTestSuite.IFormInput) {
+                    console.log("result: " + JSON.stringify(result));
+                    view.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, result.cloneChildSuites, result.cloneRequirements);
+                }
+            };
+
+            dialogService.openDialog(contributionId, dialogOptions).then(dialog => {
+                dialog.getContributionInstance("clone-testsuite-form").then(function (cloneTestSiteFormInstance: CloneTestSuite.CloneTestSuiteForm) {
+                    cloneTestSiteForm = cloneTestSiteFormInstance;
+                    cloneTestSiteForm.setSuites(sourcePlanName, targetPlanName);
+                    dialog.updateOkButton(true);
+                });
+            });
+        });
     }
 
     public processDropTestCase(ui, n, mode) {

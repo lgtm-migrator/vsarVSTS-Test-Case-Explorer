@@ -41,6 +41,7 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="clone-testsuite-form.html" />
     <Content Include="gruntfile.js" />
     <Content Include="img\image1.png" />
     <Content Include="img\image2.png" />
@@ -66,6 +67,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="scripts\ai.0.22.19-build00125.d.ts" />
     <TypeScriptCompile Include="scripts\app.ts" />
+    <TypeScriptCompile Include="scripts\CloneTestSuiteForm.ts" />
     <TypeScriptCompile Include="scripts\ColumnsOptionsView.ts" />
     <TypeScriptCompile Include="scripts\Common.ts" />
     <TypeScriptCompile Include="scripts\DetailsToggle.ts" />

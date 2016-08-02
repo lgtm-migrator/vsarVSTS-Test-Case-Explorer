@@ -255,3 +255,38 @@ select {
     background-color: #e6e6e6;
 }
 
+.clone-info {
+    display: grid;
+    -ms-grid-columns: auto auto auto auto auto;
+    -ms-grid-rows: auto;
+}
+
+.description1 {
+    -ms-grid-column: 1;
+    float: left;
+    padding-right: 5px;
+}
+
+.sourceSuite {
+    -ms-grid-column: 2;
+    font-weight: bold;
+    padding-right: 5px;
+    float: left;
+}
+
+.description2 {
+    -ms-grid-column: 3;
+    float: left;
+    padding-right: 5px;
+}
+
+.targeSuite {
+    -ms-grid-column: 4;
+    font-weight: bold;
+    float: left;
+}
+
+.description3 {
+    -ms-grid-column: 5;
+    float: left;
+}
