@@ -356,6 +356,9 @@ class testPlanPane implements IPaneRefresh {
                                     console.log("treeview::drop - undefined action");
                                     break;
                             }
+
+                            // TODO: best way to cancel drag?
+                            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
                         }
                     });
                 },
@@ -395,53 +398,29 @@ class testPlanPane implements IPaneRefresh {
         console.log("target plan id: " + targetPlanId);
         console.log("target suite id: " + targetSuiteId);
 
-        if (confirm("Are you sure you want to " + mode + " '" + sourcePlanName + "' to '" + targetPlanName + "'?")) {
-
-            switch (mode) {
-                case "MOVE":
-                    TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
-                        result => {
-                            TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
-                                result => {
-                                    this.refreshTestPlan();
-                                // TODO: refresh left tree + grid
-                                });
-                        }
-                    );
-                    break;
-                case "CLONE":
-                    this.showCloneTestSuite(this, sourcePlanName, sourcePlanId, sourceSuiteId, targetPlanName, targetPlanId, targetSuiteId);
-                    //TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
-                        //this.refreshTestPlan();
-
-                        //// TODO: kolla om det finns target suite med samma namn?
-                        //var node = new TreeView.TreeNode(sourcePlanName);
-
-                        ////node.icon = icon-from-source-node?;
-                        ////node.id = id-from-clone-op?;
-                        ////node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
-                        //n.add(node);
-                        //this._treeView.updateNode(n);
-
-                        //// TODO: update progress
-                        //// TODO: refresh tree when complete
-                        ////view.updateTreeView();
-                    //});
-                    break;
-                case "ADD":
-                    TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
-                        result => {
-                            this.refreshTestPlan();
-                        }
-                    );
-                    break;
-            }
+        switch (mode) {
+            case "MOVE":
+                TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
+                    result => {
+                        TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
+                            result => {
+                                this.refreshTestPlan();
+                            // TODO: refresh left tree + grid
+                            });
+                    }
+                );
+                break;
+            case "CLONE":
+                this.showCloneTestSuite(this, sourcePlanName, sourcePlanId, sourceSuiteId, targetPlanName, targetPlanId, targetSuiteId);
+                break;
+            case "ADD":
+                TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
+                    result => {
+                        this.refreshTestPlan();
+                    }
+                );
+                break;
         }
-        else {
-            // TODO: best way to cancel drag?
-            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
-        }
-
     }
 
     private cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements) {
@@ -467,7 +446,6 @@ class testPlanPane implements IPaneRefresh {
                     return cloneTestSiteForm ? cloneTestSiteForm.getFormData() : null;
                 },
                 okCallback: function (result: CloneTestSuite.IFormInput) {
-                    console.log("result: " + JSON.stringify(result));
                     view.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, result.cloneChildSuites, result.cloneRequirements);
                 }
             };
