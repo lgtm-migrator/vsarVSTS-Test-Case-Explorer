@@ -400,7 +400,7 @@ class testPlanPane implements IPaneRefresh {
 
         switch (mode) {
             case "MOVE":
-                TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
+                TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
                     result => {
                         TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
                             result => {
@@ -414,7 +414,7 @@ class testPlanPane implements IPaneRefresh {
                 this.showCloneTestSuite(this, sourcePlanName, sourcePlanId, sourceSuiteId, targetPlanName, targetPlanId, targetSuiteId);
                 break;
             case "ADD":
-                TreeViewDataService.addTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(
+                TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
                     result => {
                         this.refreshTestPlan();
                     }

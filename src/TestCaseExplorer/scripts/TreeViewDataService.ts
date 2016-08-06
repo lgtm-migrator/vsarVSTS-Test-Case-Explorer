@@ -369,10 +369,171 @@ export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targ
     return deferred.promise();
 }
 
-export function addTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number): IPromise<any> {
-    var deferred = $.Deferred<any[]>();
+function createTestSuite(suiteModel, targetPlanId: number, targetSuiteId: number): IPromise<TestContracts.TestSuite> {
+    var deferred = $.Deferred<TestContracts.TestSuite>();
 
-    alert("Add test suite not yet implemented!");
+    var tstClient = TestClient.getClient();
+
+    tstClient.createTestSuite(suiteModel, VSS.getWebContext().project.name, targetPlanId, targetSuiteId).then(
+        result => {
+
+            console.log("createTestSuite: " + suiteModel.name  + ", parent: " + targetSuiteId + ", node: " + result[0].id);
+
+            deferred.resolve(result[0]);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
+    return deferred.promise();
+}
+
+function getTestCases(planId, suiteId): IPromise<string> {
+    var deferred = $.Deferred<string>();
+
+    var tstClient = TestClient.getClient();
+    tstClient.getTestCases(VSS.getWebContext().project.name, planId, suiteId).then(result => {
+        var idList = result.map(function (item) {
+            return item.testCase.id;
+        });
+        deferred.resolve(idList.join());
+    });
+
+   return deferred.promise();
+}
+
+function createStaticSuite(suiteName: string, testCaseIds: string, targetPlanId: number, targetSuiteId: number): IPromise<TestContracts.TestSuite> {
+    var deferred = $.Deferred<TestContracts.TestSuite>();
+
+    var suiteModel: TestContracts.SuiteCreateModel = {
+        "suiteType": "StaticTestSuite",
+        "name": suiteName
+    };
+
+    createTestSuite(suiteModel, targetPlanId, targetSuiteId).then(testSuite => {
+        addTestCasesToSuite(targetPlanId, testSuite.id, testCaseIds).then(result => {
+            deferred.resolve(testSuite);
+        });
+    });
+
+    return deferred.promise();
+}
+
+function createRequirementSuite(requirementId: number, targetPlanId: number, targetSuiteId: number): IPromise<TestContracts.TestSuite> {
+
+    var suiteModel: TestContracts.SuiteCreateModel = {
+        "suiteType": "RequirementTestSuite",
+        "requirementIds": [
+            requirementId
+        ]
+    }
+
+    return createTestSuite(suiteModel, targetPlanId, targetSuiteId);
+}
+
+function createQuerySuite(suiteName: string, suiteQuery: string, targetPlanId: number, targetSuiteId: number): IPromise<TestContracts.TestSuite> {
+
+    var suiteModel: TestContracts.SuiteCreateModel = {
+        "suiteType": "DynamicTestSuite",
+        "name": suiteName,
+        "queryString": suiteQuery
+    }
+
+    return createTestSuite(suiteModel, targetPlanId, targetSuiteId);
+}
+
+function getTestSuite(planId: number, suiteId: number): IPromise<TestContracts.TestSuite> {
+    var deferred = $.Deferred<TestContracts.TestSuite>();
+
+    var tstClient = TestClient.getClient();
+    tstClient.getTestSuiteById(VSS.getWebContext().project.name, planId, suiteId).then(
+        data => {
+            deferred.resolve(data);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+    return deferred.promise();
+}
+
+//function createStaticSuite(suiteName: string, targetPlanId: number, targetSuiteId: number): IPromise<any> {
+//    var deferred = $.Deferred<any[]>();
+
+//    var tstClient = TestClient.getClient();
+//    var suiteModel: TestContracts.SuiteCreateModel;
+
+//    suiteModel = {
+//        "suiteType": "StaticTestSuite",
+//        "name": suiteName
+//    };
+
+//    suiteModel = {
+//        "suiteType": "RequirementTestSuite",
+//        "requirementIds": [
+//            2
+//        ]
+//    }
+
+//    suiteModel = {
+//        "suiteType": "DynamicTestSuite",
+//        "name": "AllTestCases",
+//        "queryString": "SELECT [System.Id],[System.WorkItemType],[System.Title],[Microsoft.VSTS.Common.Priority],[System.AssignedTo],[System.AreaPath] FROM WorkItems WHERE [System.WorkItemType] IN GROUP 'Microsoft.TestCaseCategory'"
+//    }
+
+//    tstClient.createTestSuite(suiteModel, VSS.getWebContext().project.name, targetPlanId, targetSuiteId).then(
+//        data => {
+
+//            console.log("createStaticSuite: " + suiteName + ", parent: " + targetSuiteId + ", node: " + data[0].id);
+
+//            deferred.resolve(data);
+//        },
+//        err => {
+//            deferred.reject(err);
+//        }
+//    );
+
+//    return deferred.promise();
+//}
+
+//function createStaticSuite(suiteName: string, targetPlanId: number, targetSuiteId: number): IPromise<any> {
+//    var deferred = $.Deferred<any[]>();
+
+//    var data = [{ "id": targetSuiteId + 100 }];
+
+//    console.log("createStaticSuite: " + suiteName + ", " + targetSuiteId + ", " + data[0].id);
+
+//    deferred.resolve(data);
+
+//    return deferred.promise();
+//}
+
+export function addTestSuite(sourceNode: TreeView.TreeNode, targetPlanId: number, targetSuiteId: number): IPromise<TestContracts.TestSuite> {
+    var deferred = $.Deferred<TestContracts.TestSuite>();
+
+    switch (sourceNode.type) {
+        case "StaticTestSuite":
+            getTestCases(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(testCaseIds => {
+                createStaticSuite(sourceNode.config.name, testCaseIds, targetPlanId, targetSuiteId).then(testSuite => {
+                    sourceNode.children.forEach(n => {
+                        addTestSuite(n, targetPlanId, testSuite.id);
+                    });
+                    deferred.resolve(testSuite);
+                });
+            });
+            break;
+        case "RequirementTestSuite":
+            getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(testSuite => {
+                createRequirementSuite(testSuite.requirementId, targetPlanId, targetSuiteId);
+            });
+            break;
+        case "DynamicTestSuite":
+            getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(testSuite => {
+                createQuerySuite(sourceNode.config.name, testSuite.queryString, targetPlanId, targetSuiteId);
+            });
+            break;
+    }
 
     //var tstClient = TestClient.getClient();
     //tstClient.getTestSuiteById(VSS.getWebContext().project.name, planId, suiteId).then(
