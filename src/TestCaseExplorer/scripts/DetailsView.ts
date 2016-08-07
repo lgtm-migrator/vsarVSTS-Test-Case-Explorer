@@ -317,10 +317,31 @@ class testPlanPane implements IPaneRefresh {
         };
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testPlan-container"), menubarOptions);
+
+        var treeView = this._treeView;
+        var leftTreeView = this._view._leftTreeView;
+
+        $("#detailPanels").droppable({
+            scope: "test-case-scope",
+            greedy: true,
+            tolerance: "pointer",
+            drop: function (event, ui) {
+
+                var newTestPlanName = prompt("What do want to call the new test plan?");
+                if (newTestPlanName != null) {
+                    var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
+                    TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
+                }
+
+                // TODO: best way to cancel drag?
+                $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+            }
+        });
     }
 
     private refreshTestPlan() {
         if (this._cbo.getSelectedIndex() >= 0) {
+
             this._view.StartLoading(true, "Fetching test plan " + this._cbo.getText());
 
             var treeView = this._treeView;

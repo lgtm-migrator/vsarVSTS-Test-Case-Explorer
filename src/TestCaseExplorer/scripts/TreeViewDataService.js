@@ -245,29 +245,30 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         });
         return a;
     }
-    function cloneTestPlan(sourcePlanId, targetPlanId, targetSuiteId) {
+    function cloneTestPlan(sourcePlanId, sourceSuiteIds, testPlanName, cloneRequirements) {
         var deferred = $.Deferred();
+        var testPlan = {
+            name: testPlanName,
+            project: VSS.getWebContext().project.name
+        };
+        var cloneRequest = {
+            destinationTestPlan: testPlan,
+            options: {
+                cloneRequirements: cloneRequirements,
+                copyAllSuites: true,
+                copyAncestorHierarchy: true,
+                overrideParameters: {},
+                destinationWorkItemType: "Test Case",
+                relatedLinkComment: "Comment"
+            },
+            suiteIds: sourceSuiteIds
+        };
         var testCaseClient = TestClient.getClient();
-        var teamProjectName = VSS.getWebContext().project.name;
-        testCaseClient.getPlanById(teamProjectName, targetPlanId).then(function (testPlan) {
-            var cloneRequest = {
-                options: {
-                    cloneRequirements: false,
-                    copyAllSuites: true,
-                    copyAncestorHierarchy: false,
-                    overrideParameters: {},
-                    destinationWorkItemType: "Test Case",
-                    relatedLinkComment: "Comment"
-                },
-                suiteIds: [targetSuiteId],
-                destinationTestPlan: testPlan
-            };
-            testCaseClient.cloneTestPlan(cloneRequest, teamProjectName, sourcePlanId).then(function (data) {
-                console.log("Clone test plan completed: " + data.completionDate);
-                deferred.resolve(data);
-            }, function (err) {
-                deferred.reject(err);
-            });
+        testCaseClient.cloneTestPlan(cloneRequest, VSS.getWebContext().project.name, sourcePlanId).then(function (data) {
+            console.log("Clone test plan completed: " + data.completionDate);
+            deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
         });
         return deferred.promise();
     }
@@ -360,43 +361,6 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         });
         return deferred.promise();
     }
-    //function createStaticSuite(suiteName: string, targetPlanId: number, targetSuiteId: number): IPromise<any> {
-    //    var deferred = $.Deferred<any[]>();
-    //    var tstClient = TestClient.getClient();
-    //    var suiteModel: TestContracts.SuiteCreateModel;
-    //    suiteModel = {
-    //        "suiteType": "StaticTestSuite",
-    //        "name": suiteName
-    //    };
-    //    suiteModel = {
-    //        "suiteType": "RequirementTestSuite",
-    //        "requirementIds": [
-    //            2
-    //        ]
-    //    }
-    //    suiteModel = {
-    //        "suiteType": "DynamicTestSuite",
-    //        "name": "AllTestCases",
-    //        "queryString": "SELECT [System.Id],[System.WorkItemType],[System.Title],[Microsoft.VSTS.Common.Priority],[System.AssignedTo],[System.AreaPath] FROM WorkItems WHERE [System.WorkItemType] IN GROUP 'Microsoft.TestCaseCategory'"
-    //    }
-    //    tstClient.createTestSuite(suiteModel, VSS.getWebContext().project.name, targetPlanId, targetSuiteId).then(
-    //        data => {
-    //            console.log("createStaticSuite: " + suiteName + ", parent: " + targetSuiteId + ", node: " + data[0].id);
-    //            deferred.resolve(data);
-    //        },
-    //        err => {
-    //            deferred.reject(err);
-    //        }
-    //    );
-    //    return deferred.promise();
-    //}
-    //function createStaticSuite(suiteName: string, targetPlanId: number, targetSuiteId: number): IPromise<any> {
-    //    var deferred = $.Deferred<any[]>();
-    //    var data = [{ "id": targetSuiteId + 100 }];
-    //    console.log("createStaticSuite: " + suiteName + ", " + targetSuiteId + ", " + data[0].id);
-    //    deferred.resolve(data);
-    //    return deferred.promise();
-    //}
     function addTestSuite(sourceNode, targetPlanId, targetSuiteId) {
         var deferred = $.Deferred();
         switch (sourceNode.type) {
@@ -406,32 +370,25 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                         sourceNode.children.forEach(function (n) {
                             addTestSuite(n, targetPlanId, testSuite.id);
                         });
-                        deferred.resolve(testSuite);
+                        //promises.push(sourceNode.config.name);
+                        //deferred.resolve(testSuite);
                     });
                 });
                 break;
             case "RequirementTestSuite":
                 getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(function (testSuite) {
                     createRequirementSuite(testSuite.requirementId, targetPlanId, targetSuiteId);
+                    //deferred.resolve(testSuite);
                 });
                 break;
             case "DynamicTestSuite":
                 getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(function (testSuite) {
                     createQuerySuite(sourceNode.config.name, testSuite.queryString, targetPlanId, targetSuiteId);
+                    //deferred.resolve(testSuite);
                 });
                 break;
         }
-        //var tstClient = TestClient.getClient();
-        //tstClient.getTestSuiteById(VSS.getWebContext().project.name, planId, suiteId).then(
-        //    data => {
-        //        // same test plan: https://www.visualstudio.com/en-us/docs/integrate/api/test/suites#parent-suite
-        //        // different => add + remove
-        //        deferred.resolve(null);
-        //    },
-        //    err => {
-        //        deferred.reject(err);
-        //    }
-        //);
+        //Q.allResolved(promises);
         return deferred.promise();
     }
     exports.addTestSuite = addTestSuite;
