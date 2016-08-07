@@ -327,7 +327,7 @@ class testPlanPane implements IPaneRefresh {
             tolerance: "pointer",
             drop: function (event, ui) {
 
-                var newTestPlanName = prompt("What do want to call the new test plan?");
+                var newTestPlanName = prompt("What do you want to call the new test plan?");
                 if (newTestPlanName != null) {
                     var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
                     TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
