@@ -288,5 +288,5 @@ select {
 
 .description3 {
     -ms-grid-column: 5;
-    float: left;
+    float: left; 
 }
