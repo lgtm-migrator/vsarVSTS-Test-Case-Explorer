@@ -1,4 +1,19 @@
-﻿/// <reference path="ai.0.22.19-build00125.d.ts" />
+﻿//---------------------------------------------------------------------
+// <copyright file="TelemetryClient.ts">
+//    This code is licensed under the MIT License.
+//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF 
+//    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED 
+//    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+//    PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// </copyright>
+// <summary>
+//    This is part of the Test Case Explorer extensions
+//    from the ALM Rangers. This file contains the implementation
+//    of the application insights telemetry integration. 
+// </summary>
+//---------------------------------------------------------------------
+
+/// <reference path="ai.0.22.19-build00125.d.ts" />
 
 class TelemetryClient {
 
