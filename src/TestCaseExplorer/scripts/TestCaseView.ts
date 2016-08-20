@@ -196,14 +196,14 @@ export class TestCaseView {
 
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         var menuItems: any[] = [
-            { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
-            { id: "open-testcase", showText: false, title: "Open test case", icon: "bowtie-arrow-open", cssClass: "bowtie-icon" },
-            { id: "remove-testcase", showText: false, title: "Remove test case from this suite", icon: "bowtie-edit-delete", cssClass: "bowtie-icon" },
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "new-testcase", text: "New", title: "Create test case", icon: Common.getToolbarIcon("new-testcase") },
+            { id: "open-testcase", showText: false, title: "Open test case", icon: Common.getToolbarIcon("open-testcase"), cssClass: Common.getToolbarCss() },
+            { id: "remove-testcase", showText: false, title: "Remove test case from this suite", icon: Common.getToolbarIcon("remove-testcase"), cssClass: Common.getToolbarCss() },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() },
             { separator: true },
             { id: "column-options", text: "Column options", title: "Choose columns for the grid", noIcon: true },
             //{ id: "latestTestResult", text: "Show TestResults", title: "Show latest test results", icon: "test-outcome-node-icon" },
-            { id: "toggle", showText: false, title: "Show/hide details pane", icon: "bowtie-details-pane", cssClass: "right-align bowtie-icon" }
+            { id: "toggle", showText: false, title: "Show/hide details pane", icon: Common.getToolbarIcon("toggle"), cssClass: Common.getToolbarCss() + " right-align" }
         ];
 
         var menubarOptions = {

@@ -198,7 +198,7 @@ class partOfTestSuitesPane implements IPaneRefresh {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestSuites"), options);
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {
@@ -298,7 +298,7 @@ class testPlanPane implements IPaneRefresh {
         });
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {
@@ -559,7 +559,7 @@ class testResultsPane implements IPaneRefresh {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestResults"), options);
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {
@@ -628,7 +628,7 @@ class linkedRequirementsPane implements IPaneRefresh {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridReq"), options);
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {

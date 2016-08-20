@@ -17,7 +17,7 @@
 
 import WorkItemContracts = require("TFS/WorkItemTracking/Contracts");
 import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
-
+import Context = require("VSS/Context");
 import Q = require("q");
 
 export class WIQLConstants {
@@ -110,4 +110,50 @@ export function MergeColumnLists(lst1: ICustomColumnDef[], lst2: ICustomColumnDe
     return a.filter(item => {
         return seen.hasOwnProperty(item.field) ? false : (seen[item.field] = true);
     });
+}
+
+export function getToolbarIcon(name): string {
+    var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
+    var icon: string = "";
+    switch (name) {
+        case "show-recursive":
+            icon = isHosted ? "bowtie-row-child" : "icon-inherited-form";
+            break;
+        case "expand-all":
+            icon = isHosted ? "bowtie-toggle-expand-all" : "icon-tree-expand-all";
+            break;
+        case "collapse-all":
+            icon = isHosted ? "bowtie-toggle-collapse" : "icon-tree-collapse-all";
+            break;
+        case "open-testsuite":
+            icon = isHosted ? "bowtie-arrow-open" : "icon-open";
+            break;
+        case "remove":
+            icon = isHosted ? "bowtie-edit-delete" : "icon-delete";
+            break;
+        case "refresh":
+            icon = isHosted ? "bowtie-navigate-refresh" : "icon-refresh";
+            break;
+        case "new-testcase":
+            icon = isHosted ? "icon-add-small" : "icon-add-small";
+            break;
+        case "open-testcase":
+            icon = isHosted ? "bowtie-arrow-open" : "icon-open";
+            break;
+        case "remove-testcase":
+            icon = isHosted ? "bowtie-edit-delete" : "icon-delete";
+            break;
+        case "toggle":
+            icon = isHosted ? "bowtie-details-pane" : "icon-tfs-tcm-associated-pane-toggle";
+            break;
+        case "":
+            icon = isHosted ? "" : "";
+            break;
+    }
+    return icon;
+}
+
+export function getToolbarCss(): string {
+    var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
+    return isHosted ? "bowtie-icon" : "";
 }

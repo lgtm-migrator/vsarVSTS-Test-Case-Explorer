@@ -24,6 +24,7 @@ import CtrlCombos = require("VSS/Controls/Combos");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import UtilsUI = require("VSS/Utils/UI");
 import Q = require("q");
+import Common = require("scripts/Common");
 
 export interface TreeviewSelectedCallback { (type: string, value: string, showRecursive: boolean): void }
 
@@ -155,13 +156,12 @@ export class TreeviewView {
 
     private initMenu(view: TreeviewView) {
         var menuItems: Menus.IMenuItemSpec[] = [
-        //var menuItems: any[] = [
-            { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "bowtie-row-child", cssClass: "bowtie-icon" },
-            { id: "expand-all", showText: false, title: "Expand all", icon: "bowtie-toggle-expand-all", cssClass: "bowtie-icon" },
-            { id: "collapse-all", showText: false, title: "Collapse all", icon: "bowtie-toggle-collapse", cssClass: "bowtie-icon" },
-            { id: "open-testsuite", showText: false, title: "Jump to test plan", icon: "bowtie-arrow-open", cssClass: "bowtie-icon" },
-            { id: "remove", showText: false, title: "Delete", icon: "bowtie-edit-delete", cssClass: "bowtie-icon" },
-            { id: "refresh", showText: false, title: "Refresh treeview", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" }
+            { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: Common.getToolbarIcon("show-recursive"), cssClass: Common.getToolbarCss() },
+            { id: "expand-all", showText: false, title: "Expand all", icon: Common.getToolbarIcon("expand-all"), cssClass: Common.getToolbarCss() },
+            { id: "collapse-all", showText: false, title: "Collapse all", icon: Common.getToolbarIcon("collapse-all"), cssClass: Common.getToolbarCss() },
+            { id: "open-testsuite", showText: false, title: "Jump to test plan", icon: Common.getToolbarIcon("open-testsuite"), cssClass: Common.getToolbarCss() },
+            { id: "remove", showText: false, title: "Delete", icon: Common.getToolbarIcon("remove"), cssClass: Common.getToolbarCss() },
+            { id: "refresh", showText: false, title: "Refresh treeview", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {
