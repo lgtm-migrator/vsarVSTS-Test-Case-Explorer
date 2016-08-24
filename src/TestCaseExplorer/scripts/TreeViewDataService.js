@@ -159,11 +159,15 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             if (t.testCaseCount > 0) {
                 node.text += " (" + t.testCaseCount + ")";
             }
-            node.droppable = true;
+            //node.droppable = true;
             if (t.parent != null) {
+                if (t.suiteType == "StaticTestSuite") {
+                    node.droppable = true;
+                }
                 node.icon = getIconFromSuiteType(t.suiteType);
             }
             else {
+                node.droppable = true;
                 node.icon = "icon-testplan";
             }
             node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt(t.plan.id) };
@@ -235,6 +239,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             }
             var node = new TreeView.TreeNode(item.name);
             node.icon = item.icon;
+            node.droppable = true;
             node.id = item.id;
             node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
             node.expanded = item.expanded;

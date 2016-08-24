@@ -193,11 +193,15 @@ function BuildTestSuiteTree(tsList: any[], parentNode: TreeView.TreeNode, allTS:
         if (t.testCaseCount > 0) {
             node.text += " (" + t.testCaseCount + ")";
         }
-        node.droppable = true;
+        //node.droppable = true;
         if (t.parent != null) {
+            if (t.suiteType == "StaticTestSuite") {
+                node.droppable = true;
+            }
             node.icon = getIconFromSuiteType(t.suiteType);
         }
         else {
+            node.droppable = true;
             node.icon = "icon-testplan";
         }
         node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt(t.plan.id) };
@@ -290,7 +294,7 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
 
         var node = new TreeView.TreeNode(item.name);
         node.icon = item.icon;
-
+        node.droppable = true;
         node.id = item.id;
         node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
 

@@ -419,10 +419,11 @@ export class TestCaseView {
     }
    
     private initGrid(view: TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
+        var that = this;
         var options: Grids.IGridOptions = {
             height: "100%",
             width: "100%",
-            columns: this._fields.map(function (f) {
+            columns: that._fields.map(function (f) {
                 return { index: f.field, text: f.name, width: f.width };
             }),
             draggable: {
@@ -430,13 +431,13 @@ export class TestCaseView {
                 axis: "",
                 containment: "",
                 appendTo: document.body,
-                revert: "invalid",
+                //revert: "invalid",
                 refreshPositions: true,
                 scroll: false,
                 distance: 10,
                 cursorAt: { top: -5, left: -5 },
-
-                helper: function (event, ui) {
+                helper: function (event, ui) { return that._draggableHelper(that, event, ui); },
+                /*helper: function (event, ui) {
                     var $dragTile;
                     var draggableItemText, numOfSelectedItems;
                     var selectedWorkItemIds = view._selectedRows;
@@ -463,14 +464,16 @@ export class TestCaseView {
                     $dragTile.data("MODE", "TEST_CASE");
 
                     return $dragTile;
-                }
+                }*/
             },
+            
             openRowDetail: (index: number) => {
-                var item = this._grid.getRowData(index);
-                selectCallBack(item["System.Id"]);
-                WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
-                    workItemService.openWorkItem(item["System.Id"]);
-                });
+                that._openRowDetails(that, index, selectCallBack);
+                //var item = this._grid.getRowData(index);
+                //selectCallBack(item["System.Id"]);
+                //WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
+                //    workItemService.openWorkItem(item["System.Id"]);
+                //});
             }
 
         };
@@ -486,9 +489,47 @@ export class TestCaseView {
             if ((view._selectedRows.length == 1) && item != null) {
                 id = item["System.Id"];
             }
+
             view._menubar.updateCommandStates([{ id: "open-testcase", disabled: (view._selectedRows.length != 1) }]);
             view._menubar.updateCommandStates([{ id: "remove-testcase", disabled: (view._selectedRows.length == 0) }]);
             selectCallBack(id);
+        });
+    }
+
+    private _draggableHelper(that: TestCaseView, event, ui) {
+        var $dragTile;
+        var draggableItemText, numOfSelectedItems;
+        var selectedWorkItemIds = that._selectedRows;
+
+        numOfSelectedItems = selectedWorkItemIds.length;
+        $dragTile = $("<div />")
+            .addClass("drag-tile")
+
+        var $dragItemCount = $("<div />")
+            .addClass("drag-tile-item-count")
+            .text(numOfSelectedItems);
+        var $dragType = $("<span />")
+            .addClass("drag-tile-drag-type")
+            .text(that._selectedPivot == "Test plan" ? "Move" : "Assign");
+
+        var $dragHead = $("<div />")
+            .addClass("drag-tile-head")
+            .append($dragType)
+            .append($dragItemCount);
+
+        $dragTile.append($dragHead);
+
+        $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i => { return i["System.Id"]; }));
+        $dragTile.data("MODE", "TEST_CASE");
+
+        return $dragTile;
+    }
+
+    private _openRowDetails(that: TestCaseView, index: number, selectCallBack: TestCaseViewSelectedCallback) {
+        var item = that._grid.getRowData(index);
+        selectCallBack(item["System.Id"]);
+        WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
+            workItemService.openWorkItem(item["System.Id"]);
         });
     }
 
@@ -501,7 +542,7 @@ export class TestCaseView {
         if (this._orphanTestCaseFilter == null) {
             this._orphanTestCaseFilter = new TestCaseDataService.wiqlFilter();
             this._orphanTestCaseFilter.setMode(mode);
-            return this._orphanTestCaseFilter.initialize(wiqlOrphaneTC);
+            return this._orphanTestCaseFilter.initialize(wiqlOrphanedTC);
         }
         else {
             var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
@@ -581,4 +622,4 @@ function getSelectedWorkItemIds(grid: Grids.Grid): any[] {
     }
     return ids;
 };
-var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().TestCaseCategoryName + "') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().RequirementsCategoryName+ "') ORDER BY [Source].[System.Id] mode(DoesNotContain)"
+var wiqlOrphanedTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().TestCaseCategoryName + "') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().RequirementsCategoryName+ "') ORDER BY [Source].[System.Id] mode(DoesNotContain)"

@@ -22,6 +22,33 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
     var tc = new TestCaseView.TestCaseView();
     tc.initialize(paneToggler, RefreshPane);
     var tv = new TreeViewView.TreeviewView();
+    window.onkeydown = listenToTheKey;
+    window.onkeyup = listenToTheKey;
+    function listenToTheKey(e) {
+        if (e.which === 27 || e.keyCode === 27) {
+            console.log("cancelling drag...");
+            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+        }
+        else {
+            var mode = "";
+            if (e.ctrlKey) {
+                console.log("clone...");
+                mode = "Clone";
+            }
+            else if (e.shiftKey) {
+                console.log("add...");
+                mode = "Add";
+            }
+            else {
+                console.log("move...");
+                mode = "Move";
+            }
+            var text = $(".drag-tile-drag-type").text();
+            if (text != "Attach") {
+                $(".drag-tile-drag-type").text(mode);
+            }
+        }
+    }
     var leftSplitter = Controls.Enhancement.getInstance(SplitterControls.Splitter, $(".left-hub-splitter"));
     VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
         var posReq = dataService.getValue("LeftPaneWidth", { scopeType: "User" }).then(function (width) {

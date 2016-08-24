@@ -17,13 +17,14 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
     var TreeviewView = (function () {
         function TreeviewView() {
         }
-        TreeviewView.prototype.listenToTheKey = function (e) {
+        /*
+        private listenToTheKey(e) {
             if (e.which === 27 || e.keyCode === 27) {
                 console.log("cancelling drag...");
                 $("li.node").draggable({ 'revert': true }).trigger('mouseup');
             }
             else {
-                var mode = "";
+                var mode: string = "";
                 if (e.ctrlKey) {
                     console.log("clone...");
                     mode = "Clone";
@@ -37,19 +38,21 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     mode = "Move";
                 }
                 var text = $(".drag-tile-drag-type").text();
+    
                 if (text != "Attach") {
                     $(".drag-tile-drag-type").text(mode);
                 }
             }
-        };
+        }
+        */
         TreeviewView.prototype.initialize = function (callback) {
             TelemetryClient.getClient().trackPageView("TreeView");
             var view = this;
             view._showRecursive = false;
             view._callback = callback;
             var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
-            window.onkeydown = this.listenToTheKey;
-            window.onkeyup = this.listenToTheKey;
+            //window.onkeydown = this.listenToTheKey;
+            //window.onkeyup = this.listenToTheKey;
             var cboOptions = {
                 mode: "drop",
                 allowEdit: false,
@@ -60,6 +63,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 clickSelects: true,
                 nodes: null
             };
+            this._enableDragDrop(treeOptions);
             var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
             treeview.onItemClick = function (node, nodeElement, e) {
                 if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
@@ -90,6 +94,111 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     view.LoadTreeview(cbo.getText(), treeview);
                 });
             });
+        };
+        TreeviewView.prototype._enableDragDrop = function (options) {
+            var that = this;
+            options.draggable = $.extend({
+                scroll: false,
+                scrollables: [".testmanagement-suites-tree"],
+                scope: "test-case-scope",
+                appendTo: document.body,
+                distance: 20,
+                //helper: function (event, ui) { return that._draggableHelper(that, event, ui); },
+                helper: function (event, ui) {
+                    var $dragTile;
+                    var title = event.currentTarget.title;
+                    var draggedNode = that._treeview.getNodeFromElement(event.currentTarget);
+                    $dragTile = $("<div />")
+                        .addClass("drag-tile");
+                    var $dragItemTitle = $("<div />")
+                        .addClass("drag-tile-title")
+                        .text(title);
+                    var $dragType = $("<span />")
+                        .addClass("drag-tile-drag-type")
+                        .text("Move");
+                    var $dragHead = $("<div />")
+                        .addClass("drag-tile-head")
+                        .append($dragType)
+                        .append($dragItemTitle);
+                    $dragTile.append($dragHead);
+                    $dragTile.data("PLAN_ID", draggedNode.config);
+                    $dragTile.data("SUITE_ID", draggedNode.id);
+                    $dragTile.data("MODE", "TEST_SUITE");
+                    return $dragTile;
+                },
+                cursorAt: { left: -20, top: 0 },
+                containment: "",
+                //start: function (event, ui) { that._draggableStart(that, event, ui); },
+                //stop: function (event, ui) { that._draggableStop(event, ui); },
+                drag: function (event, ui) { that._draggableDrag(that, event, ui); }
+            }, options.draggable);
+            options.droppable = $.extend({
+                //hoverClass: "droppable-hover",
+                scope: "test-case-scope",
+                tolerance: "pointer",
+                //accept: function ($draggable) { return that._droppableAccept(this, $draggable); },
+                /*over: function (e, ui) {
+                    if (that._currentSource != "Test plan") {
+                        var $dropTarget = $(e.target);
+                        $dropTarget.addClass("active");
+                    }
+                },
+                out: function (e, ui) {
+                    if (that._currentSource != "Test plan") {
+                        var $dropTarget = $(e.target);
+                        $dropTarget.removeClass("active");
+                    }
+                },*/
+                drop: function (event, ui) { return that._droppableDrop(that, event, ui); },
+                //over: function (event, ui) { that._droppableOver($(this), event, ui); },
+                greedy: true // ensure that the most local/specific elements get to accept the drop first, not the parents                    
+            }, options.droppable);
+        };
+        TreeviewView.prototype._draggableHelper = function (that, event, ui) {
+            var $dragTile;
+            var title = event.currentTarget.title;
+            var draggedNode = that._treeview.getNodeFromElement(event.currentTarget);
+            $dragTile = $("<div />")
+                .addClass("drag-tile");
+            var $dragItemTitle = $("<div />")
+                .addClass("drag-tile-title")
+                .text(title);
+            var $dragType = $("<span />")
+                .addClass("drag-tile-drag-type")
+                .text("Move");
+            var $dragHead = $("<div />")
+                .addClass("drag-tile-head")
+                .append($dragType)
+                .append($dragItemTitle);
+            $dragTile.append($dragHead);
+            $dragTile.data("PLAN_ID", draggedNode.config);
+            $dragTile.data("SUITE_ID", draggedNode.id);
+            $dragTile.data("MODE", "TEST_SUITE");
+            return $dragTile;
+        };
+        TreeviewView.prototype._draggableStart = function (that, event, ui) {
+        };
+        TreeviewView.prototype._draggableStop = function (event, ui) {
+        };
+        TreeviewView.prototype._draggableDrag = function (that, event, ui) {
+        };
+        TreeviewView.prototype._droppableAccept = function (that, event) {
+            return that._currentSource == "Test plan" ? false : true;
+        };
+        TreeviewView.prototype._droppableDrop = function (that, event, ui) {
+            var n = that._treeview.getNodeFromElement(event.target);
+            var action = ui.helper.data("MODE"); // TODO: rename to action
+            var mode = that.getCurrentDragMode(event);
+            switch (action) {
+                case "TEST_CASE":
+                    that.processDropTestCase(ui, n, that._currentSource, mode);
+                    break;
+                default:
+                    console.log("treeview::drop - undefined action");
+                    break;
+            }
+        };
+        TreeviewView.prototype._droppableOver = function (that, event, ui) {
         };
         TreeviewView.prototype.openTestSuite = function () {
             var url = VSS.getWebContext().collection.uri;
@@ -223,7 +332,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 if (view._currentSource == "Test plan") {
                     $("li.node").draggable({
                         scope: "test-case-scope",
-                        revert: "invalid",
+                        //revert: "invalid",
                         appendTo: document.body,
                         helper: function (event, ui) {
                             var $dragTile;
@@ -250,14 +359,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         distance: 10,
                         cursorAt: { top: -5, left: -5 },
                         refreshPositions: true,
-                        scroll: true,
-                        stop: function () {
-                            // Set all draggable parts back to revert: false
-                            // This fixes elements after drag was cancelled with ESC key
-                            $("li.node").draggable("option", { revert: false });
-                        }
+                        scroll: true //,
                     });
                 }
+                /*
                 $("li.node").droppable({
                     scope: "test-case-scope",
                     greedy: true,
@@ -268,9 +373,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         return true;
                     },
                     over: function (e, ui) {
-                        var target = e.target;
+                        var target: any = e.target;
                         console.log("over " + target.title);
-                        var n = treeview.getNodeFromElement(e.target);
+    
+                        var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
                         //if (n.type == "Static suite") {
                         //    $(e.target).addClass("drag-hover");
                         //}
@@ -279,24 +385,29 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         //}
                     },
                     out: function (e, ui) {
-                        var target = e.target;
+                        var target: any = e.target;
                         console.log("out " + target.title);
+    
                         //$(e.target).removeClass("drag-hover drag-hover-invalid");
                     },
-                    drop: function (event, ui) {
-                        var n = treeview.getNodeFromElement(event.target);
-                        var action = ui.helper.data("MODE"); // TODO: rename to action
+                    drop: function (event: any, ui) {
+    
+                        var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
+    
+                        var action = ui.helper.data("MODE");  // TODO: rename to action
                         var mode = view.getCurrentDragMode(event);
+    
                         switch (action) {
                             case "TEST_CASE":
                                 view.processDropTestCase(ui, n, view._currentSource, mode);
                                 break;
-                            default:
+                            default:    // TODO: verify this should not happen
                                 console.log("treeview::drop - undefined action");
                                 break;
                         }
                     }
                 });
+                */
                 deferred.resolve(data);
             });
             return deferred.promise();

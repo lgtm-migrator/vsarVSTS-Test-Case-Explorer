@@ -38,6 +38,7 @@ export class TreeviewView {
     private _currentSource: string;
     private _waitControl: StatusIndicator.WaitControl;
 
+    /*
     private listenToTheKey(e) {
         if (e.which === 27 || e.keyCode === 27) {
             console.log("cancelling drag...");
@@ -64,6 +65,7 @@ export class TreeviewView {
             }
         }
     }
+    */
 
     public initialize(callback: TreeviewSelectedCallback) {
         TelemetryClient.getClient().trackPageView("TreeView");
@@ -72,8 +74,8 @@ export class TreeviewView {
         view._callback = callback;
         var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
 
-        window.onkeydown = this.listenToTheKey;
-        window.onkeyup = this.listenToTheKey;
+        //window.onkeydown = this.listenToTheKey;
+        //window.onkeyup = this.listenToTheKey;
 
         var cboOptions: CtrlCombos.IComboOptions = {
             mode: "drop",
@@ -88,7 +90,10 @@ export class TreeviewView {
             nodes: null
         };
 
+        this._enableDragDrop(treeOptions);
+
         var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
+
         treeview.onItemClick = function (node, nodeElement, e) {
             if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
                 treeview.setSelectedNode(node);
@@ -124,6 +129,133 @@ export class TreeviewView {
 
             })
         });
+    }
+
+    private _enableDragDrop(options?: any) {
+        var that = this;
+
+        options.draggable = $.extend({
+            scroll: false,
+            scrollables: [".testmanagement-suites-tree"],
+            scope: "test-case-scope", //TestSuitesTree.DropScope,
+            appendTo: document.body,        // append to body to allow for free drag/drop                    
+            distance: 20,                   // start the drag if the mouse moved more than 20px, this will prevent accidential drag/drop
+            //helper: function (event, ui) { return that._draggableHelper(that, event, ui); },
+            helper: function (event, ui) {
+                var $dragTile;
+
+                var title = event.currentTarget.title;
+                var draggedNode = that._treeview.getNodeFromElement(event.currentTarget);
+
+                $dragTile = $("<div />")
+                    .addClass("drag-tile")
+
+                var $dragItemTitle = $("<div />")
+                    .addClass("drag-tile-title")
+                    .text(title);
+
+                var $dragType = $("<span />")
+                    .addClass("drag-tile-drag-type")
+                    .text("Move");
+
+                var $dragHead = $("<div />")
+                    .addClass("drag-tile-head")
+                    .append($dragType)
+                    .append($dragItemTitle)
+
+                $dragTile.append($dragHead);
+
+                $dragTile.data("PLAN_ID", draggedNode.config);
+                $dragTile.data("SUITE_ID", draggedNode.id);
+                $dragTile.data("MODE", "TEST_SUITE");
+
+                return $dragTile;
+            },
+            cursorAt: { left: -20, top: 0 },
+            containment: "", //".testmanagement-suites-tree",
+            //start: function (event, ui) { that._draggableStart(that, event, ui); },
+            //stop: function (event, ui) { that._draggableStop(event, ui); },
+            drag: function (event, ui) { that._draggableDrag(that, event, ui); }
+        }, options.draggable);
+
+        options.droppable = $.extend({
+            //hoverClass: "droppable-hover",
+            scope: "test-case-scope", //TestSuitesTree.DropScope,
+            tolerance: "pointer",
+            //accept: function ($draggable) { return that._droppableAccept(this, $draggable); },
+            /*over: function (e, ui) {
+                if (that._currentSource != "Test plan") {
+                    var $dropTarget = $(e.target);
+                    $dropTarget.addClass("active");
+                }
+            },
+            out: function (e, ui) {
+                if (that._currentSource != "Test plan") {
+                    var $dropTarget = $(e.target);
+                    $dropTarget.removeClass("active");
+                }
+            },*/
+            drop: function (event, ui) { return that._droppableDrop(that, event, ui); },
+            //over: function (event, ui) { that._droppableOver($(this), event, ui); },
+            greedy: true // ensure that the most local/specific elements get to accept the drop first, not the parents                    
+        }, options.droppable);
+    }
+
+    private _draggableHelper(that: TreeviewView, event, ui) {
+        var $dragTile;
+
+        var title = event.currentTarget.title;
+        var draggedNode = that._treeview.getNodeFromElement(event.currentTarget);
+
+        $dragTile = $("<div />")
+            .addClass("drag-tile")
+
+        var $dragItemTitle = $("<div />")
+            .addClass("drag-tile-title")
+            .text(title);
+
+        var $dragType = $("<span />")
+            .addClass("drag-tile-drag-type")
+            .text("Move");
+
+        var $dragHead = $("<div />")
+            .addClass("drag-tile-head")
+            .append($dragType)
+            .append($dragItemTitle)
+
+        $dragTile.append($dragHead);
+
+        $dragTile.data("PLAN_ID", draggedNode.config);
+        $dragTile.data("SUITE_ID", draggedNode.id);
+        $dragTile.data("MODE", "TEST_SUITE");
+
+        return $dragTile;
+    }
+    private _draggableStart(that: TreeviewView, event, ui) {
+    }
+    private _draggableStop(event, ui) {
+    }
+    private _draggableDrag(that: TreeviewView, event, ui) {
+    }
+    private _droppableAccept(that: TreeviewView, event) {   // argument?
+        return that._currentSource == "Test plan" ? false : true;
+    }
+    private _droppableDrop(that: TreeviewView, event, ui) {
+        var n: TreeView.TreeNode = that._treeview.getNodeFromElement(event.target);
+
+        var action = ui.helper.data("MODE");  // TODO: rename to action
+        var mode = that.getCurrentDragMode(event);
+
+        switch (action) {
+            case "TEST_CASE":
+                that.processDropTestCase(ui, n, that._currentSource, mode);
+                break;
+            default:    // TODO: verify this should not happen
+                console.log("treeview::drop - undefined action");
+                break;
+        }
+    }
+    private _droppableOver(that: TreeviewView, event, ui) {
     }
 
     private openTestSuite() {
@@ -281,7 +413,7 @@ export class TreeviewView {
             if (view._currentSource == "Test plan") {
                 $("li.node").draggable({
                     scope: "test-case-scope",
-                    revert: "invalid",
+                    //revert: "invalid",
                     appendTo: document.body,
                     helper: function (event, ui) {
                         var $dragTile;
@@ -316,15 +448,16 @@ export class TreeviewView {
                     distance: 10,
                     cursorAt: { top: -5, left: -5 },
                     refreshPositions: true,
-                    scroll: true,
-                    stop: function () {
-                        // Set all draggable parts back to revert: false
-                        // This fixes elements after drag was cancelled with ESC key
-                        $("li.node").draggable("option", { revert: false });
-                    }
+                    scroll: true //,
+                    //stop: function () {
+                    //    // Set all draggable parts back to revert: false
+                    //    // This fixes elements after drag was cancelled with ESC key
+                    //    $("li.node").draggable("option", { revert: false });
+                    //}
                 });
             }
 
+            /*
             $("li.node").droppable({
                 scope: "test-case-scope",
                 greedy: true,
@@ -369,6 +502,8 @@ export class TreeviewView {
                     }
                 }
             });
+            */
+
             deferred.resolve(data);
         });
 

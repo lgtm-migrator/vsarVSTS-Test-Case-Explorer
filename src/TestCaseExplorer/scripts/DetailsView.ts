@@ -286,8 +286,17 @@ class testPlanPane implements IPaneRefresh {
             }
         );
 
-        var treeOptionsTestPlan = {
-            nodes: null
+        var that = this;
+        var treeOptionsTestPlan: TreeView.ITreeOptions = {
+            nodes: null,
+            droppable: {
+                scope: "test-case-scope",
+                greedy: true,
+                tolerance: "pointer",
+                drop: function (event, ui) {
+                    return that.droppableDrop(that, event, ui);
+                }
+            }            
         };
 
         var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
@@ -335,9 +344,28 @@ class testPlanPane implements IPaneRefresh {
                 }
 
                 // TODO: best way to cancel drag?
-                $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+                //$("li.node").draggable({ 'revert': true }).trigger('mouseup');
             }
         });
+    }
+
+    private droppableDrop(that: testPlanPane, event, ui) {
+        var n: TreeView.TreeNode = that._treeView.getNodeFromElement(event.target);
+
+        var action = ui.helper.data("MODE");  // TODO: rename to action
+        var mode = that.getCurrentDragMode(event);
+
+        switch (action) {
+            case "TEST_SUITE":
+                that.processDropTestSuite(ui, n, mode);
+                break;
+            case "TEST_CASE":
+                that.processDropTestCase(ui, n, mode);
+                break;
+            default:    // TODO: verify this should not happen
+                console.log("treeview::drop - undefined action");
+                break;
+        }
     }
 
     private refreshTestPlan() {
@@ -356,7 +384,7 @@ class testPlanPane implements IPaneRefresh {
 
                     this._treeView.rootNode.addRange(data);
                     this._treeView._draw();
-
+                    /*
                     $("li.node").droppable({
                         scope: "test-case-scope",
                         greedy: true,
@@ -383,6 +411,7 @@ class testPlanPane implements IPaneRefresh {
                             $("li.node").draggable({ 'revert': true }).trigger('mouseup');
                         }
                     });
+                    */
                 },
                 err => {
                     console.log("Err fetching test plans");
