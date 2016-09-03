@@ -294,7 +294,7 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
 
         var node = new TreeView.TreeNode(item.name);
         node.icon = item.icon;
-        node.droppable = true;
+        node.droppable = true;       
         node.id = item.id;
         node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
 
@@ -414,7 +414,9 @@ function createStaticSuite(suiteName: string, testCaseIds: string, targetPlanId:
 
     var suiteModel: TestContracts.SuiteCreateModel = {
         "suiteType": "StaticTestSuite",
-        "name": suiteName
+        "name": suiteName,
+        "queryString": "",
+        "requirementIds": []
     };
 
     createTestSuite(suiteModel, targetPlanId, targetSuiteId).then(testSuite => {
@@ -430,9 +432,11 @@ function createRequirementSuite(requirementId: number, targetPlanId: number, tar
 
     var suiteModel: TestContracts.SuiteCreateModel = {
         "suiteType": "RequirementTestSuite",
+        "name": "",
         "requirementIds": [
             requirementId
-        ]
+        ],
+        "queryString": ""
     }
 
     return createTestSuite(suiteModel, targetPlanId, targetSuiteId);
@@ -443,7 +447,8 @@ function createQuerySuite(suiteName: string, suiteQuery: string, targetPlanId: n
     var suiteModel: TestContracts.SuiteCreateModel = {
         "suiteType": "DynamicTestSuite",
         "name": suiteName,
-        "queryString": suiteQuery
+        "queryString": suiteQuery,
+        "requirementIds": []
     }
 
     return createTestSuite(suiteModel, targetPlanId, targetSuiteId);

@@ -29,6 +29,7 @@ import Common = require("scripts/Common");
 import LeftTreeView = require("scripts/TreeViewView");
 import CloneTestSuite = require("scripts/CloneTestSuiteForm");
 import Context = require("VSS/Context");
+import Notifications = require("VSS/Controls/Notifications");
 
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
@@ -261,10 +262,17 @@ class testPlanPane implements IPaneRefresh {
     private _view: DetailsView;
     private _grid;
     private _treeView: TreeView.TreeView;
+    private _message: Notifications.MessageAreaControl;
 
     public initialize(view: DetailsView) {
         this._view = view;
         var tpp = this;
+
+        var options: Notifications.IMessageAreaControlOptions = {
+            closeable: true,
+            expanded: false,
+        };
+        this._message = Controls.create<Notifications.MessageAreaControl, Notifications.IMessageAreaControlOptions>(Notifications.MessageAreaControl, $("#message-container"), options);
 
         var cboOptions: CtrlCombos.IComboOptions = {
             mode: "drop",
@@ -341,6 +349,7 @@ class testPlanPane implements IPaneRefresh {
                 if (newTestPlanName != null) {
                     var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
                     TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
+                    that.showNotification("Test plan " + newTestPlanName);
                 }
 
                 // TODO: best way to cancel drag?
@@ -428,6 +437,10 @@ class testPlanPane implements IPaneRefresh {
         return mode;
     }
 
+    private showNotification(message: String) {
+        this._message.setMessage(message + " is being cloned, you need to refresh to see the completed result.", Notifications.MessageAreaType.Info);
+    }
+
     private processDropTestSuite(ui, n, mode) {
 
         var draggedNode: TreeView.TreeNode = this._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
@@ -505,6 +518,7 @@ class testPlanPane implements IPaneRefresh {
                 },
                 okCallback: function (result: CloneTestSuite.IFormInput) {
                     view.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, result.cloneChildSuites, result.cloneRequirements);
+                    view.showNotification("Test suite " + targetSuiteId);
                 }
             };
 

@@ -330,7 +330,9 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var deferred = $.Deferred();
         var suiteModel = {
             "suiteType": "StaticTestSuite",
-            "name": suiteName
+            "name": suiteName,
+            "queryString": "",
+            "requirementIds": []
         };
         createTestSuite(suiteModel, targetPlanId, targetSuiteId).then(function (testSuite) {
             addTestCasesToSuite(targetPlanId, testSuite.id, testCaseIds).then(function (result) {
@@ -342,9 +344,11 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     function createRequirementSuite(requirementId, targetPlanId, targetSuiteId) {
         var suiteModel = {
             "suiteType": "RequirementTestSuite",
+            "name": "",
             "requirementIds": [
                 requirementId
-            ]
+            ],
+            "queryString": ""
         };
         return createTestSuite(suiteModel, targetPlanId, targetSuiteId);
     }
@@ -352,7 +356,8 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var suiteModel = {
             "suiteType": "DynamicTestSuite",
             "name": suiteName,
-            "queryString": suiteQuery
+            "queryString": suiteQuery,
+            "requirementIds": []
         };
         return createTestSuite(suiteModel, targetPlanId, targetSuiteId);
     }
