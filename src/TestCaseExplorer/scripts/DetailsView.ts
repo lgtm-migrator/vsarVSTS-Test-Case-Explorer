@@ -28,6 +28,7 @@ import TreeViewDataService = require("scripts/TreeViewDataService");
 import Common = require("scripts/Common");
 import LeftTreeView = require("scripts/TreeViewView");
 import CloneTestSuite = require("scripts/CloneTestSuiteForm");
+import CloneTestPlan = require("scripts/CloneTestPlanForm");
 import Context = require("VSS/Context");
 import Notifications = require("VSS/Controls/Notifications");
 
@@ -345,12 +346,48 @@ class testPlanPane implements IPaneRefresh {
             tolerance: "pointer",
             drop: function (event, ui) {
 
-                var newTestPlanName = prompt("What do you want to call the new test plan?");
-                if (newTestPlanName != null) {
-                    var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
-                    TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
-                    that.showNotification("Test plan " + newTestPlanName);
-                }
+                VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
+
+                    var cloneTestPlanForm: CloneTestPlan.CloneTestPlanForm;
+                    var extensionCtx = VSS.getExtensionContext();
+                    var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".clone-testplan-form";
+
+                    var dialogOptions = {
+                        title: "Clone Test Plan",
+                        width: 500,
+                        height: 300,
+                        okText: "Clone",
+                        getDialogResult: function () {
+                            return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
+                        },
+                        okCallback: function (result: CloneTestPlan.IFormInput) {
+
+                            var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
+                            var newTestPlanName = "TODO: new test plan";
+                            //TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
+                            that.showNotification("Test plan " + newTestPlanName);
+
+                            //view.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, result.cloneChildSuites, result.cloneRequirements);
+                            //view.showNotification("Test suite " + targetSuiteId);
+                        }
+                    };
+
+                    dialogService.openDialog(contributionId, dialogOptions).then(dialog => {
+                        dialog.getContributionInstance("clone-testplan-form").then(function (cloneTestPlanFormInstance: CloneTestPlan.CloneTestPlanForm) {
+                            cloneTestPlanForm = cloneTestPlanFormInstance;
+                            //cloneTestPlanForm.setSuites(sourcePlanName, targetPlanName);
+                            dialog.updateOkButton(true);
+                        });
+                    });
+                });
+
+
+                //var newTestPlanName = prompt("What do you want to call the new test plan?");
+                //if (newTestPlanName != null) {
+                //    var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
+                //    TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
+                //    that.showNotification("Test plan " + newTestPlanName);
+                //}
 
                 // TODO: best way to cancel drag?
                 //$("li.node").draggable({ 'revert': true }).trigger('mouseup');
@@ -504,7 +541,7 @@ class testPlanPane implements IPaneRefresh {
 
         VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
             
-            var cloneTestSiteForm: CloneTestSuite.CloneTestSuiteForm;
+            var cloneTestSuiteForm: CloneTestSuite.CloneTestSuiteForm;
             var extensionCtx = VSS.getExtensionContext();
             var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".clone-testsuite-form";
 
@@ -514,7 +551,7 @@ class testPlanPane implements IPaneRefresh {
                 height: 300,
                 okText: "Clone",
                 getDialogResult: function () {
-                    return cloneTestSiteForm ? cloneTestSiteForm.getFormData() : null;
+                    return cloneTestSuiteForm ? cloneTestSuiteForm.getFormData() : null;
                 },
                 okCallback: function (result: CloneTestSuite.IFormInput) {
                     view.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, result.cloneChildSuites, result.cloneRequirements);
@@ -524,8 +561,8 @@ class testPlanPane implements IPaneRefresh {
 
             dialogService.openDialog(contributionId, dialogOptions).then(dialog => {
                 dialog.getContributionInstance("clone-testsuite-form").then(function (cloneTestSiteFormInstance: CloneTestSuite.CloneTestSuiteForm) {
-                    cloneTestSiteForm = cloneTestSiteFormInstance;
-                    cloneTestSiteForm.setSuites(sourcePlanName, targetPlanName);
+                    cloneTestSuiteForm = cloneTestSiteFormInstance;
+                    cloneTestSuiteForm.setSuites(sourcePlanName, targetPlanName);
                     dialog.updateOkButton(true);
                 });
             });

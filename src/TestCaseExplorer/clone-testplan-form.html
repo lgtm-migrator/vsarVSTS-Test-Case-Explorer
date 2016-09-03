@@ -1,0 +1,66 @@
+﻿<!-- ---------------------------------------------------------------------
+// <copyright file="clone-testplan-form.html">
+//    This code is licensed under the MIT License.
+//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+//    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+//    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+//    PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// </copyright>
+// <summary>
+//    This is part of the Test Case Explorer extensions
+//    from the ALM Rangers. This file contains the HTML layout
+//    for the clone test plan dialog.
+// </summary>
+//---------------------------------------------------------------------
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clone test plan</title>
+    <link rel="stylesheet" type="text/css" href="css/app.css">
+</head>
+<body>
+    <div class="clone-from">
+        <div>
+            <input type="text" readonly="readonly" id="sourceTestPlan" />
+            <label for="sourceTestPlan">Test Plan</label>
+        </div>
+        <div>
+            <input type="text" id="sourceTestSuites" />
+            <label for="sourceTestSuites">Test Suite</label>
+        </div>
+        <div>
+            <input type="checkbox" id="cloneRequirements" />
+            <label for="cloneRequirements">Clone requirements</label>
+        </div>
+    </div>
+
+    <div class="clone-to">
+        <div>
+            <input type="text" id="targetTestPlan" />
+            <label for="targetTestPlan">Test Plan</label>
+        </div>
+        <div>
+            <div id="cboAreaPath" style="flex:1"></div>
+            <label for="cboAreaPath">Area path</label>
+        </div>
+        <div>
+            <div id="cboIterationPath" style="flex:1"></div>
+            <label for="cboIterationPath">Clone requirements</label>
+        </div>
+    </div>
+
+    <script src="scripts/lib/VSS.SDK.js"></script>
+    <script type="text/javascript">
+        VSS.init({
+            explicitNotifyLoaded: true,
+            usePlatformScripts: true,
+            usePlatformStyles: true
+        });
+
+         VSS.ready(function () {
+             require(["scripts/CloneTestPlanForm"], function (dialog) { });
+        });
+    </script>
+</body>
+</html>

@@ -48,6 +48,10 @@
       "addressable": true
     },
     {
+      "path": "clone-testplan-form.html",
+      "addressable": true
+    },
+    {
       "path": "clone-testsuite-form.html",
       "addressable": true
     },
@@ -86,6 +90,14 @@
       "type": "ms.vss-web.control",
       "properties": {
         "uri": "columnoptions.html"
+      }
+    },
+    {
+      "id": "clone-testplan-form",
+      "type": "ms.vss-web.control",
+      "targets": [],
+      "properties": {
+        "uri": "clone-testplan-form.html"
       }
     },
     {
