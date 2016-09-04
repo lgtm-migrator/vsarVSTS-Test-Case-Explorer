@@ -101,6 +101,11 @@ export class DetailsView {
         this.selectionChanged(this._selectedMasterId);
     }
 
+    public refreshTestCaseView(): void {
+
+    }
+
+
     private ShowPanel(panel: string) {
 
         if (this._selectedPane != null) {
@@ -480,6 +485,7 @@ class testPlanPane implements IPaneRefresh {
     }
 
     private processDropTestSuite(ui, n, mode) {
+        var view = this;
 
         var draggedNode: TreeView.TreeNode = this._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
         draggedNode.config.name
@@ -506,7 +512,7 @@ class testPlanPane implements IPaneRefresh {
                     result => {
                         TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
                             result => {
-                                this.refreshTestPlan();
+                                view.refreshTestPlan();
                             // TODO: refresh left tree + grid
                             });
                     }
@@ -518,7 +524,7 @@ class testPlanPane implements IPaneRefresh {
             case "ADD":
                 TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
                     result => {
-                        this.refreshTestPlan();
+                        view.refreshTestPlan();
                     }
                 );
                 break;
@@ -526,9 +532,10 @@ class testPlanPane implements IPaneRefresh {
     }
 
     private cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements) {
+        var view = this;
         console.log("cloning test suite...");
         TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements).then(result => {
-            this.refreshTestPlan();
+            view.refreshTestPlan();
         });
     }
 
@@ -571,7 +578,7 @@ class testPlanPane implements IPaneRefresh {
     }
 
     public processDropTestCase(ui, n, mode) {
-        var view = this;
+        var that = this;
         var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
         var targetPlanId: number = n.config.testPlanId;
         var targetSuiteId: number = n.config.suiteId;
@@ -590,7 +597,7 @@ class testPlanPane implements IPaneRefresh {
                     result => {
                         TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(
                             result => {
-                                this.refreshTestPlan();
+                                that._view.refreshTestCaseView();
                                 // TODO: refresh grid
                             });
                     }
@@ -599,7 +606,7 @@ class testPlanPane implements IPaneRefresh {
             case "ADD":
                 TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
                     result => {
-                        this.refreshTestPlan();
+                        that._view.refreshTestCaseView();
                     });
                 break;
         }

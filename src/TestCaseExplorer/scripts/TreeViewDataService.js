@@ -12,7 +12,7 @@
 //    for the tree view.
 // </summary>
 //---------------------------------------------------------------------
-define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "scripts/Common"], function (require, exports, Contracts, TestClient, WITClient, TreeView, Common) {
+define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "scripts/Common", "q"], function (require, exports, Contracts, TestClient, WITClient, TreeView, Common, Q) {
     "use strict";
     function getNodes(param) {
         switch (param) {
@@ -335,9 +335,14 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             "requirementIds": []
         };
         createTestSuite(suiteModel, targetPlanId, targetSuiteId).then(function (testSuite) {
-            addTestCasesToSuite(targetPlanId, testSuite.id, testCaseIds).then(function (result) {
+            if (testCaseIds != "") {
+                addTestCasesToSuite(targetPlanId, testSuite.id, testCaseIds).then(function (result) {
+                    deferred.resolve(testSuite);
+                });
+            }
+            else {
                 deferred.resolve(testSuite);
-            });
+            }
         });
         return deferred.promise();
     }
@@ -377,8 +382,12 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             case "StaticTestSuite":
                 getTestCases(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(function (testCaseIds) {
                     createStaticSuite(sourceNode.config.name, testCaseIds, targetPlanId, targetSuiteId).then(function (testSuite) {
+                        var lst = [];
                         sourceNode.children.forEach(function (n) {
-                            addTestSuite(n, targetPlanId, testSuite.id);
+                            lst.push(addTestSuite(n, targetPlanId, testSuite.id));
+                        });
+                        Q.all(lst).then(function (data) {
+                            deferred.resolve(testSuite);
                         });
                         //promises.push(sourceNode.config.name);
                         //deferred.resolve(testSuite);
@@ -387,14 +396,16 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 break;
             case "RequirementTestSuite":
                 getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(function (testSuite) {
-                    createRequirementSuite(testSuite.requirementId, targetPlanId, targetSuiteId);
-                    //deferred.resolve(testSuite);
+                    createRequirementSuite(testSuite.requirementId, targetPlanId, targetSuiteId).then(function (data) {
+                        deferred.resolve(testSuite);
+                    });
                 });
                 break;
             case "DynamicTestSuite":
                 getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(function (testSuite) {
-                    createQuerySuite(sourceNode.config.name, testSuite.queryString, targetPlanId, targetSuiteId);
-                    //deferred.resolve(testSuite);
+                    createQuerySuite(sourceNode.config.name, testSuite.queryString, targetPlanId, targetSuiteId).then(function (data) {
+                        deferred.resolve(testSuite);
+                    });
                 });
                 break;
         }

@@ -253,6 +253,10 @@ export class TestCaseView {
         menubar.updateCommandStates([{ id: "toggle", toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
     }
 
+    public RefreshTestCaseView() {
+        this.RefreshGrid(this._selectedPivot, this._selectedValue, this._showRecursive);
+    }
+
     private removeTestCase() {
         if (confirm("Are you sure you want to remove the selected test cases from the suite?")) {
             var testCaseIds = this._selectedRows.map(i => { return i["System.Id"]; }).join(",");
