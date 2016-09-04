@@ -22,6 +22,8 @@ import WITClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
 import Common = require("scripts/Common");
 
+import Q = require("q");
+
 export function getNodes(param) {
 
     switch (param) {
@@ -420,9 +422,14 @@ function createStaticSuite(suiteName: string, testCaseIds: string, targetPlanId:
     };
 
     createTestSuite(suiteModel, targetPlanId, targetSuiteId).then(testSuite => {
-        addTestCasesToSuite(targetPlanId, testSuite.id, testCaseIds).then(result => {
+        if (testCaseIds != "") {
+            addTestCasesToSuite(targetPlanId, testSuite.id, testCaseIds).then(result => {
+                deferred.resolve(testSuite);
+            });
+        }
+        else {
             deferred.resolve(testSuite);
-        });
+        }
     });
 
     return deferred.promise();
@@ -476,8 +483,12 @@ export function addTestSuite(sourceNode: TreeView.TreeNode, targetPlanId: number
         case "StaticTestSuite":
             getTestCases(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(testCaseIds => {
                 createStaticSuite(sourceNode.config.name, testCaseIds, targetPlanId, targetSuiteId).then(testSuite => {
+                    var lst = [];
                     sourceNode.children.forEach(n => {
-                        addTestSuite(n, targetPlanId, testSuite.id);
+                        lst.push(addTestSuite(n, targetPlanId, testSuite.id));
+                    });
+                    Q.all(lst).then(data => {
+                        deferred.resolve(testSuite);
                     });
                     //promises.push(sourceNode.config.name);
                     //deferred.resolve(testSuite);
@@ -486,14 +497,18 @@ export function addTestSuite(sourceNode: TreeView.TreeNode, targetPlanId: number
             break;
         case "RequirementTestSuite":
             getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(testSuite => {
-                createRequirementSuite(testSuite.requirementId, targetPlanId, targetSuiteId);
-                //deferred.resolve(testSuite);
+                createRequirementSuite(testSuite.requirementId, targetPlanId, targetSuiteId).then(data => {
+                    deferred.resolve(testSuite);
+                });
+                
             });
             break;
         case "DynamicTestSuite":
             getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(testSuite => {
-                createQuerySuite(sourceNode.config.name, testSuite.queryString, targetPlanId, targetSuiteId);
-                //deferred.resolve(testSuite);
+                createQuerySuite(sourceNode.config.name, testSuite.queryString, targetPlanId, targetSuiteId).then(data => {
+                    deferred.resolve(testSuite);
+                });
+                
             });
             break;
     }
