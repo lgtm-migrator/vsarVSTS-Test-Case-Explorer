@@ -272,6 +272,7 @@ class testPlanPane implements IPaneRefresh {
         var options: Notifications.IMessageAreaControlOptions = {
             closeable: true,
             expanded: false,
+            showIcon: true
         };
         this._message = Controls.create<Notifications.MessageAreaControl, Notifications.IMessageAreaControlOptions>(Notifications.MessageAreaControl, $("#message-container"), options);
 
