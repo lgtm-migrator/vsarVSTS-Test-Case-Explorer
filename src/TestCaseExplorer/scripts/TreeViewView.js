@@ -77,7 +77,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             };
             $("#treeview-Cbo-container").change(function () {
                 view._currentSource = cbo.getText();
-                view.updateTreeView();
+                view.refreshTreeView();
             });
             view._treeview = treeview;
             //Add toolbar
@@ -212,7 +212,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId);
             }
         };
-        TreeviewView.prototype.updateTreeView = function () {
+        TreeviewView.prototype.refreshTreeView = function () {
             var _this = this;
             this.StartLoading(true, "Loading pivot data");
             TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
@@ -256,7 +256,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             view.removePlanOrSuite();
                             break;
                         case "refresh":
-                            view.updateTreeView();
+                            view.refreshTreeView();
                             break;
                         default:
                             alert("Unhandled action: " + command);

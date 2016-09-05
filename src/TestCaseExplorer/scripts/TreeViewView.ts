@@ -107,7 +107,7 @@ export class TreeviewView {
 
         $("#treeview-Cbo-container").change(function () {
             view._currentSource = cbo.getText();
-            view.updateTreeView();
+            view.refreshTreeView();
         });
 
         view._treeview = treeview;
@@ -272,7 +272,7 @@ export class TreeviewView {
         }
     }
 
-    private updateTreeView() {
+    public refreshTreeView() {
         this.StartLoading(true, "Loading pivot data");
         TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
         this.LoadTreeview(this._currentSource, this._treeview).then(a => {
@@ -319,7 +319,7 @@ export class TreeviewView {
                         view.removePlanOrSuite();
                         break;
                     case "refresh":
-                        view.updateTreeView();
+                        view.refreshTreeView();
                         break;
                     default:
                         alert("Unhandled action: " + command);

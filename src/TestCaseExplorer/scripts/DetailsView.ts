@@ -105,6 +105,10 @@ export class DetailsView {
 
     }
 
+    public refreshLeftTree() {
+        this._leftTreeView.refreshTreeView()
+    }
+
 
     private ShowPanel(panel: string) {
 
@@ -420,6 +424,8 @@ class testPlanPane implements IPaneRefresh {
         }
     }
 
+    
+
     private refreshTestPlan() {
         if (this._cbo.getSelectedIndex() >= 0) {
 
@@ -513,7 +519,8 @@ class testPlanPane implements IPaneRefresh {
                         TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
                             result => {
                                 view.refreshTestPlan();
-                            // TODO: refresh left tree + grid
+                                view._view.refreshLeftTree();
+                                view._view.refreshTestCaseView();
                             });
                     }
                 );
@@ -525,6 +532,8 @@ class testPlanPane implements IPaneRefresh {
                 TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
                     result => {
                         view.refreshTestPlan();
+                        view._view.refreshLeftTree();
+                        view._view.refreshTestCaseView();
                     }
                 );
                 break;
@@ -540,6 +549,7 @@ class testPlanPane implements IPaneRefresh {
     }
 
     private showCloneTestSuite(view: testPlanPane, sourcePlanName: string, sourcePlanId: number, sourceSuiteId: number, targetPlanName: string, targetPlanId: number, targetSuiteId: number) {
+
 
         var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
         if (!isHosted) {
@@ -598,7 +608,6 @@ class testPlanPane implements IPaneRefresh {
                         TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(
                             result => {
                                 that._view.refreshTestCaseView();
-                                // TODO: refresh grid
                             });
                     }
                 );
