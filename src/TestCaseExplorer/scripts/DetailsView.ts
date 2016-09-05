@@ -105,6 +105,10 @@ export class DetailsView {
 
     }
 
+    public refreshLeftTree() {
+        this._leftTreeView.refreshTreeView()
+    }
+
 
     private ShowPanel(panel: string) {
 
@@ -419,6 +423,8 @@ class testPlanPane implements IPaneRefresh {
         }
     }
 
+    
+
     private refreshTestPlan() {
         if (this._cbo.getSelectedIndex() >= 0) {
 
@@ -512,6 +518,7 @@ class testPlanPane implements IPaneRefresh {
                         TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
                             result => {
                                 view.refreshTestPlan();
+                                view._view.refreshLeftTree();
                             // TODO: refresh left tree + grid
                             });
                     }
@@ -524,6 +531,7 @@ class testPlanPane implements IPaneRefresh {
                 TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
                     result => {
                         view.refreshTestPlan();
+                        view._view.refreshLeftTree();
                     }
                 );
                 break;
