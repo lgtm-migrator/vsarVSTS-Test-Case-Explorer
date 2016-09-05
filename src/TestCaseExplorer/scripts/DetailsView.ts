@@ -519,7 +519,7 @@ class testPlanPane implements IPaneRefresh {
                             result => {
                                 view.refreshTestPlan();
                                 view._view.refreshLeftTree();
-                            // TODO: refresh left tree + grid
+                                view._view.refreshTestCaseView();
                             });
                     }
                 );
@@ -532,6 +532,7 @@ class testPlanPane implements IPaneRefresh {
                     result => {
                         view.refreshTestPlan();
                         view._view.refreshLeftTree();
+                        view._view.refreshTestCaseView();
                     }
                 );
                 break;
@@ -547,6 +548,7 @@ class testPlanPane implements IPaneRefresh {
     }
 
     private showCloneTestSuite(view: testPlanPane, sourcePlanName: string, sourcePlanId: number, sourceSuiteId: number, targetPlanName: string, targetPlanId: number, targetSuiteId: number) {
+
 
         var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
         if (!isHosted) {
@@ -605,7 +607,6 @@ class testPlanPane implements IPaneRefresh {
                         TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(
                             result => {
                                 that._view.refreshTestCaseView();
-                                // TODO: refresh grid
                             });
                     }
                 );
