@@ -64,16 +64,28 @@ export class DetailsView {
             { id: "Requirements", text: "Linked requirements" }
         ];
 
-        Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
+        var pivot= Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
             behavior: "dropdown",
             text: "Pane",
             items: panels,
             change: function (item) {
                 var command = item.id;
                 view.ShowPanel(command);
+                VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+                    // Set value in user scope
+                    dataService.setValue("LeftPaneSelectedPanel", command, { scopeType: "User" }).then(function (value) {
+                        console.log("Saved user preference");
+                    });
+                });
             }
         });
 
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+            // Set value in user scope
+            dataService.getValue("LeftPaneSelectedPanel", { scopeType: "User" }).then(function (value) {
+                pivot.setSelectedItem(pivot._options.items.filter(i => { return i.id === value; })[0]);
+            });
+        });
         Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
             behavior: "dropdown",
             text: "Position",
