@@ -412,18 +412,7 @@ class testPlanPane implements IPaneRefresh {
                             dialog.updateOkButton(true);
                         });
                     });
-                });
-             
-
-                //var newTestPlanName = prompt("What do you want to call the new test plan?");
-                //if (newTestPlanName != null) {
-                //    var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
-                //    TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
-                //    that.showNotification("Test plan " + newTestPlanName);
-                //}
-
-                // TODO: best way to cancel drag?
-                //$("li.node").draggable({ 'revert': true }).trigger('mouseup');
+                });             
             },
             hoverClass:"accept-drop-hover"
         });
