@@ -170,7 +170,7 @@ export class TreeviewView {
                 $dragTile.data("MODE", "TEST_SUITE");
 
                 return $dragTile;
-            }
+            },
             cursorAt: { left: -20, top: 0 },
             containment: "", //".testmanagement-suites-tree",
             //start: function (event, ui) { that._draggableStart(that, event, ui); },
@@ -428,7 +428,7 @@ export class TreeviewView {
                         var $dropAllowed = $("<div />").addClass("drop-allowed");
                         var $dropNOTAllowed = $("<div style='display:none'/>").addClass("drop-not-allowed");
                         var $dropNOTAllowedIcon = $("<img src='img/cancel.png'/>")
-
+                        var $dropNotAllowedMsg = $("<div>").addClass("drop-not-allowed-message");
                         
                         var $dragItemTitle = $("<div />")
                             .addClass("drag-tile-title")
@@ -445,7 +445,7 @@ export class TreeviewView {
 
                         $dropAllowed.append($dragHead);
                         $dropNOTAllowed.append($dropNOTAllowedIcon);
-
+                        $dropNOTAllowed.append($dropNotAllowedMsg);
 
                         $dragTile.append($dropAllowed);
                         $dragTile.append($dropNOTAllowed);

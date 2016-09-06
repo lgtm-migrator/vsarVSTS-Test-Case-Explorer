@@ -452,11 +452,19 @@ class testPlanPane implements IPaneRefresh {
                 console.log("Hide");
                 $dragElem.find(".drop-allowed").hide();
                 $dragElem.find(".drop-not-allowed").show();
+                $dragElem.find(".drop-not-allowed-message").text("You can only " + this.getCurrentDragMode(event).toLowerCase() + " to static suites")
                 this.PreventDropOverDubbelBouble = true;
             } else {
-                console.log("show");
-                $dragElem.find(".drop-allowed").show();
-                $dragElem.find(".drop-not-allowed").hide();
+                if (node.id === ui.helper.data("SUITE_ID")) {
+                    $dragElem.find(".drop-allowed").hide();
+                    $dragElem.find(".drop-not-allowed").show();
+                    $dragElem.find(".drop-not-allowed-message").text("You can not " + this.getCurrentDragMode(event).toLowerCase()+ " to self")
+                }
+                else {
+                    console.log("show");
+                    $dragElem.find(".drop-allowed").show();
+                    $dragElem.find(".drop-not-allowed").hide();
+                }
             }
             $("ul.tree-children li.droppable-hover").removeClass("droppable-hover");
             $("ul.tree-children li.selected").removeClass("selected");
