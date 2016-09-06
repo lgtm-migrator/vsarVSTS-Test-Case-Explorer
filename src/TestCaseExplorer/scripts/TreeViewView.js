@@ -344,9 +344,15 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             var $dropNOTAllowed = $("<div style='display:none'/>").addClass("drop-not-allowed");
                             var $dropNOTAllowedIcon = $("<img src='img/cancel.png'/>");
                             var $dropNotAllowedMsg = $("<div>").addClass("drop-not-allowed-message");
-                            var $dragItemTitle = $("<div />")
-                                .addClass("drag-tile-title")
-                                .text(title);
+                            //var $dragItemTitle = $("#tfs_tnli" + draggedNode.id).clone();
+                            //$dragItemTitle.find(".tree-children").remove();
+                            //$dragItemTitle.find(".tree-children").remove();
+                            //$dragItemTitle = $dragItemTitle.find(".node-content").removeAttr("style");
+                            var $dragItemTitle = $("<div />").addClass("node-content");
+                            var $dragItemIcon = $("<span class='icon tree-node-img' />").addClass(draggedNode.icon);
+                            $dragItemTitle.append($dragItemIcon);
+                            $dragItemTitle.append($("<span />").text(draggedNode.text));
+                            $dragItemTitle.css("width", event.currentTarget.clientWidth);
                             var $dragType = $("<span />")
                                 .addClass("drag-tile-drag-type")
                                 .text("Move");

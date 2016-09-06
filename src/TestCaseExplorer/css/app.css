@@ -133,14 +133,20 @@
 }
 
 .drag-tile-title {
-    font-size:x-small;
+    
     text-align:center;
+    
+}
+.drag-tile-head > .node-content{
+    font-weight:bold;
+    color:#007acc;
 }
 
 .drag-tile-drag-type {
     font-size:large;
     font-weight:bold;
     margin:6px;
+    color:black;    
 }
 
 .drag-tile-head{
