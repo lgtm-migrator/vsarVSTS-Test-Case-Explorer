@@ -519,8 +519,8 @@ export class TestCaseView {
         selectedWorkItemIds.forEach(i => {
             var $tr= $("<div style='display:table-row' />")
 
-            $tr.append($("<div class='tableCell' style='display:table-cell' />").text(i["System.Id"]));
-            $tr.append($("<div class='tableCell' style='display:table-cell' />").text(i["System.Title"]));
+            $tr.append($("<div class='grid-cell' style='display:table-cell' />").text(i["System.Id"]));
+            $tr.append($("<div class='grid-cell' style='display:table-cell' />").text(i["System.Title"]));
 
             $dragItemTitle.append($tr);
         });
