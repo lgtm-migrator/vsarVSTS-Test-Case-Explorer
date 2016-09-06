@@ -20,34 +20,60 @@
     <link rel="stylesheet" type="text/css" href="css/app.css">
 </head>
 <body>
-    <div class="clone-from">
-        <div>
-            <input type="text" readonly="readonly" id="sourceTestPlan" />
-            <label for="sourceTestPlan">Test Plan</label>
-        </div>
-        <div>
-            <input type="text" id="sourceTestSuites" />
-            <label for="sourceTestSuites">Test Suite</label>
-        </div>
-        <div>
-            <input type="checkbox" id="cloneRequirements" />
-            <label for="cloneRequirements">Clone requirements</label>
-        </div>
-    </div>
-
-    <div class="clone-to">
-        <div>
-            <input type="text" id="targetTestPlan" />
-            <label for="targetTestPlan">Test Plan</label>
-        </div>
-        <div>
-            <div id="cboAreaPath" style="flex:1"></div>
-            <label for="cboAreaPath">Area path</label>
-        </div>
-        <div>
-            <div id="cboIterationPath" style="flex:1"></div>
-            <label for="cboIterationPath">Clone requirements</label>
-        </div>
+    <div>
+        <table style="width: 100%;">
+            <tbody>
+                <tr>
+                    <td colspan="2" class="clone-test-plan-header-label">
+                        <label>Clone from:</label>
+                    </td>
+                    <td colspan="2" class="clone-test-plan-header-label">
+                        <label>Clone to:</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 15%;">
+                        <label>Test plan:</label>
+                    </td>
+                    <td style="width: 35%;" class="clone-test-plan-cell">
+                        <input type="text" readonly="readonly" id="sourceTestPlan" />
+                    </td>
+                    <td style="width: 15%;">
+                        <label>Test plan:</label>
+                    </td>
+                    <td style="width: 35%;" class="clone-test-plan-cell">
+                        <input type="text" id="targetTestPlan" placeholder="<Test plan name>" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="clone-test-plan-label">
+                        <label>Test suites:</label>
+                    </td>
+                    <td class="clone-test-plan-cell">
+                        <div id="sourceTestSuites"></div>
+                    </td>
+                    <td class="clone-test-plan-label">
+                        <label>Area path:</label>
+                    </td>
+                    <td class="clone-test-plan-cell">
+                        <div id="targetAreaPath"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="clone-test-plan-label"></td>
+                    <td class="clone-test-plan-cell">
+                        <input type="checkbox" id="cloneRequirements" />
+                        <label for="cloneRequirements">Clone requirements</label>
+                    </td>
+                    <td class="clone-test-plan-label">
+                        <label>Iteration path:</label>
+                    </td>
+                    <td class="clone-test-plan-cell">
+                        <div style="z-index: 1000" id="targetIterationPath"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <script src="scripts/lib/VSS.SDK.js"></script>

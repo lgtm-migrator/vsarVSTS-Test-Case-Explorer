@@ -356,6 +356,9 @@ class testPlanPane implements IPaneRefresh {
             tolerance: "pointer",
             drop: function (event, ui) {
 
+                var draggedNode: TreeView.TreeNode = that._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
+                var sourcePlanName: string = draggedNode.config.name;
+
                 VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
 
                     var cloneTestPlanForm: CloneTestPlan.CloneTestPlanForm;
@@ -364,7 +367,7 @@ class testPlanPane implements IPaneRefresh {
 
                     var dialogOptions = {
                         title: "Clone Test Plan",
-                        width: 500,
+                        width: 600,
                         height: 300,
                         okText: "Clone",
                         getDialogResult: function () {
@@ -375,7 +378,7 @@ class testPlanPane implements IPaneRefresh {
                             var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
                             var newTestPlanName = "TODO: new test plan";
                             //TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
-                            that.showNotification("Test plan " + newTestPlanName);
+                            that.showNotification("Test plan " + result.newTestPlanName);
 
                             //view.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, result.cloneChildSuites, result.cloneRequirements);
                             //view.showNotification("Test suite " + targetSuiteId);
@@ -385,22 +388,11 @@ class testPlanPane implements IPaneRefresh {
                     dialogService.openDialog(contributionId, dialogOptions).then(dialog => {
                         dialog.getContributionInstance("clone-testplan-form").then(function (cloneTestPlanFormInstance: CloneTestPlan.CloneTestPlanForm) {
                             cloneTestPlanForm = cloneTestPlanFormInstance;
-                            //cloneTestPlanForm.setSuites(sourcePlanName, targetPlanName);
+                            cloneTestPlanForm.init(sourcePlanName);
                             dialog.updateOkButton(true);
                         });
                     });
-                });
-
-
-                //var newTestPlanName = prompt("What do you want to call the new test plan?");
-                //if (newTestPlanName != null) {
-                //    var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
-                //    TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
-                //    that.showNotification("Test plan " + newTestPlanName);
-                //}
-
-                // TODO: best way to cancel drag?
-                //$("li.node").draggable({ 'revert': true }).trigger('mouseup');
+                });                
             }
         });
     }
@@ -494,7 +486,6 @@ class testPlanPane implements IPaneRefresh {
         var view = this;
 
         var draggedNode: TreeView.TreeNode = this._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
-        draggedNode.config.name
 
         // TODO: Refactor, rename sourcePlanName to sourceSuiteName
         var sourcePlanName: string = draggedNode.config.name;
