@@ -501,27 +501,34 @@ export class TestCaseView {
     }
 
     private _draggableHelper(that: TestCaseView, event, ui) {
-        var $dragTile;
+       
         var draggableItemText, numOfSelectedItems;
         var selectedWorkItemIds = that._selectedRows;
 
         numOfSelectedItems = selectedWorkItemIds.length;
-        $dragTile = $("<div />")
-            .addClass("drag-tile")
+
 
         var $dragItemCount = $("<div />")
             .addClass("drag-tile-item-count")
             .text(numOfSelectedItems);
-        var $dragType = $("<span />")
-            .addClass("drag-tile-drag-type")
-            .text(that._selectedPivot == "Test plan" ? "Move" : "Assign");
+        
 
-        var $dragHead = $("<div />")
-            .addClass("drag-tile-head")
-            .append($dragType)
-            .append($dragItemCount);
+        var $dragItemTitle = $("<div style='display:table'/>").addClass("node-content");
 
-        $dragTile.append($dragHead);
+        
+        selectedWorkItemIds.forEach(i => {
+            var $tr= $("<div style='display:table-row' />")
+
+            $tr.append($("<div class='tableCell' style='display:table-cell' />").text(i["System.Id"]));
+            $tr.append($("<div class='tableCell' style='display:table-cell' />").text(i["System.Title"]));
+
+            $dragItemTitle.append($tr);
+        });
+        
+  
+        var $dragTile = Common.createDragTile(that._selectedPivot == "Test plan" ? "Move" : "Assign", $dragItemTitle);
+
+
 
         $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i => { return i["System.Id"]; }));
         $dragTile.data("MODE", "TEST_CASE");

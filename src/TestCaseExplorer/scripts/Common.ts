@@ -20,6 +20,35 @@ import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
 import Context = require("VSS/Context");
 import Q = require("q");
 
+export function  createDragTile(dragType:string, $dragItemTitle:JQuery):JQuery {
+    var $dragTile = $("<div />")
+        .addClass("drag-tile")
+
+    var $dropNOTAllowed = $("<div style='display:none'/>").addClass("drop-not-allowed");
+    var $dropNOTAllowedIcon = $("<img src='img/cancel.png'/>")
+    var $dropNotAllowedMsg = $("<div>").addClass("drop-not-allowed-message");
+    $dropNOTAllowed.append($dropNOTAllowedIcon);
+    $dropNOTAllowed.append($dropNotAllowedMsg);
+    $dragTile.append($dropNOTAllowed);
+
+    var $dropAllowed = $("<div />").addClass("drop-allowed");
+    var $dragType = $("<span />")
+        .addClass("drag-tile-drag-type")
+        .text(dragType);
+
+
+    var $dragHead = $("<div />")
+        .addClass("drag-tile-head")
+        .append($dragType)
+        .append($dragItemTitle)
+
+    $dropAllowed.append($dragHead);
+    $dragTile.append($dropAllowed);
+
+    return $dragTile;
+}
+
+
 export class WIQLConstants {
 
     public TestCaseTypeName: string = "Test Case";

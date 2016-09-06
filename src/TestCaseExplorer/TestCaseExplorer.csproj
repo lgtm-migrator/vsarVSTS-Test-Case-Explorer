@@ -44,6 +44,7 @@
     <Content Include="clone-testplan-form.html" />
     <Content Include="clone-testsuite-form.html" />
     <Content Include="gruntfile.js" />
+    <Content Include="img\cancel.png" />
     <Content Include="img\image1.png" />
     <Content Include="img\image2.png" />
     <Content Include="img\image3.png" />

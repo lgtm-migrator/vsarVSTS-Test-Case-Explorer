@@ -32,6 +32,8 @@ import CloneTestPlan = require("scripts/CloneTestPlanForm");
 import Context = require("VSS/Context");
 import Notifications = require("VSS/Controls/Notifications");
 
+
+
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
     hide(): void;
@@ -62,16 +64,28 @@ export class DetailsView {
             { id: "Requirements", text: "Linked requirements" }
         ];
 
-        Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
+        var pivot= Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
             behavior: "dropdown",
             text: "Pane",
             items: panels,
             change: function (item) {
                 var command = item.id;
                 view.ShowPanel(command);
+                VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+                    // Set value in user scope
+                    dataService.setValue("LeftPaneSelectedPanel", command, { scopeType: "User" }).then(function (value) {
+                        console.log("Saved user preference");
+                    });
+                });
             }
         });
 
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+            // Set value in user scope
+            dataService.getValue("LeftPaneSelectedPanel", { scopeType: "User" }).then(function (value) {
+                pivot.setSelectedItem(pivot._options.items.filter(i => { return i.id === value; })[0]);
+            });
+        });
         Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
             behavior: "dropdown",
             text: "Position",
@@ -273,6 +287,7 @@ class testPlanPane implements IPaneRefresh {
     private _grid;
     private _treeView: TreeView.TreeView;
     private _message: Notifications.MessageAreaControl;
+    private PreventDropOverDubbelBouble = false;
 
     public initialize(view: DetailsView) {
         this._view = view;
@@ -308,14 +323,19 @@ class testPlanPane implements IPaneRefresh {
         var that = this;
         var treeOptionsTestPlan: TreeView.ITreeOptions = {
             nodes: null,
-            droppable: {
+            droppable:  $.extend({
                 scope: "test-case-scope",
                 greedy: true,
                 tolerance: "pointer",
                 drop: function (event, ui) {
                     return that.droppableDrop(that, event, ui);
-                }
-            }            
+                },
+                hoverClass: "accept-drop-hover", 
+                over: function (event, ui) {
+                    that.droppableOver($(this), event, ui);
+                },
+             
+            })            
         };
 
         var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
@@ -392,8 +412,20 @@ class testPlanPane implements IPaneRefresh {
                             dialog.updateOkButton(true);
                         });
                     });
-                });                
-            }
+                });
+             
+
+                //var newTestPlanName = prompt("What do you want to call the new test plan?");
+                //if (newTestPlanName != null) {
+                //    var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
+                //    TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
+                //    that.showNotification("Test plan " + newTestPlanName);
+                //}
+
+                // TODO: best way to cancel drag?
+                //$("li.node").draggable({ 'revert': true }).trigger('mouseup');
+            },
+            hoverClass:"accept-drop-hover"
         });
     }
 
@@ -416,7 +448,68 @@ class testPlanPane implements IPaneRefresh {
         }
     }
 
-    
+
+    private areTestCasesDraggedOnQueryBasedSuite  ($draggedElement, suite) {
+        var areTestCasesBeingDragged = !$draggedElement.hasClass("tree-drag-tile");
+        //return areTestCasesBeingDragged && suite.type === TCMConstants.TestSuiteType.DynamicTestSuite;
+    };
+
+    private droppableOver($node, event, ui) {
+
+        var node = this._treeView._getNode($node);
+        var $dragElem = ui.helper;
+
+        if (this.PreventDropOverDubbelBouble) {
+            this.PreventDropOverDubbelBouble = false;
+        }
+        else {
+            if (node && node.type !== "StaticTestSuite") {
+                //Vi försöker släppa på nåt annat än static
+                console.log("Hide");
+                $dragElem.find(".drop-allowed").hide();
+                $dragElem.find(".drop-not-allowed").show();
+                $dragElem.find(".drop-not-allowed-message").text("You can only " + this.getCurrentDragMode(event).toLowerCase() + " to static suites")
+                this.PreventDropOverDubbelBouble = true;
+            } else {
+                if (node.id === ui.helper.data("SUITE_ID")) {
+                    $dragElem.find(".drop-allowed").hide();
+                    $dragElem.find(".drop-not-allowed").show();
+                    $dragElem.find(".drop-not-allowed-message").text("You can not " + this.getCurrentDragMode(event).toLowerCase()+ " to self")
+                }
+                else {
+                    console.log("show");
+                    $dragElem.find(".drop-allowed").show();
+                    $dragElem.find(".drop-not-allowed").hide();
+                }
+            }
+            $("ul.tree-children li.droppable-hover").removeClass("droppable-hover");
+            $("ul.tree-children li.selected").removeClass("selected");
+
+            event.stopPropagation();
+            event.preventDefault();
+        }
+
+        //    if (this.isSuiteDraggedOnNonStaticSuite($dragElemDroppableStyle, node.type)) {
+        //        $dragElemDroppableStyle.hide();
+        //        $dragElemNotDroppableStyle.show();
+        //    }
+        //    else {
+        //        $dragElemDroppableStyle.show();
+        //        $dragElemNotDroppableStyle.hide();
+        //    }
+        //}
+
+
+        //$(".drag-tile").toggleClass("invalid-drop", n.type != "StaticTestSuite")
+        //if (n.type != "StaticTestSuite") {
+        //    $(".drag-tile-drag-type").text("FÅR EJ");
+        //}
+        //var s = n.type != "StaticTestSuite" ? "Valid" : "NOT VALID";
+        //console.log(n.text + " valid target..." +s );
+     
+        
+    }
+
 
     private refreshTestPlan() {
         if (this._cbo.getSelectedIndex() >= 0) {

@@ -15,6 +15,11 @@
     
 }
 
+/*.ui-droppable .accept-drop-hover {
+    border:1px solid green;
+}*/
+
+
 .test-outcome-node-icon::before {
     position: relative;
     content: url('../img/TestOutcome.png');
@@ -115,10 +120,10 @@
 }
 
 .drag-tile{
-    background-color:lightblue;
-    border-color:black;
-    border-width:1px;
+    background-color:whitesmoke;
+    border: 1px solid black;
     vertical-align:middle;
+    opacity: 0.7;
 }
 
 .drag-tile-item-count {
@@ -128,14 +133,20 @@
 }
 
 .drag-tile-title {
-    font-size:x-small;
+    
     text-align:center;
+    
+}
+.drag-tile-head > .node-content{
+    font-weight:bold;
+    color:#007acc;
 }
 
 .drag-tile-drag-type {
     font-size:large;
     font-weight:bold;
     margin:6px;
+    color:black;    
 }
 
 .drag-tile-head{
