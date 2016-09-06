@@ -15,6 +15,27 @@
     
 }
 
+/*.ui-droppable .accept-drop-hover {
+    border:1px solid green;
+}*/
+.accept-drop-hover .selected .ui-droppable > a >div.node-content  {
+    border:1px solid green;
+    /*background-color:lightgreen;*/
+}
+
+.invalid-drop {
+    border:2px solid red;
+    background-color:red;
+    background-image:url("('../img/Child-node-icon.png");
+}
+
+.accept-drop-hover .selected .ui-droppable > a >div.node-content >span.icon-tfs-tcm-query-based-suite  {
+    border:4px solid Red;
+    background-image:url("('../img/Child-node-icon.png");
+
+    background-color:lightgreen;
+}
+
 .test-outcome-node-icon::before {
     position: relative;
     content: url('../img/TestOutcome.png');

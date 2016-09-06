@@ -32,6 +32,8 @@ import CloneTestPlan = require("scripts/CloneTestPlanForm");
 import Context = require("VSS/Context");
 import Notifications = require("VSS/Controls/Notifications");
 
+
+
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
     hide(): void;
@@ -273,6 +275,7 @@ class testPlanPane implements IPaneRefresh {
     private _grid;
     private _treeView: TreeView.TreeView;
     private _message: Notifications.MessageAreaControl;
+    private PreventDropOverDubbelBouble = false;
 
     public initialize(view: DetailsView) {
         this._view = view;
@@ -307,14 +310,19 @@ class testPlanPane implements IPaneRefresh {
         var that = this;
         var treeOptionsTestPlan: TreeView.ITreeOptions = {
             nodes: null,
-            droppable: {
+            droppable:  $.extend({
                 scope: "test-case-scope",
                 greedy: true,
                 tolerance: "pointer",
                 drop: function (event, ui) {
                     return that.droppableDrop(that, event, ui);
-                }
-            }            
+                },
+                hoverClass: "accept-drop-hover", 
+                over: function (event, ui) {
+                    that.droppableOver($(this), event, ui);
+                },
+             
+            })            
         };
 
         var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
@@ -389,7 +397,7 @@ class testPlanPane implements IPaneRefresh {
                         });
                     });
                 });
-
+             
 
                 //var newTestPlanName = prompt("What do you want to call the new test plan?");
                 //if (newTestPlanName != null) {
@@ -400,7 +408,8 @@ class testPlanPane implements IPaneRefresh {
 
                 // TODO: best way to cancel drag?
                 //$("li.node").draggable({ 'revert': true }).trigger('mouseup');
-            }
+            },
+            hoverClass:"accept-drop-hover"
         });
     }
 
@@ -423,7 +432,60 @@ class testPlanPane implements IPaneRefresh {
         }
     }
 
-    
+
+    private areTestCasesDraggedOnQueryBasedSuite  ($draggedElement, suite) {
+        var areTestCasesBeingDragged = !$draggedElement.hasClass("tree-drag-tile");
+        //return areTestCasesBeingDragged && suite.type === TCMConstants.TestSuiteType.DynamicTestSuite;
+    };
+
+    private droppableOver($node, event, ui) {
+
+        var node = this._treeView._getNode($node);
+        var $dragElem = ui.helper;
+
+        if (this.PreventDropOverDubbelBouble) {
+            this.PreventDropOverDubbelBouble = false;
+        }
+        else {
+            if (node && node.type !== "StaticTestSuite") {
+                //Vi försöker släppa på nåt annat än static
+                console.log("Hide");
+                $dragElem.find(".drop-allowed").hide();
+                $dragElem.find(".drop-not-allowed").show();
+                this.PreventDropOverDubbelBouble = true;
+            } else {
+                console.log("show");
+                $dragElem.find(".drop-allowed").show();
+                $dragElem.find(".drop-not-allowed").hide();
+            }
+            $("ul.tree-children li.droppable-hover").removeClass("droppable-hover");
+            $("ul.tree-children li.selected").removeClass("selected");
+
+            event.stopPropagation();
+            event.preventDefault();
+        }
+
+        //    if (this.isSuiteDraggedOnNonStaticSuite($dragElemDroppableStyle, node.type)) {
+        //        $dragElemDroppableStyle.hide();
+        //        $dragElemNotDroppableStyle.show();
+        //    }
+        //    else {
+        //        $dragElemDroppableStyle.show();
+        //        $dragElemNotDroppableStyle.hide();
+        //    }
+        //}
+
+
+        //$(".drag-tile").toggleClass("invalid-drop", n.type != "StaticTestSuite")
+        //if (n.type != "StaticTestSuite") {
+        //    $(".drag-tile-drag-type").text("FÅR EJ");
+        //}
+        //var s = n.type != "StaticTestSuite" ? "Valid" : "NOT VALID";
+        //console.log(n.text + " valid target..." +s );
+     
+        
+    }
+
 
     private refreshTestPlan() {
         if (this._cbo.getSelectedIndex() >= 0) {

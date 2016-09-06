@@ -32,15 +32,15 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
         else {
             var mode = "";
             if (e.ctrlKey) {
-                console.log("clone...");
+                //      console.log("clone...");
                 mode = "Clone";
             }
             else if (e.shiftKey) {
-                console.log("add...");
+                //        console.log("add...");
                 mode = "Add";
             }
             else {
-                console.log("move...");
+                //          console.log("move...");
                 mode = "Move";
             }
             var text = $(".drag-tile-drag-type").text();

@@ -126,6 +126,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     $dragTile.data("MODE", "TEST_SUITE");
                     return $dragTile;
                 },
+                over: function (event, ui) {
+                    var $dragTile;
+                    console.log(ui);
+                },
                 cursorAt: { left: -20, top: 0 },
                 containment: "",
                 //start: function (event, ui) { that._draggableStart(that, event, ui); },
@@ -340,6 +344,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
                             $dragTile = $("<div />")
                                 .addClass("drag-tile");
+                            var $dropAllowed = $("<div />").addClass("drop-allowed");
+                            var $dropNOTAllowed = $("<div style='display:none'/>").addClass("drop-not-allowed");
+                            var $dropNOTAllowedIcon = $("<img src='img/cancel.png'/>");
                             var $dragItemTitle = $("<div />")
                                 .addClass("drag-tile-title")
                                 .text(title);
@@ -350,7 +357,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                                 .addClass("drag-tile-head")
                                 .append($dragType)
                                 .append($dragItemTitle);
-                            $dragTile.append($dragHead);
+                            $dropAllowed.append($dragHead);
+                            $dropNOTAllowed.append($dropNOTAllowedIcon);
+                            $dragTile.append($dropAllowed);
+                            $dragTile.append($dropNOTAllowed);
                             $dragTile.data("PLAN_ID", draggedNode.config);
                             $dragTile.data("SUITE_ID", draggedNode.id);
                             $dragTile.data("MODE", "TEST_SUITE");

@@ -170,7 +170,7 @@ export class TreeviewView {
                 $dragTile.data("MODE", "TEST_SUITE");
 
                 return $dragTile;
-            },
+            }
             cursorAt: { left: -20, top: 0 },
             containment: "", //".testmanagement-suites-tree",
             //start: function (event, ui) { that._draggableStart(that, event, ui); },
@@ -256,6 +256,7 @@ export class TreeviewView {
         }
     }
     private _droppableOver(that: TreeviewView, event, ui) {
+
     }
 
     private openTestSuite() {
@@ -424,6 +425,11 @@ export class TreeviewView {
                         $dragTile = $("<div />")
                             .addClass("drag-tile")
 
+                        var $dropAllowed = $("<div />").addClass("drop-allowed");
+                        var $dropNOTAllowed = $("<div style='display:none'/>").addClass("drop-not-allowed");
+                        var $dropNOTAllowedIcon = $("<img src='img/cancel.png'/>")
+
+                        
                         var $dragItemTitle = $("<div />")
                             .addClass("drag-tile-title")
                             .text(title);
@@ -437,7 +443,12 @@ export class TreeviewView {
                             .append($dragType)
                             .append($dragItemTitle)
 
-                        $dragTile.append($dragHead);
+                        $dropAllowed.append($dragHead);
+                        $dropNOTAllowed.append($dropNOTAllowedIcon);
+
+
+                        $dragTile.append($dropAllowed);
+                        $dragTile.append($dropNOTAllowed);
 
                         $dragTile.data("PLAN_ID", draggedNode.config);
                         $dragTile.data("SUITE_ID", draggedNode.id);
