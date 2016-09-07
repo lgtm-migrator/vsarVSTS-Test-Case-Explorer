@@ -394,14 +394,9 @@ class testPlanPane implements IPaneRefresh {
                             return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
                         },
                         okCallback: function (result: CloneTestPlan.IFormInput) {
-
                             var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
-                            var newTestPlanName = "TODO: new test plan";
-                            //TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], newTestPlanName, false);
+                            TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath);
                             that.showNotification("Test plan " + result.newTestPlanName);
-
-                            //view.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, result.cloneChildSuites, result.cloneRequirements);
-                            //view.showNotification("Test suite " + targetSuiteId);
                         }
                     };
 

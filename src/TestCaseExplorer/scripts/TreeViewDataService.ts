@@ -312,7 +312,7 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
     return a;
 }
 
-export function cloneTestPlan(sourcePlanId: number, sourceSuiteIds: number[], testPlanName: string, cloneRequirements: boolean): IPromise<TestContracts.CloneOperationInformation> {
+export function cloneTestPlan(sourcePlanId: number, sourceSuiteIds: number[], testPlanName: string, cloneRequirements: boolean, areaPath?: string, iterationPath?: string): IPromise<TestContracts.CloneOperationInformation> {
     var deferred = $.Deferred<TestContracts.CloneOperationInformation>();
 
     var testPlan: any = {
@@ -326,7 +326,7 @@ export function cloneTestPlan(sourcePlanId: number, sourceSuiteIds: number[], te
             cloneRequirements: cloneRequirements,
             copyAllSuites: true,
             copyAncestorHierarchy: true,
-            overrideParameters: {},
+            overrideParameters: { "System.AreaPath": areaPath, "System.IterationPath": iterationPath},
             destinationWorkItemType: "Test Case",
             relatedLinkComment: "Comment"
         },

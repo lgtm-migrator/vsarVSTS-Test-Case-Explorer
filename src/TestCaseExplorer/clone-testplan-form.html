@@ -1,4 +1,4 @@
-﻿<!-- ---------------------------------------------------------------------
+﻿<!-- --------------------------------------------------------------------
 // <copyright file="clone-testplan-form.html">
 //    This code is licensed under the MIT License.
 //    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
@@ -35,40 +35,36 @@
                     <td style="width: 15%;">
                         <label>Test plan:</label>
                     </td>
-                    <td style="width: 35%;" class="clone-test-plan-cell">
-                        <input type="text" readonly="readonly" id="sourceTestPlan" />
+                    <td style="width: 35%;">
+                        <input class="cellText" type="text" readonly="readonly" id="sourceTestPlan" />
                     </td>
                     <td style="width: 15%;">
                         <label>Test plan:</label>
                     </td>
-                    <td style="width: 35%;" class="clone-test-plan-cell">
-                        <input type="text" id="targetTestPlan" placeholder="<Test plan name>" />
+                    <td style="width: 35%;">
+                        <input class="cellText" type="text" id="targetTestPlan" placeholder="<Test plan name>" />
                     </td>
                 </tr>
                 <tr>
-                    <td class="clone-test-plan-label">
-                        <label>Test suites:</label>
+                    <td></td>
+                    <td>
+                        <input type="checkbox" id="cloneRequirements" />
+                        <label for="cloneRequirements">Clone requirements</label>
                     </td>
-                    <td class="clone-test-plan-cell">
-                        <div id="sourceTestSuites"></div>
-                    </td>
-                    <td class="clone-test-plan-label">
+                    <td>
                         <label>Area path:</label>
                     </td>
-                    <td class="clone-test-plan-cell">
+                    <td>
                         <div id="targetAreaPath"></div>
                     </td>
                 </tr>
                 <tr>
-                    <td class="clone-test-plan-label"></td>
-                    <td class="clone-test-plan-cell">
-                        <input type="checkbox" id="cloneRequirements" />
-                        <label for="cloneRequirements">Clone requirements</label>
-                    </td>
-                    <td class="clone-test-plan-label">
+                    <td></td>
+                    <td></td>
+                    <td>
                         <label>Iteration path:</label>
                     </td>
-                    <td class="clone-test-plan-cell">
+                    <td>
                         <div style="z-index: 1000" id="targetIterationPath"></div>
                     </td>
                 </tr>
