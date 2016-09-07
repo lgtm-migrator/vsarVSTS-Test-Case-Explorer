@@ -13,6 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "scripts/Common", "q"], function (require, exports, Contracts, TestClient, WITClient, TreeView, Common, Q) {
+    "use strict";
     function getNodes(param) {
         switch (param) {
             case "Area path":
@@ -244,7 +245,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         });
         return a;
     }
-    function cloneTestPlan(sourcePlanId, sourceSuiteIds, testPlanName, cloneRequirements) {
+    function cloneTestPlan(sourcePlanId, sourceSuiteIds, testPlanName, cloneRequirements, areaPath, iterationPath) {
         var deferred = $.Deferred();
         var testPlan = {
             name: testPlanName,
@@ -256,7 +257,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 cloneRequirements: cloneRequirements,
                 copyAllSuites: true,
                 copyAncestorHierarchy: true,
-                overrideParameters: {},
+                overrideParameters: { "System.AreaPath": areaPath, "System.IterationPath": iterationPath },
                 destinationWorkItemType: "Test Case",
                 relatedLinkComment: "Comment"
             },

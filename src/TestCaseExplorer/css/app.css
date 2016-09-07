@@ -304,17 +304,11 @@ select {
 
 .clone-test-plan-header-label {
     font-weight: bold;
-    /*min-width: 100px; */
 }
 
-.clone-test-plan-label {
-    /*min-width: 100px;*/
+.cellText
+{
+   display: block;
+   width: 100%;
+   height: 100%;
 }
-
-/*.clone-test-plan-cell {
-    width: 100%
-}*/
-
-/*.clone-test-plan-header-row {
-    padding-bottom: 10px;    
-}*/

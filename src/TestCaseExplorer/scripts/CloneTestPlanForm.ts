@@ -8,7 +8,6 @@ import TreeViewDataService = require("scripts/TreeViewDataService");
 import Q = require("q");
 
 export interface IFormInput {
-    suites: string[];
     newTestPlanName: string;
     areaPath: string;
     iterationPath: string;
@@ -16,7 +15,9 @@ export interface IFormInput {
 }
 
 export class CloneTestPlanForm {
+
     private _areaPath: string;
+    private _iterationPath: string;
 
     public init(testPlanName) {
         var that = this;
@@ -27,34 +28,9 @@ export class CloneTestPlanForm {
         var p2 = TreeViewDataService.getNodes("Iteration path");
 
         Q.all([p1, p2]).then(categories => {
-            that.createSuitesCombo();
             that.createAreasCombo(that, categories[0]);
-            that.createIterationsCombo(categories[1]);
+            that.createIterationsCombo(that, categories[1]);
         });
-    }
-
-    private createSuitesCombo() {
-        var container = $("#sourceTestSuites");
-        
-        var treeOptions: Combos.IComboOptions = {
-            type: TreeView.ComboTreeMultivalueBehaviorName,
-            source: [
-                {
-                    text: "wit",
-                    children: [{ text: "platform", children: [{ text: "client" }, { text: "server" }] }, { text: "te" }]
-                }, {
-                    text: "vc"
-                }, {
-                    text: "webaccess", children: [{ text: "platform" }, { text: "agile" }, { text: "requirements" }]
-                }, {
-                    text: "etm"
-                }, {
-                    text: "build"
-                }
-            ]
-        };
-
-        Controls.create(Combos.Combo, container, treeOptions);
     }
 
     private createAreasCombo(that: CloneTestPlanForm, nodes) {
@@ -71,12 +47,15 @@ export class CloneTestPlanForm {
         Controls.create(Combos.Combo, container, treeOptions);
     }
 
-    private createIterationsCombo(nodes) {
+    private createIterationsCombo(that: CloneTestPlanForm, nodes) {
         var container = $("#targetIterationPath");
 
         var treeOptions: Combos.IComboOptions = {
             type: TreeView.ComboTreeBehaviorName,
-            source: nodes
+            source: nodes,
+            change: function () {
+                that._iterationPath = this.getText();
+            }
         };
 
         Controls.create(Combos.Combo, container, treeOptions);
@@ -84,9 +63,8 @@ export class CloneTestPlanForm {
 
     public getFormData(): IFormInput {
         return {
-            suites: [],
             areaPath: this._areaPath, 
-            iterationPath: $("#targetIterationPath").text(),
+            iterationPath: this._iterationPath,
             newTestPlanName: $("#targetTestPlan").val(),
             cloneRequirements: $("#cloneRequirements").prop("checked")
         };
