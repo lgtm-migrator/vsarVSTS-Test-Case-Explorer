@@ -28,17 +28,23 @@ import Common = require("scripts/Common");
 
 export interface TreeviewSelectedCallback { (type: string, value: string, showRecursive: boolean): void }
 
+var constAllTestPlanName = "--- All Test plans ----";
+
 export class TreeviewView {
 
     private _showRecursive: boolean;
     private _menubar: Menus.MenuBar;
     public _treeview: TreeView.TreeView;
     private _callback: TreeviewSelectedCallback;
+    public _currentTestPlan: string;
     public _currentNode: TreeView.TreeNode;
     private _currentSource: string;
     private _waitControl: StatusIndicator.WaitControl;
+    private _cboTestPlan: CtrlCombos.Combo;
+    private _testPlans: TreeView.TreeNode[];
+    private _cboSource: CtrlCombos.Combo;
 
-   
+    public PivotSources: string[] = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
 
     public initialize(callback: TreeviewSelectedCallback) {
         TelemetryClient.getClient().trackPageView("TreeView");
@@ -46,35 +52,28 @@ export class TreeviewView {
         view._showRecursive = false;
         view._callback = callback;
 
-        var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
-        var cboOptions: CtrlCombos.IComboOptions = {
-            mode: "drop",
-            allowEdit: false,
-            source: cboSources
-        };
-        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions);
+        view._cboSource = view.initSourceCbo();
+        view._cboTestPlan = view.initTestPlanCbo();
 
         var treeOptions: TreeView.ITreeOptions = {
             clickSelects: true,
             nodes: null
         };
+       
         var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
 
         treeview.onItemClick = function (node, nodeElement, e) {
             if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
                 treeview.setSelectedNode(node);
                 view._currentNode = node;
-                view._currentSource = cbo.getText();
+                view._currentSource = view._cboSource.getText();
                 if (view._currentNode != null) {
                     view.RefreshGrid();
                 }
             }
         };
 
-        $("#treeview-Cbo-container").change(function () {
-            view._currentSource = cbo.getText();
-            view.refreshTreeView();
-        });
+        view.ToggleTestPlanSelectionArea();
 
         view._treeview = treeview;
 
@@ -86,16 +85,71 @@ export class TreeviewView {
             // Set value in user scope
             dataService.getValue("SelectedPivot", { scopeType: "User" }).then(function (selectedPivot: any) {
                 if (selectedPivot == null || selectedPivot == "") {
-                    selectedPivot = cboSources[0];
+                    selectedPivot = view.PivotSources[0];
                 }
                 view._currentSource = selectedPivot;
 
-                cbo.setText(selectedPivot);
-                view.LoadTreeview(cbo.getText(), treeview);
+                view._cboSource.setText(selectedPivot);
+                view.LoadTreeview(view._cboSource.getText(), treeview);
             })
         });
     }
-    
+
+    private initSourceCbo(): CtrlCombos.Combo{
+        var view = this;
+        
+        var cboOptions: CtrlCombos.IComboOptions = {
+            mode: "drop",
+            allowEdit: false,
+            source: view.PivotSources,
+            change:function () {
+                view._currentSource = cbo.getText();
+                view.ToggleTestPlanSelectionArea()
+                view.refreshTreeView();
+            }
+        };
+        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions);
+
+        //$("#treeview-Cbo-container").change(function () {
+        //    view._currentSource = cbo.getText();
+        //    view.ToggleTestPlanSelectionArea()
+        //    view.refreshTreeView();
+        //});
+        return cbo;
+    }
+
+    private initTestPlanCbo(): CtrlCombos.Combo {
+        var view = this;
+
+        var cboOTestPlanptions: CtrlCombos.IComboOptions = {
+            mode: "drop",
+            allowEdit: false,
+            change: function() {
+                view._currentTestPlan = view._cboTestPlan.getText();
+                view.refreshTreeView();
+            }
+        };
+
+        var cboTestPlan = Controls.create(CtrlCombos.Combo, $("#right-cboTestPlan"), cboOTestPlanptions);
+
+        TreeViewDataService.getTestPlans().then(
+            data => {
+                view._testPlans = data[0].children;
+                var nAll = TreeView.TreeNode.create(constAllTestPlanName);
+
+                view._testPlans.push(nAll);
+                view._cboTestPlan.setSource(view._testPlans.map(i => { return i.text; }));
+                view._cboTestPlan.setSelectedIndex(0);
+            },
+            err => {
+                console.log(err);
+                TelemetryClient.getClient().trackException(err);
+            }
+        );
+        
+        return cboTestPlan;
+    }
+
     private openTestSuite() {
         var url = VSS.getWebContext().collection.uri;
         var project = VSS.getWebContext().project.name;
@@ -110,9 +164,21 @@ export class TreeviewView {
         }
     }
 
+    private ToggleTestPlanSelectionArea()
+    {
+        if (this._currentSource === "Test plan") {
+            $("#right-cboTestPlan-container").show();
+            $(".testmanagement-suites-tree").css("top", 75);
+        } else {
+            $("#right-cboTestPlan-container").hide();
+            $(".testmanagement-suites-tree").css("top", 45);
+        }
+    }
+
     public refreshTreeView() {
         this.StartLoading(true, "Loading pivot data");
         TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
+        
         this.LoadTreeview(this._currentSource, this._treeview).then(a => {
             this.DoneLoading()
         });
@@ -218,7 +284,12 @@ export class TreeviewView {
         var hideOpenSuite = (view._currentSource == "Test plan") ? false : true;
         this._menubar.updateCommandStates([{ id: "open-testsuite", hidden: hideOpenSuite }]);
 
-        TreeViewDataService.getNodes(pivot).then(function (data) {
+        var tp = null;
+        if (this._currentTestPlan !== constAllTestPlanName) {
+            tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
+        }
+
+        TreeViewDataService.getNodes(pivot, tp).then(function (data) {
             treeview.rootNode.clear();
             treeview.rootNode.addRange(data);
             treeview._draw();

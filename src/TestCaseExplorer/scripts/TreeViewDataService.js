@@ -13,7 +13,8 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "scripts/Common", "q"], function (require, exports, Contracts, TestClient, WITClient, TreeView, Common, Q) {
-    function getNodes(param) {
+    "use strict";
+    function getNodes(param, tp) {
         switch (param) {
             case "Area path":
                 return getStructure(Contracts.TreeStructureGroup.Areas);
@@ -24,7 +25,14 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             case "State":
                 return getStates();
             case "Test plan":
-                return getTestPlansWithSuite();
+                if (tp === null) {
+                    //Fetch All TestPlans
+                    return getTestPlansWithSuite();
+                }
+                else {
+                    //Fetch the TestPlan
+                    return getTestPlanAndSuites(tp.id, tp.text);
+                }
         }
     }
     exports.getNodes = getNodes;

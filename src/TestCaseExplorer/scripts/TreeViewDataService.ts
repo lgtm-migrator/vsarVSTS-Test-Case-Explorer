@@ -24,7 +24,7 @@ import Common = require("scripts/Common");
 
 import Q = require("q");
 
-export function getNodes(param) {
+export function getNodes(param, tp) {
 
     switch (param) {
         case "Area path":
@@ -36,7 +36,14 @@ export function getNodes(param) {
         case "State":
             return getStates();
         case "Test plan":
-            return getTestPlansWithSuite();
+            if (tp === null) {
+                //Fetch All TestPlans
+                return getTestPlansWithSuite();
+            }
+            else {
+                //Fetch the TestPlan
+                return getTestPlanAndSuites(tp.id, tp.text) 
+            }
     }
 }
 

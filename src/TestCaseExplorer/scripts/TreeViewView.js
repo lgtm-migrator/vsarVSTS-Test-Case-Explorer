@@ -13,21 +13,19 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI", "scripts/Common"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI, Common) {
+    "use strict";
+    var constAllTestPlanName = "--- All Test plans ----";
     var TreeviewView = (function () {
         function TreeviewView() {
+            this.PivotSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
         }
         TreeviewView.prototype.initialize = function (callback) {
             TelemetryClient.getClient().trackPageView("TreeView");
             var view = this;
             view._showRecursive = false;
             view._callback = callback;
-            var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
-            var cboOptions = {
-                mode: "drop",
-                allowEdit: false,
-                source: cboSources
-            };
-            var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions);
+            view._cboSource = view.initSourceCbo();
+            view._cboTestPlan = view.initTestPlanCbo();
             var treeOptions = {
                 clickSelects: true,
                 nodes: null
@@ -37,16 +35,13 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
                     treeview.setSelectedNode(node);
                     view._currentNode = node;
-                    view._currentSource = cbo.getText();
+                    view._currentSource = view._cboSource.getText();
                     if (view._currentNode != null) {
                         view.RefreshGrid();
                     }
                 }
             };
-            $("#treeview-Cbo-container").change(function () {
-                view._currentSource = cbo.getText();
-                view.refreshTreeView();
-            });
+            view.ToggleTestPlanSelectionArea();
             view._treeview = treeview;
             //Add toolbar
             this.initMenu(this);
@@ -55,13 +50,56 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 // Set value in user scope
                 dataService.getValue("SelectedPivot", { scopeType: "User" }).then(function (selectedPivot) {
                     if (selectedPivot == null || selectedPivot == "") {
-                        selectedPivot = cboSources[0];
+                        selectedPivot = view.PivotSources[0];
                     }
                     view._currentSource = selectedPivot;
-                    cbo.setText(selectedPivot);
-                    view.LoadTreeview(cbo.getText(), treeview);
+                    view._cboSource.setText(selectedPivot);
+                    view.LoadTreeview(view._cboSource.getText(), treeview);
                 });
             });
+        };
+        TreeviewView.prototype.initSourceCbo = function () {
+            var view = this;
+            var cboOptions = {
+                mode: "drop",
+                allowEdit: false,
+                source: view.PivotSources,
+                change: function () {
+                    view._currentSource = cbo.getText();
+                    view.ToggleTestPlanSelectionArea();
+                    view.refreshTreeView();
+                }
+            };
+            var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions);
+            //$("#treeview-Cbo-container").change(function () {
+            //    view._currentSource = cbo.getText();
+            //    view.ToggleTestPlanSelectionArea()
+            //    view.refreshTreeView();
+            //});
+            return cbo;
+        };
+        TreeviewView.prototype.initTestPlanCbo = function () {
+            var view = this;
+            var cboOTestPlanptions = {
+                mode: "drop",
+                allowEdit: false,
+                change: function () {
+                    view._currentTestPlan = view._cboTestPlan.getText();
+                    view.refreshTreeView();
+                }
+            };
+            var cboTestPlan = Controls.create(CtrlCombos.Combo, $("#right-cboTestPlan"), cboOTestPlanptions);
+            TreeViewDataService.getTestPlans().then(function (data) {
+                view._testPlans = data[0].children;
+                var nAll = TreeView.TreeNode.create(constAllTestPlanName);
+                view._testPlans.push(nAll);
+                view._cboTestPlan.setSource(view._testPlans.map(function (i) { return i.text; }));
+                view._cboTestPlan.setSelectedIndex(0);
+            }, function (err) {
+                console.log(err);
+                TelemetryClient.getClient().trackException(err);
+            });
+            return cboTestPlan;
         };
         TreeviewView.prototype.openTestSuite = function () {
             var url = VSS.getWebContext().collection.uri;
@@ -73,6 +111,16 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         TreeviewView.prototype.removePlanOrSuite = function () {
             if (confirm("Are you sure you want to delete test suite " + this._currentNode.text + "?")) {
                 TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId);
+            }
+        };
+        TreeviewView.prototype.ToggleTestPlanSelectionArea = function () {
+            if (this._currentSource === "Test plan") {
+                $("#right-cboTestPlan-container").show();
+                $(".testmanagement-suites-tree").css("top", 75);
+            }
+            else {
+                $("#right-cboTestPlan-container").hide();
+                $(".testmanagement-suites-tree").css("top", 45);
             }
         };
         TreeviewView.prototype.refreshTreeView = function () {
@@ -168,7 +216,11 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             this._menubar.updateCommandStates([{ id: "remove", hidden: hideRemove }]);
             var hideOpenSuite = (view._currentSource == "Test plan") ? false : true;
             this._menubar.updateCommandStates([{ id: "open-testsuite", hidden: hideOpenSuite }]);
-            TreeViewDataService.getNodes(pivot).then(function (data) {
+            var tp = null;
+            if (this._currentTestPlan !== constAllTestPlanName) {
+                tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
+            }
+            TreeViewDataService.getNodes(pivot, tp).then(function (data) {
                 treeview.rootNode.clear();
                 treeview.rootNode.addRange(data);
                 treeview._draw();
@@ -279,7 +331,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             }
         };
         return TreeviewView;
-    })();
+    }());
     exports.TreeviewView = TreeviewView;
     function ExpandTree(tree, nodeExpansion) {
         UtilsUI.walkTree.call(tree.rootNode, function (n) {

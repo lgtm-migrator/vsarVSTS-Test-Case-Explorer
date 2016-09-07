@@ -53,7 +53,10 @@
         left: 10%;
         overflow: auto;
     }
-
+.paneWorkArea {
+    margin-left:10px;
+    margin-right:10px;
+}
   .far-right-pane-list-container {
     top: 120px;
     left: 0px;
@@ -61,12 +64,12 @@
     bottom: 0px;
     position: absolute;
     overflow: auto;
-    margin: 0 10px;
+    margin: 0 0px;
 }
 
     .testmanagement-suites-tree {
     position: absolute;
-    top: 70px;
+    /* top controlled by code*/
     left: 12px;
     right: 0px;
     bottom: 0px;
@@ -91,7 +94,7 @@
     top: 40px;
 }
 
-    .test-case-details-pane .far-right-pane-title {
+ .pane-title {
     left: 0px;
     right: 0px;
     margin-left: 20px;
@@ -107,9 +110,8 @@
     overflow: hidden;
 }
 
-.left-hub-content .hub-pivot-content {
-    top:0px;
-}
+
+
 .testmanagement-details-grid{
     position: absolute;
     top: 0px;
@@ -199,7 +201,11 @@
 }
 
 #testCasePane .right-hub-content {
-    top: 40px;
+    top: 36px;
+}
+
+#leftMasterPivot .right-hub-content {
+    top: 36px;
 }
 
 .right-hub-content .pivot-filter {

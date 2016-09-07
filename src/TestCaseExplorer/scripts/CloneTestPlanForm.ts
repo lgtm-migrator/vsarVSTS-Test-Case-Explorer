@@ -23,8 +23,8 @@ export class CloneTestPlanForm {
 
         $("#sourceTestPlan").val(testPlanName);
 
-        var p1 = TreeViewDataService.getNodes("Area path");
-        var p2 = TreeViewDataService.getNodes("Iteration path");
+        var p1 = TreeViewDataService.getNodes("Area path", null);
+        var p2 = TreeViewDataService.getNodes("Iteration path", null);
 
         Q.all([p1, p2]).then(categories => {
             that.createSuitesCombo();
