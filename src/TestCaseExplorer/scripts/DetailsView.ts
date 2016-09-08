@@ -376,6 +376,12 @@ class testPlanPane implements IPaneRefresh {
             tolerance: "pointer",
             drop: function (event, ui) {
 
+                var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
+                if (!isHosted) {
+                    alert("The clone operations are currently only supported in Visual Studio Team Services.");
+                    return;
+                }
+
                 var draggedNode: TreeView.TreeNode = that._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
                 var sourcePlanName: string = draggedNode.config.name;
 
