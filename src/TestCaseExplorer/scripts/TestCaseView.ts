@@ -34,6 +34,7 @@ import TestCaseDataService = require("scripts/TestCaseDataService");
 import Common = require("scripts/Common");
 import ColumnOptionsView = require("scripts/ColumnsOptionsView");
 import TreeViewDataService = require("scripts/TreeViewDataService");
+import LeftTreeView = require("scripts/TreeViewView");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
 
@@ -66,6 +67,7 @@ export class TestCaseView {
     private _showRecursive;
     private _selectedValueWithField;
     private _selectedRows: number[];
+    private _leftTreeView: LeftTreeView.TreeviewView;
 
     public RefreshGrid(pivot: string, value, showRecursive: boolean) {
 
@@ -178,8 +180,9 @@ export class TestCaseView {
     public toggle() {
     }
 
-    public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
+    public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback, leftTreeView: LeftTreeView.TreeviewView) {
         var view = this;
+        this._leftTreeView = leftTreeView;
 
         TelemetryClient.getClient().trackPageView("TestCaseView");
 
@@ -258,9 +261,13 @@ export class TestCaseView {
     }
 
     private removeTestCase() {
+        var that = this;
         if (confirm("Are you sure you want to remove the selected test cases from the suite?")) {
             var testCaseIds = this._selectedRows.map(i => { return i["System.Id"]; }).join(",");
-            TreeViewDataService.removeTestCaseFromSuite(this._selectedValue.testPlanId, this._selectedValue.suiteId, testCaseIds);
+            TreeViewDataService.removeTestCaseFromSuite(this._selectedValue.testPlanId, this._selectedValue.suiteId, testCaseIds).then(result => {
+                that.RefreshGrid(this._selectedPivot, this._selectedValue, this._showRecursive);
+                that._leftTreeView.refreshTreeView();
+            });
         }
     }
 

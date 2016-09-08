@@ -20,8 +20,8 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
     var paneToggler = new DetailsToggle.DetailsPaneToggler();
     var dv = new DetailsView.DetailsView();
     var tc = new TestCaseView.TestCaseView();
-    tc.initialize(paneToggler, RefreshPane);
     var tv = new TreeViewView.TreeviewView();
+    tc.initialize(paneToggler, RefreshPane, tv);
     window.onkeydown = listenToTheKey;
     window.onkeyup = listenToTheKey;
     function listenToTheKey(e) {
