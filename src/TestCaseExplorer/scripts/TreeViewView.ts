@@ -109,7 +109,7 @@ export class TreeviewView {
                 view.refreshTreeView();
             }
         };
-        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions);
+        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-pivot-Cbo-container "), cboOptions);
 
         //$("#treeview-Cbo-container").change(function () {
         //    view._currentSource = cbo.getText();
@@ -131,7 +131,7 @@ export class TreeviewView {
             }
         };
 
-        var cboTestPlan = Controls.create(CtrlCombos.Combo, $("#right-cboTestPlan"), cboOTestPlanptions);
+        var cboTestPlan = Controls.create(CtrlCombos.Combo, $("#left-cboTestPlan"), cboOTestPlanptions);
 
         TreeViewDataService.getTestPlans().then(
             data => {
@@ -168,10 +168,10 @@ export class TreeviewView {
     private ToggleTestPlanSelectionArea()
     {
         if (this._currentSource === "Test plan") {
-            $("#right-cboTestPlan-container").show();
+            $("#left-cboTestPlan-container").show();
             $(".testmanagement-suites-tree").css("top", 75);
         } else {
-            $("#right-cboTestPlan-container").hide();
+            $("#left-cboTestPlan-container").hide();
             $(".testmanagement-suites-tree").css("top", 45);
         }
     }

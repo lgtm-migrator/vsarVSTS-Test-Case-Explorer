@@ -33,10 +33,10 @@
 #testmanagement-view-left-pane{
     margin-left:16px;
 }
-#treeview-Cbo-container {
+#treeview-pivot-Cbo-container {
     margin-left:12px;
     margin-right:10px;
-
+    margin-top: -4px;
 }
 
 
@@ -163,6 +163,14 @@
     float:right;
    
 }
+
+#left-cboTestPlan-container{
+    padding-top: 8px;
+    display: flex;
+    flex-direction: row;
+    margin-left: 10px;
+}
+
 
 .drag-hover {
     background-color:#E0E9CC;

@@ -49,25 +49,26 @@
         <div class="splitter horizontal right left-hub-splitter">
             <div id="leftMasterPivot" class="leftPane">
                 <div id="leftMasterPivot-title" class="hub-title">
-                    <div  style="display:flex;flex-direction:row;margin-left:10px;">
-                        <div style="flex:1;margin-left:6px">Pivot&nbsp; by:</div>
-                        <div style="flex:3" id="treeview-Cbo-container"></div>
+                    <div  style="display:flex;flex-direction:row;">
+                        <div style="flex:1;">Pivot&nbsp; by:</div>
+                        <div style="flex:3;top:-3px;" id="treeview-pivot-Cbo-container" ></div>
                     </div>
                 </div>
+
                 <div class="right-hub-content">
                     <div class="hub-pivot ">
                         <div class="filters">
                             
                         </div> 
                     </div>
-                    <div class="hub-pivot-content">
+                    <div id="leftMaster-WorkPane"class="hub-pivot-content">
                         <div id="treeview-menu-container" class="toolbar"></div>
 
-                        <div class="filters">
-                            <div id="right-cboTestPlan-container" style="padding-top: 8px; display: flex; flex-direction: row;display:none">
-                                <div style="margin-right:10px">Test plan: </div>
-                                <div id="right-cboTestPlan" style="flex:1"></div>
-                            </div>
+     
+                        <div id="left-cboTestPlan-container">
+                            <div style="margin-right: 10px;">Test plan: </div>
+                            <div id="left-cboTestPlan" style="flex:1 1 0px;">
+                            </div> 
                         </div>
                         <div id="treeview-container" class="treeview testmanagement-suites-tree"></div>
                         <div id="treeview-value"></div>
