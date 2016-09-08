@@ -160,8 +160,11 @@ export class TreeviewView {
     }
 
     private removePlanOrSuite() {
+        var that = this;
         if (confirm("Are you sure you want to delete test suite " + this._currentNode.text + "?")) {
-            TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId);
+            TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId).then(result => {
+                that.refreshTreeView();
+            });
         }
     }
 

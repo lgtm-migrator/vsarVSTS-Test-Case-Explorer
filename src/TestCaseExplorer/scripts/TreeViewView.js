@@ -110,8 +110,11 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             window.parent.location.href = url + project + "/_testManagement?planId=" + planId + "&suiteId=" + suiteId;
         };
         TreeviewView.prototype.removePlanOrSuite = function () {
+            var that = this;
             if (confirm("Are you sure you want to delete test suite " + this._currentNode.text + "?")) {
-                TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId);
+                TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId).then(function (result) {
+                    that.refreshTreeView();
+                });
             }
         };
         TreeviewView.prototype.ToggleTestPlanSelectionArea = function () {
