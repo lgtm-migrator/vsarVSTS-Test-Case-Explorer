@@ -371,7 +371,7 @@ export class TestCaseView {
     private initFilter(view: TestCaseView) {
         TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
 
-        Controls.create(Navigation.PivotFilter, $("#grid-filter"), {
+        Controls.create(Navigation.PivotFilter, $("#testCaseView-filter-container"), {
             behavior: "dropdown",
             text: "Filter",
             items: [
