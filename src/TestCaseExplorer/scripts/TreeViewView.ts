@@ -87,8 +87,9 @@ export class TreeviewView {
                 if (selectedPivot == null || selectedPivot == "") {
                     selectedPivot = view.PivotSources[0];
                 }
+                
                 view._currentSource = selectedPivot;
-
+                view.ToggleTestPlanSelectionArea()
                 view._cboSource.setText(selectedPivot);
                 view.LoadTreeview(view._cboSource.getText(), treeview);
             })
