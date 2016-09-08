@@ -72,11 +72,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 }
             };
             var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-pivot-Cbo-container "), cboOptions);
-            //$("#treeview-Cbo-container").change(function () {
-            //    view._currentSource = cbo.getText();
-            //    view.ToggleTestPlanSelectionArea()
-            //    view.refreshTreeView();
-            //});
             return cbo;
         };
         TreeviewView.prototype.initTestPlanCbo = function () {
@@ -117,11 +112,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         TreeviewView.prototype.ToggleTestPlanSelectionArea = function () {
             if (this._currentSource === "Test plan") {
                 $("#left-cboTestPlan-container").show();
-                $(".testmanagement-suites-tree").css("top", 75);
             }
             else {
                 $("#left-cboTestPlan-container").hide();
-                $(".testmanagement-suites-tree").css("top", 45);
             }
         };
         TreeviewView.prototype.refreshTreeView = function () {

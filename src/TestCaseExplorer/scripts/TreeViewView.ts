@@ -111,11 +111,6 @@ export class TreeviewView {
         };
         var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-pivot-Cbo-container "), cboOptions);
 
-        //$("#treeview-Cbo-container").change(function () {
-        //    view._currentSource = cbo.getText();
-        //    view.ToggleTestPlanSelectionArea()
-        //    view.refreshTreeView();
-        //});
         return cbo;
     }
 
@@ -169,10 +164,8 @@ export class TreeviewView {
     {
         if (this._currentSource === "Test plan") {
             $("#left-cboTestPlan-container").show();
-            $(".testmanagement-suites-tree").css("top", 75);
         } else {
             $("#left-cboTestPlan-container").hide();
-            $(".testmanagement-suites-tree").css("top", 45);
         }
     }
 
