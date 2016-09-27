@@ -13,7 +13,6 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI", "scripts/Common"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI, Common) {
-    "use strict";
     var constAllTestPlanName = "--- All Test plans ----";
     var TreeviewView = (function () {
         function TreeviewView() {
@@ -241,6 +240,45 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     var elem = treeview._getNodeElement(n);
                     treeview._setNodeExpansion(n, elem, true);
                 });
+                $("li.node").droppable({
+                    scope: "test-case-scope",
+                    greedy: true,
+                    tolerance: "pointer",
+                    accept: function (d) {
+                        var t = this;
+                        var text = $(this).text;
+                        return true;
+                    },
+                    over: function (e, ui) {
+                        var target = e.target;
+                        console.log("over " + target.title);
+                        var n = treeview.getNodeFromElement(e.target);
+                        //if (n.type == "Static suite") {
+                        //    $(e.target).addClass("drag-hover");
+                        //}
+                        //else {
+                        //    $(e.target).addClass("drag-hover-invalid");
+                        //}
+                    },
+                    out: function (e, ui) {
+                        var target = e.target;
+                        console.log("out " + target.title);
+                        //$(e.target).removeClass("drag-hover drag-hover-invalid");
+                    },
+                    drop: function (event, ui) {
+                        var n = treeview.getNodeFromElement(event.target);
+                        var action = ui.helper.data("MODE"); // TODO: rename to action
+                        var mode = view.getCurrentDragMode(event);
+                        switch (action) {
+                            case "TEST_CASE":
+                                view.processDropTestCase(ui, n, view._currentSource, mode);
+                                break;
+                            default:
+                                console.log("treeview::drop - undefined action");
+                                break;
+                        }
+                    }
+                });
                 if (view._currentSource == "Test plan") {
                     $("li.node").draggable({
                         distance: 10,
@@ -328,7 +366,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             }
         };
         return TreeviewView;
-    }());
+    })();
     exports.TreeviewView = TreeviewView;
     function ExpandTree(tree, nodeExpansion) {
         UtilsUI.walkTree.call(tree.rootNode, function (n) {
