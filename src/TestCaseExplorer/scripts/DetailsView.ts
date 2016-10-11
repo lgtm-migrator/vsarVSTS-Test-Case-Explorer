@@ -333,7 +333,7 @@ class testPlanPane implements IPaneRefresh {
                 hoverClass: "accept-drop-hover", 
                 over: function (event, ui) {
                     that.droppableOver($(this), event, ui);
-                },
+                }
              
             })            
         };
@@ -422,19 +422,36 @@ class testPlanPane implements IPaneRefresh {
     private droppableDrop(that: testPlanPane, event, ui) {
         var n: TreeView.TreeNode = that._treeView.getNodeFromElement(event.target);
 
-        var action = ui.helper.data("MODE");  // TODO: rename to action
-        var mode = that.getCurrentDragMode(event);
+        if (that.acceptDropTest(n, ui)) {
+            var action = ui.helper.data("MODE");  // TODO: rename to action
+            var mode = that.getCurrentDragMode(event);
 
-        switch (action) {
-            case "TEST_SUITE":
-                that.processDropTestSuite(ui, n, mode);
-                break;
-            case "TEST_CASE":
-                that.processDropTestCase(ui, n, mode);
-                break;
-            default:    // TODO: verify this should not happen
-                console.log("treeview::drop - undefined action");
-                break;
+            switch (action) {
+                case "TEST_SUITE":
+                    that.processDropTestSuite(ui, n, mode);
+                    break;
+                case "TEST_CASE":
+                    that.processDropTestCase(ui, n, mode);
+                    break;
+                default:    // TODO: verify this should not happen
+                    console.log("treeview::drop - undefined action");
+                    break;
+            }
+        }
+    }
+
+    private acceptDropTest(node, ui): boolean {
+
+        if (node && node.type !== "StaticTestSuite") {
+            //Vi försöker släppa på nåt annat än static
+            return false;
+        } else {
+            if (node.id === ui.helper.data("SUITE_ID")) {
+                return false;
+            }
+            else {
+                return true;
+            }
         }
     }
 
@@ -478,27 +495,9 @@ class testPlanPane implements IPaneRefresh {
             event.stopPropagation();
             event.preventDefault();
         }
-
-        //    if (this.isSuiteDraggedOnNonStaticSuite($dragElemDroppableStyle, node.type)) {
-        //        $dragElemDroppableStyle.hide();
-        //        $dragElemNotDroppableStyle.show();
-        //    }
-        //    else {
-        //        $dragElemDroppableStyle.show();
-        //        $dragElemNotDroppableStyle.hide();
-        //    }
-        //}
-
-
-        //$(".drag-tile").toggleClass("invalid-drop", n.type != "StaticTestSuite")
-        //if (n.type != "StaticTestSuite") {
-        //    $(".drag-tile-drag-type").text("FÅR EJ");
-        //}
-        //var s = n.type != "StaticTestSuite" ? "Valid" : "NOT VALID";
-        //console.log(n.text + " valid target..." +s );
-     
-        
     }
+
+
 
 
     private refreshTestPlan() {
