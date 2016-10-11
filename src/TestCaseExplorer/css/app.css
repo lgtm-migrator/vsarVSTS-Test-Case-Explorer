@@ -4,6 +4,7 @@
     height: 100%;
 }
 
+
 #far-right-pane-pivot {
     display:none;
     width:150px;
@@ -14,10 +15,6 @@
     content: url('../img/Child-node-icon.png');
     
 }
-
-/*.ui-droppable .accept-drop-hover {
-    border:1px solid green;
-}*/
 
 
 .test-outcome-node-icon::before {

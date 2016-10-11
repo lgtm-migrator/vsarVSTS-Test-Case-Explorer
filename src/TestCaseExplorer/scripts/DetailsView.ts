@@ -23,6 +23,9 @@ import CtrlCombos = require("VSS/Controls/Combos");
 import Menus = require("VSS/Controls/Menus");
 import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import Navigation = require("VSS/Controls/Navigation");
+import TestContracts = require("TFS/TestManagement/Contracts");
+import Notifications = require("VSS/Controls/Notifications");
+
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import Common = require("scripts/Common");
@@ -30,7 +33,6 @@ import LeftTreeView = require("scripts/TreeViewView");
 import CloneTestSuite = require("scripts/CloneTestSuiteForm");
 import CloneTestPlan = require("scripts/CloneTestPlanForm");
 import Context = require("VSS/Context");
-import Notifications = require("VSS/Controls/Notifications");
 
 
 
@@ -280,6 +282,14 @@ class partOfTestSuitesPane implements IPaneRefresh {
     }
 }
 
+
+var msgOptions: Notifications.IMessageAreaControlOptions = {
+    type: Notifications.MessageAreaType.Info,
+    closeable: true,
+    expanded: false,
+    showIcon: true
+};
+
 class testPlanPane implements IPaneRefresh {
     private _cbo: CtrlCombos.Combo;
     private _testPlans;
@@ -293,12 +303,8 @@ class testPlanPane implements IPaneRefresh {
         this._view = view;
         var tpp = this;
 
-        var options: Notifications.IMessageAreaControlOptions = {
-            closeable: true,
-            expanded: false,
-            showIcon: true
-        };
-        this._message = Controls.create<Notifications.MessageAreaControl, Notifications.IMessageAreaControlOptions>(Notifications.MessageAreaControl, $("#message-container"), options);
+        
+        this._message = Controls.create<Notifications.MessageAreaControl, Notifications.IMessageAreaControlOptions>(Notifications.MessageAreaControl, $("#message-container"), msgOptions);
 
         var cboOptions: CtrlCombos.IComboOptions = {
             mode: "drop",
@@ -421,10 +427,13 @@ class testPlanPane implements IPaneRefresh {
 
     private droppableDrop(that: testPlanPane, event, ui) {
         var n: TreeView.TreeNode = that._treeView.getNodeFromElement(event.target);
+        console.log("Droped "); 
 
         if (that.acceptDropTest(n, ui)) {
             var action = ui.helper.data("MODE");  // TODO: rename to action
             var mode = that.getCurrentDragMode(event);
+            console.log(action); 
+            console.log(mode); 
 
             switch (action) {
                 case "TEST_SUITE":
@@ -585,6 +594,8 @@ class testPlanPane implements IPaneRefresh {
         console.log("target plan id: " + targetPlanId);
         console.log("target suite id: " + targetSuiteId);
 
+        this.ShowMsg(mode + " from " + sourcePlanId + ":" + sourceSuiteId + " to " + targetPlanId + ":" + targetSuiteId);
+
         switch (mode) {
             case "MOVE":
                 TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
@@ -615,9 +626,23 @@ class testPlanPane implements IPaneRefresh {
 
     private cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements) {
         var view = this;
+        view.ShowMsg("Cloning in progress");
         console.log("cloning test suite...");
         TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements).then(result => {
             view.refreshTestPlan();
+            setTimeout(function(){
+                TreeViewDataService.querryCloneOperationStatus(result.opId).then(cloneStat => {
+                    switch (cloneStat.state) {
+                        case TestContracts.CloneOperationState.Failed:
+                            view.ShowErr(cloneStat.message);
+                            break;
+                        case TestContracts.CloneOperationState.Succeeded:
+                            view.ShowDone();
+                            break;
+                    }
+                });
+
+            }, 3000);
         });
     }
 
@@ -674,6 +699,7 @@ class testPlanPane implements IPaneRefresh {
         console.log("target suite id: " + targetSuiteId);
         console.log("ids: " + tcIds.join(","));
 
+        this.ShowMsg(mode + " from " + sourcePlanId+":" + sourceSuiteId + " to " + targetPlanId + ":"+ targetSuiteId);
         switch (mode) {
             case "MOVE":
                 TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
@@ -681,7 +707,12 @@ class testPlanPane implements IPaneRefresh {
                         TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(
                             result => {
                                 that._view.refreshTestCaseView();
-                            });
+                                that.ShowDone();
+                            },
+                            err => {
+                                that.ShowErr("Failed" + err.message);
+                            }
+                        );
                     }
                 );
                 break;
@@ -689,6 +720,10 @@ class testPlanPane implements IPaneRefresh {
                 TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
                     result => {
                         that._view.refreshTestCaseView();
+                        that.ShowDone();
+                    },
+                    err => {
+                        that.ShowErr("Failed" + err.message);
                     });
                 break;
         }
@@ -702,6 +737,28 @@ class testPlanPane implements IPaneRefresh {
     public hide() {
         $("#details-TestPlan").css("display", "none");
     }
+
+    public ShowMsg(msg: string) {
+        $("#message-container").show();
+        this._message.initializeOptions(msgOptions);
+        this._message.setMessage(msg);
+    }
+    public ShowDone() {
+        var view = this;
+        setTimeout(() => { view.HideMsg(); }, 3000);
+    } 
+    public ShowErr(msg) {
+        var view = this;
+        this._message.setError(msg);
+    } 
+
+
+    public HideMsg() {
+        $("#message-container").hide();
+        this._message.clear();
+    }
+
+
 
     public masterIdChanged(id: string) {
         TelemetryClient.getClient().trackPageView("Details.TestPlans");

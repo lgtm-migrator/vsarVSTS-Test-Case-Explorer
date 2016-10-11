@@ -347,6 +347,15 @@ export function cloneTestPlan(sourcePlanId: number, sourceSuiteIds: number[], te
     return deferred.promise();
 }
 
+export function querryCloneOperationStatus(operationId: number): IPromise<TestContracts.CloneOperationInformation> {
+    var testCaseClient = TestClient.getClient();
+
+    var teamProjectName = VSS.getWebContext().project.name;
+
+    return testCaseClient.getCloneInformation(teamProjectName, operationId);
+}
+
+
 export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targetPlanId: number, targetSuiteId: number, cloneChildSuites: boolean, cloneRequirements: boolean): IPromise<TestContracts.CloneOperationInformation> {
     var deferred = $.Deferred<TestContracts.CloneOperationInformation>();
     var testCaseClient = TestClient.getClient();

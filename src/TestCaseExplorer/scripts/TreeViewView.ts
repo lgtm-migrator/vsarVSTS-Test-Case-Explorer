@@ -316,7 +316,7 @@ export class TreeviewView {
                 treeview._setNodeExpansion(n, elem, true);
             });
 
-            $("li.node").droppable({
+            $("#treeview-container > li.node").droppable({
                 scope: "test-case-scope",
                 greedy: true,
                 tolerance: "pointer",

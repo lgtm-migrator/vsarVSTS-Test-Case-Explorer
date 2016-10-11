@@ -13,6 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI", "scripts/Common"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI, Common) {
+    "use strict";
     var constAllTestPlanName = "--- All Test plans ----";
     var TreeviewView = (function () {
         function TreeviewView() {
@@ -240,7 +241,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     var elem = treeview._getNodeElement(n);
                     treeview._setNodeExpansion(n, elem, true);
                 });
-                $("li.node").droppable({
+                $("#treeview-container > li.node").droppable({
                     scope: "test-case-scope",
                     greedy: true,
                     tolerance: "pointer",
@@ -366,7 +367,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             }
         };
         return TreeviewView;
-    })();
+    }());
     exports.TreeviewView = TreeviewView;
     function ExpandTree(tree, nodeExpansion) {
         UtilsUI.walkTree.call(tree.rootNode, function (n) {

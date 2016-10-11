@@ -280,6 +280,12 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return deferred.promise();
     }
     exports.cloneTestPlan = cloneTestPlan;
+    function querryCloneOperationStatus(operationId) {
+        var testCaseClient = TestClient.getClient();
+        var teamProjectName = VSS.getWebContext().project.name;
+        return testCaseClient.getCloneInformation(teamProjectName, operationId);
+    }
+    exports.querryCloneOperationStatus = querryCloneOperationStatus;
     function cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements) {
         var deferred = $.Deferred();
         var testCaseClient = TestClient.getClient();
