@@ -8,9 +8,12 @@
     "requirejs": "^2.3.1",
     "tfx-cli": "^0.3.30",
     "tsd": "^0.6.5",
-    "vss-web-extension-sdk": "^1.104.0"
+    "vss-web-extension-sdk": "^1.106.0"
   },
   "name": "",
   "private": true,
-  "version": "0.0.0"
+  "version": "0.0.0",
+  "dependencies": {
+    "@types/glob": "^5.0.30"
+  }
 }
