@@ -203,13 +203,15 @@ function BuildTestSuiteTree(tsList: any[], parentNode: TreeView.TreeNode, allTS:
             node.text += " (" + t.testCaseCount + ")";
         }
         node.droppable = true
+        node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt(t.plan.id) };
         if (t.parent != null) {
             node.icon = getIconFromSuiteType(t.suiteType);
+            node.config.type = "TestSuite";
         }
         else {
             node.icon = "icon-testplan";
+            node.config.type = "TestPlan";
         }
-        node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt(t.plan.id) };
         BuildTestSuiteTree(allTS.filter(function (i) { return i.parent != null && i.parent.id == t.id }), node, allTS);
 
         if (parentNode != null) {
@@ -535,6 +537,22 @@ export function removeTestSuite(planId: number, suiteId: number): IPromise<void>
 
     var tstClient = TestClient.getClient();
     tstClient.deleteTestSuite(VSS.getWebContext().project.name, planId, suiteId).then(
+        data => {
+            deferred.resolve(data);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
+    return deferred.promise();
+}
+
+export function removeTestPlan(planId: number): IPromise<void> {
+    var deferred = $.Deferred<void>();
+
+    var tstClient = TestClient.getClient();
+    tstClient.deleteTestPlan(VSS.getWebContext().project.name, planId).then(
         data => {
             deferred.resolve(data);
         },

@@ -167,13 +167,15 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 node.text += " (" + t.testCaseCount + ")";
             }
             node.droppable = true;
+            node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt(t.plan.id) };
             if (t.parent != null) {
                 node.icon = getIconFromSuiteType(t.suiteType);
+                node.config.type = "TestSuite";
             }
             else {
                 node.icon = "icon-testplan";
+                node.config.type = "TestPlan";
             }
-            node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt(t.plan.id) };
             BuildTestSuiteTree(allTS.filter(function (i) { return i.parent != null && i.parent.id == t.id; }), node, allTS);
             if (parentNode != null) {
                 parentNode.children.push(node);
@@ -432,6 +434,17 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return deferred.promise();
     }
     exports.removeTestSuite = removeTestSuite;
+    function removeTestPlan(planId) {
+        var deferred = $.Deferred();
+        var tstClient = TestClient.getClient();
+        tstClient.deleteTestPlan(VSS.getWebContext().project.name, planId).then(function (data) {
+            deferred.resolve(data);
+        }, function (err) {
+            deferred.reject(err);
+        });
+        return deferred.promise();
+    }
+    exports.removeTestPlan = removeTestPlan;
     function addTestCasesToSuite(planId, suiteId, testCaseIds) {
         var deferred = $.Deferred();
         var tstClient = TestClient.getClient();
