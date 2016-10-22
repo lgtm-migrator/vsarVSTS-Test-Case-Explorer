@@ -169,6 +169,9 @@ export function getToolbarIcon(name): string {
         case "open-testcase":
             icon = isHosted ? "bowtie-arrow-open" : "icon-open";
             break;
+        case "clone-testplan":
+            icon = isHosted ? "bowtie-edit-copy" : "edit-copy";
+            break;
         case "remove-testcase":
             icon = isHosted ? "bowtie-edit-delete" : "icon-delete";
             break;

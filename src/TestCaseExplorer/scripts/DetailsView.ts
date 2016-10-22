@@ -31,10 +31,8 @@ import TreeViewDataService = require("scripts/TreeViewDataService");
 import Common = require("scripts/Common");
 import LeftTreeView = require("scripts/TreeViewView");
 import CloneTestSuite = require("scripts/CloneTestSuiteForm");
-import CloneTestPlan = require("scripts/CloneTestPlanForm");
+//import CloneTestPlan = require("scripts/CloneTestPlanForm");
 import Context = require("VSS/Context");
-
-
 
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
@@ -375,7 +373,7 @@ class testPlanPane implements IPaneRefresh {
 
         var treeView = this._treeView;
         var leftTreeView = this._view._leftTreeView;
-
+        /*
         $("#detailPanels").droppable({
             scope: "test-case-scope",
             greedy: true,
@@ -423,6 +421,7 @@ class testPlanPane implements IPaneRefresh {
             },
             hoverClass:"accept-drop-hover"
         });
+        */
     }
 
     private droppableDrop(that: testPlanPane, event, ui) {
@@ -647,7 +646,6 @@ class testPlanPane implements IPaneRefresh {
     }
 
     private showCloneTestSuite(view: testPlanPane, sourcePlanName: string, sourcePlanId: number, sourceSuiteId: number, targetPlanName: string, targetPlanId: number, targetSuiteId: number) {
-
 
         var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
         if (!isHosted) {

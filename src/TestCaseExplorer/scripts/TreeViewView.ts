@@ -25,6 +25,8 @@ import TreeViewDataService = require("scripts/TreeViewDataService");
 import UtilsUI = require("VSS/Utils/UI");
 import Q = require("q");
 import Common = require("scripts/Common");
+import Context = require("VSS/Context");
+import CloneTestPlan = require("scripts/CloneTestPlanForm");
 
 export interface TreeviewSelectedCallback { (type: string, value: string, showRecursive: boolean): void }
 
@@ -70,6 +72,7 @@ export class TreeviewView {
                 if (view._currentNode != null) {
                     view.RefreshGrid();
                 }
+                view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
             }
         };
 
@@ -154,6 +157,53 @@ export class TreeviewView {
         window.parent.location.href = url + project + "/_testManagement?planId=" + planId + "&suiteId=" + suiteId;
     }
 
+    private showNotification(message: String) {
+                //this._message.setMessage(message + " is being cloned, you need to refresh to see the completed result.", Notifications.MessageAreaType.Info);
+    }
+
+    private cloneTestPlan() {
+        var that = this;
+
+        var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
+        if (!isHosted) {
+            alert("The clone operations are currently only supported in Visual Studio Team Services.");
+            return;
+        }
+
+        //var draggedNode: TreeView.TreeNode = that._treeview.getNodeFromElement(ui.draggable);
+        var sourcePlanName: string = that._currentNode.config.name;
+
+        VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
+
+            var cloneTestPlanForm: CloneTestPlan.CloneTestPlanForm;
+            var extensionCtx = VSS.getExtensionContext();
+            var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".clone-testplan-form";
+
+            var dialogOptions = {
+                title: "Clone Test Plan",
+                width: 600,
+                height: 250,
+                okText: "Clone",
+                getDialogResult: function () {
+                    return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
+                },
+                okCallback: function (result: CloneTestPlan.IFormInput) {
+                    //var draggedNode: TreeView.TreeNode = that._treeview.getNodeFromElement(ui.draggable);
+                    TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath);
+                    that.showNotification("Test plan " + result.newTestPlanName);
+                }
+            };
+
+            dialogService.openDialog(contributionId, dialogOptions).then(dialog => {
+                dialog.getContributionInstance("clone-testplan-form").then(function (cloneTestPlanFormInstance: CloneTestPlan.CloneTestPlanForm) {
+                    cloneTestPlanForm = cloneTestPlanFormInstance;
+                    cloneTestPlanForm.init(sourcePlanName);
+                    dialog.updateOkButton(true);
+                });
+            });
+        });
+    }
+
     private removePlanOrSuite() {
         var that = this;
         if (this._currentNode.config.type == "TestPlan") {
@@ -202,6 +252,7 @@ export class TreeviewView {
             { id: "expand-all", showText: false, title: "Expand all", icon: Common.getToolbarIcon("expand-all"), cssClass: Common.getToolbarCss() },
             { id: "collapse-all", showText: false, title: "Collapse all", icon: Common.getToolbarIcon("collapse-all"), cssClass: Common.getToolbarCss() },
             { id: "open-testsuite", showText: false, title: "Jump to test plan hub", icon: Common.getToolbarIcon("open-testsuite"), cssClass: Common.getToolbarCss() },
+            { id: "clone-testplan", showText: false, title: "Clone test plan", icon: Common.getToolbarIcon("clone-testplan"), cssClass: Common.getToolbarCss() },
             { id: "remove", showText: false, title: "Delete", icon: Common.getToolbarIcon("remove"), cssClass: Common.getToolbarCss() },
             { id: "refresh", showText: false, title: "Refresh treeview", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
@@ -224,6 +275,9 @@ export class TreeviewView {
                         break;
                     case "open-testsuite":
                         view.openTestSuite();
+                        break;
+                    case "clone-testplan":
+                        view.cloneTestPlan();
                         break;
                     case "remove":
                         view.removePlanOrSuite();
@@ -290,6 +344,10 @@ export class TreeviewView {
         var hideOpenSuite = (view._currentSource == "Test plan") ? false : true;
         this._menubar.updateCommandStates([{ id: "open-testsuite", hidden: hideOpenSuite }]);
 
+        var hideClone = (view._currentSource == "Test plan") ? false : true;
+        this._menubar.updateCommandStates([{ id: "clone-testplan", hidden: hideClone }]);
+        view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: true }]);
+
         var tp = null;
         if (this._currentTestPlan !== constAllTestPlanName) {
             tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
@@ -308,6 +366,7 @@ export class TreeviewView {
                 if (n.children[0].hasChildren) {
                     treeview.setSelectedNode(n.children[0].children[0]);
                     view._currentNode = n.children[0].children[0];
+                    view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
                 }
             }
             else {
@@ -396,7 +455,7 @@ export class TreeviewView {
                         return $dragTile;
                     }
                 });
-            }
+            } 
 
             deferred.resolve(data);
         });
