@@ -362,8 +362,7 @@ export class TreeviewView {
         this._menubar.updateCommandStates([{ id: "open-testsuite", hidden: hideOpenSuite }]);
 
         var hideClone = (view._currentSource == "Test plan") ? false : true;
-        this._menubar.updateCommandStates([{ id: "clone-testplan", hidden: hideClone }]);
-        view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: true }]);
+        view._menubar.updateCommandStates([{ id: "clone-testplan", hidden: hideClone, disabled: true }]);
 
         var tp = null;
         if (this._currentTestPlan !== constAllTestPlanName) {

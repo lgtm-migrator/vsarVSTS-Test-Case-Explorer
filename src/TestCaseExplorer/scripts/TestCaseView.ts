@@ -502,7 +502,12 @@ export class TestCaseView {
             }
 
             view._menubar.updateCommandStates([{ id: "open-testcase", disabled: (view._selectedRows.length != 1) }]);
-            view._menubar.updateCommandStates([{ id: "remove-testcase", disabled: (view._selectedRows.length == 0) }]);
+            if (that._selectedPivot != "Test plan") {
+                view._menubar.updateCommandStates([{ id: "remove-testcase", hidden: true }]);
+            }
+            else {
+                view._menubar.updateCommandStates([{ id: "remove-testcase", disabled: (view._selectedRows.length == 0) }]);
+            }
             selectCallBack(id);
         });
     }
