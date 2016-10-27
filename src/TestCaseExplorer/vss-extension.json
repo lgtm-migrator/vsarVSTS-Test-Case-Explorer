@@ -77,7 +77,7 @@
         "ms.vss-test-web.test-hub-group"
       ],
       "properties": {
-        "name": "Test cases",
+        "name": "Test Cases",
         "order": 100,
         "uri": "index.html"
       }
