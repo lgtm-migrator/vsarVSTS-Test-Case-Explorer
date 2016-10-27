@@ -87,7 +87,7 @@ export class DetailsView {
             });
         });
         Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
-            behavior: "dropdown",
+            behavior: "button",
             text: "Position",
             items: [
                 { id: "right", text: "Right", selected: true },
