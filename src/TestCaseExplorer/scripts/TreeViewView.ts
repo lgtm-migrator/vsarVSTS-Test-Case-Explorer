@@ -429,24 +429,24 @@ export class TreeviewView {
                 //    var text = $(this).text;
                 //    return true;
                 //},
-                //over: function (e, ui) {
-                //    var target: any = e.target;
-                //    console.log("over " + target.title);
+                over: function (e, ui) {
+                    var target: any = e.target;
+                    console.log("over " + target.title);
 
-                //    var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
+                    //var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
                     //if (n.type == "Static suite") {
                     //    $(e.target).addClass("drag-hover");
                     //}
                     //else {
                     //    $(e.target).addClass("drag-hover-invalid");
                     //}
-                //},
-                //out: function (e, ui) {
-                //    var target: any = e.target;
-                //    console.log("out " + target.title);
+                },
+                out: function (e, ui) {
+                    var target: any = e.target;
+                    console.log("out " + target.title);
 
-                //    //$(e.target).removeClass("drag-hover drag-hover-invalid");
-                //},
+                    //$(e.target).removeClass("drag-hover drag-hover-invalid");
+                },
                 drop: function (event: any, ui) {
 
                     var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);

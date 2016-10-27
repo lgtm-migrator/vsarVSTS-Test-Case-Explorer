@@ -340,22 +340,22 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     //    var text = $(this).text;
                     //    return true;
                     //},
-                    //over: function (e, ui) {
-                    //    var target: any = e.target;
-                    //    console.log("over " + target.title);
-                    //    var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
-                    //if (n.type == "Static suite") {
-                    //    $(e.target).addClass("drag-hover");
-                    //}
-                    //else {
-                    //    $(e.target).addClass("drag-hover-invalid");
-                    //}
-                    //},
-                    //out: function (e, ui) {
-                    //    var target: any = e.target;
-                    //    console.log("out " + target.title);
-                    //    //$(e.target).removeClass("drag-hover drag-hover-invalid");
-                    //},
+                    over: function (e, ui) {
+                        var target = e.target;
+                        console.log("over " + target.title);
+                        //var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
+                        //if (n.type == "Static suite") {
+                        //    $(e.target).addClass("drag-hover");
+                        //}
+                        //else {
+                        //    $(e.target).addClass("drag-hover-invalid");
+                        //}
+                    },
+                    out: function (e, ui) {
+                        var target = e.target;
+                        console.log("out " + target.title);
+                        //$(e.target).removeClass("drag-hover drag-hover-invalid");
+                    },
                     drop: function (event, ui) {
                         var n = treeview.getNodeFromElement(event.target);
                         var action = ui.helper.data("MODE"); // TODO: rename to action
