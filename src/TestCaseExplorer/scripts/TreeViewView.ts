@@ -94,7 +94,7 @@ export class TreeviewView {
                 view._currentSource = selectedPivot;
                 view.ToggleTestPlanSelectionArea()
                 view._cboSource.setText(selectedPivot);
-                view.LoadTreeview(view._cboSource.getText(), treeview);
+                view.LoadTreeview(view._cboSource.getText(), treeview, 0);
             })
         });
     }
@@ -109,7 +109,7 @@ export class TreeviewView {
             change:function () {
                 view._currentSource = cbo.getText();
                 view.ToggleTestPlanSelectionArea()
-                view.refreshTreeView();
+                view.refreshTreeView(false);
             }
         };
         var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-pivot-Cbo-container "), cboOptions);
@@ -125,7 +125,7 @@ export class TreeviewView {
             allowEdit: false,
             change: function() {
                 view._currentTestPlan = view._cboTestPlan.getText();
-                view.refreshTreeView();
+                view.refreshTreeView(false);
             }
         };
 
@@ -209,14 +209,14 @@ export class TreeviewView {
         if (this._currentNode.config.type == "TestPlan") {
             if (confirm("Are you sure you want to delete test plan " + this._currentNode.text + "?")) {
                 TreeViewDataService.removeTestPlan(this._currentNode.config.testPlanId).then(result => {
-                    that.refreshTreeView();
+                    that.refreshTreeView(false);
                 });
             }
         }
         else {
             if (confirm("Are you sure you want to delete test suite " + this._currentNode.text + "?")) {
                 TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId).then(result => {
-                    that.refreshTreeView();
+                    that.refreshTreeView(false);
                 });
             }
         }
@@ -231,12 +231,29 @@ export class TreeviewView {
         }
     }
 
-    public refreshTreeView() {
+    private getTreeviewNode(node: TreeView.TreeNode, id) {
+        if (node.id == id) return node;
+        else if (node.children != null) {
+            var i = 0;
+            var result = null;
+            for (i = 0; result == null && i < node.children.length; i++) {
+                result = this.getTreeviewNode(node.children[i], id);
+            } 
+            return result;
+        }
+        return null;
+    }
+
+    public refreshTreeView(keepState: boolean) {
         this.StartLoading(true, "Loading pivot data");
         TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
-        
-        this.LoadTreeview(this._currentSource, this._treeview).then(a => {
-            this.DoneLoading()
+
+        var id = 0;
+        if (keepState && this._treeview.getSelectedNode() != null) {
+            id = this._treeview.getSelectedNode().id;
+        }
+        this.LoadTreeview(this._currentSource, this._treeview, id).then(a => {
+            this.DoneLoading();
         });
 
         VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
@@ -283,7 +300,7 @@ export class TreeviewView {
                         view.removePlanOrSuite();
                         break;
                     case "refresh":
-                        view.refreshTreeView();
+                        view.refreshTreeView(true);
                         break;
                     default:
                         alert("Unhandled action: " + command);
@@ -331,7 +348,7 @@ export class TreeviewView {
         }
     }
 
-    public LoadTreeview(pivot: string, treeview: TreeView.TreeView): IPromise<any> {
+    public LoadTreeview(pivot: string, treeview: TreeView.TreeView, selectedNodeId: Number): IPromise<any> {
         var deferred = $.Deferred<any>();
         var view = this;
 
@@ -361,7 +378,9 @@ export class TreeviewView {
             var n = treeview.rootNode;
 
             //Empty other panes 
-            var selectedIndex = (view._currentSource == "Test plan") ? 1 : 0;
+            //var selectedIndex = (view._currentSource == "Test plan") ? 1 : 0;
+
+            /*
             if (view._currentSource == "Test plan") {
                 if (n.children[0].hasChildren) {
                     treeview.setSelectedNode(n.children[0].children[0]);
@@ -373,9 +392,26 @@ export class TreeviewView {
                 treeview.setSelectedNode(n.children[0]);
                 view._currentNode = n.children[0];
             }
+            */
+
+            var selectedNode = n.children[0];
+
+            if (selectedNodeId != 0) {
+                selectedNode = view.getTreeviewNode(n, selectedNodeId);
+            }
+            if (selectedNode != null) {
+                treeview.setSelectedNode(selectedNode);
+                view._currentNode = selectedNode;
+                selectedNode.selected = true;
+                selectedNode.expanded = true;
+                if (view._currentSource == "Test plan") {
+                    view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
+                }
+            }
 
             view.RefreshGrid();
 
+            n.expanded = true;
             var elem = treeview._getNodeElement(n);
             treeview._setNodeExpansion(n, elem, true);
 
@@ -384,33 +420,34 @@ export class TreeviewView {
                 treeview._setNodeExpansion(n, elem, true);
             });
 
-            $("#treeview-container > li.node").droppable({
+            //$("#treeview-container > li.node").droppable({
+            $("li.node").droppable({
                 scope: "test-case-scope",
                 greedy: true,
                 tolerance: "pointer",
-                accept: function (d) {
-                    var t = this;
-                    var text = $(this).text;
-                    return true;
-                },
-                over: function (e, ui) {
-                    var target: any = e.target;
-                    console.log("over " + target.title);
+                //accept: function (d) {
+                //    var t = this;
+                //    var text = $(this).text;
+                //    return true;
+                //},
+                //over: function (e, ui) {
+                //    var target: any = e.target;
+                //    console.log("over " + target.title);
 
-                    var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
+                //    var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
                     //if (n.type == "Static suite") {
                     //    $(e.target).addClass("drag-hover");
                     //}
                     //else {
                     //    $(e.target).addClass("drag-hover-invalid");
                     //}
-                },
-                out: function (e, ui) {
-                    var target: any = e.target;
-                    console.log("out " + target.title);
+                //},
+                //out: function (e, ui) {
+                //    var target: any = e.target;
+                //    console.log("out " + target.title);
 
-                    //$(e.target).removeClass("drag-hover drag-hover-invalid");
-                },
+                //    //$(e.target).removeClass("drag-hover drag-hover-invalid");
+                //},
                 drop: function (event: any, ui) {
 
                     var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
@@ -428,6 +465,7 @@ export class TreeviewView {
                     }
                 }
             });
+
             if (view._currentSource == "Test plan"){ 
                 $("li.node").draggable({
                     distance: 10,

@@ -56,7 +56,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     view._currentSource = selectedPivot;
                     view.ToggleTestPlanSelectionArea();
                     view._cboSource.setText(selectedPivot);
-                    view.LoadTreeview(view._cboSource.getText(), treeview);
+                    view.LoadTreeview(view._cboSource.getText(), treeview, 0);
                 });
             });
         };
@@ -69,7 +69,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 change: function () {
                     view._currentSource = cbo.getText();
                     view.ToggleTestPlanSelectionArea();
-                    view.refreshTreeView();
+                    view.refreshTreeView(false);
                 }
             };
             var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-pivot-Cbo-container "), cboOptions);
@@ -82,7 +82,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 allowEdit: false,
                 change: function () {
                     view._currentTestPlan = view._cboTestPlan.getText();
-                    view.refreshTreeView();
+                    view.refreshTreeView(false);
                 }
             };
             var cboTestPlan = Controls.create(CtrlCombos.Combo, $("#left-cboTestPlan"), cboOTestPlanptions);
@@ -149,14 +149,14 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             if (this._currentNode.config.type == "TestPlan") {
                 if (confirm("Are you sure you want to delete test plan " + this._currentNode.text + "?")) {
                     TreeViewDataService.removeTestPlan(this._currentNode.config.testPlanId).then(function (result) {
-                        that.refreshTreeView();
+                        that.refreshTreeView(false);
                     });
                 }
             }
             else {
                 if (confirm("Are you sure you want to delete test suite " + this._currentNode.text + "?")) {
                     TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId).then(function (result) {
-                        that.refreshTreeView();
+                        that.refreshTreeView(false);
                     });
                 }
             }
@@ -169,11 +169,28 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 $("#left-cboTestPlan-container").hide();
             }
         };
-        TreeviewView.prototype.refreshTreeView = function () {
+        TreeviewView.prototype.getTreeviewNode = function (node, id) {
+            if (node.id == id)
+                return node;
+            else if (node.children != null) {
+                var i = 0;
+                var result = null;
+                for (i = 0; result == null && i < node.children.length; i++) {
+                    result = this.getTreeviewNode(node.children[i], id);
+                }
+                return result;
+            }
+            return null;
+        };
+        TreeviewView.prototype.refreshTreeView = function (keepState) {
             var _this = this;
             this.StartLoading(true, "Loading pivot data");
             TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
-            this.LoadTreeview(this._currentSource, this._treeview).then(function (a) {
+            var id = 0;
+            if (keepState && this._treeview.getSelectedNode() != null) {
+                id = this._treeview.getSelectedNode().id;
+            }
+            this.LoadTreeview(this._currentSource, this._treeview, id).then(function (a) {
                 _this.DoneLoading();
             });
             VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
@@ -217,7 +234,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             view.removePlanOrSuite();
                             break;
                         case "refresh":
-                            view.refreshTreeView();
+                            view.refreshTreeView(true);
                             break;
                         default:
                             alert("Unhandled action: " + command);
@@ -257,7 +274,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 this._waitControl = null;
             }
         };
-        TreeviewView.prototype.LoadTreeview = function (pivot, treeview) {
+        TreeviewView.prototype.LoadTreeview = function (pivot, treeview, selectedNodeId) {
             var deferred = $.Deferred();
             var view = this;
             var disableShowRecursive = (view._currentSource == "Priority" || view._currentSource == "State") ? true : false;
@@ -279,7 +296,8 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 treeview._draw();
                 var n = treeview.rootNode;
                 //Empty other panes 
-                var selectedIndex = (view._currentSource == "Test plan") ? 1 : 0;
+                //var selectedIndex = (view._currentSource == "Test plan") ? 1 : 0;
+                /*
                 if (view._currentSource == "Test plan") {
                     if (n.children[0].hasChildren) {
                         treeview.setSelectedNode(n.children[0].children[0]);
@@ -291,38 +309,54 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     treeview.setSelectedNode(n.children[0]);
                     view._currentNode = n.children[0];
                 }
+                */
+                var selectedNode = n.children[0];
+                if (selectedNodeId != 0) {
+                    selectedNode = view.getTreeviewNode(n, selectedNodeId);
+                }
+                if (selectedNode != null) {
+                    treeview.setSelectedNode(selectedNode);
+                    view._currentNode = selectedNode;
+                    selectedNode.selected = true;
+                    selectedNode.expanded = true;
+                    if (view._currentSource == "Test plan") {
+                        view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
+                    }
+                }
                 view.RefreshGrid();
+                n.expanded = true;
                 var elem = treeview._getNodeElement(n);
                 treeview._setNodeExpansion(n, elem, true);
                 treeview.rootNode.children.forEach(function (n) {
                     var elem = treeview._getNodeElement(n);
                     treeview._setNodeExpansion(n, elem, true);
                 });
-                $("#treeview-container > li.node").droppable({
+                //$("#treeview-container > li.node").droppable({
+                $("li.node").droppable({
                     scope: "test-case-scope",
                     greedy: true,
                     tolerance: "pointer",
-                    accept: function (d) {
-                        var t = this;
-                        var text = $(this).text;
-                        return true;
-                    },
-                    over: function (e, ui) {
-                        var target = e.target;
-                        console.log("over " + target.title);
-                        var n = treeview.getNodeFromElement(e.target);
-                        //if (n.type == "Static suite") {
-                        //    $(e.target).addClass("drag-hover");
-                        //}
-                        //else {
-                        //    $(e.target).addClass("drag-hover-invalid");
-                        //}
-                    },
-                    out: function (e, ui) {
-                        var target = e.target;
-                        console.log("out " + target.title);
-                        //$(e.target).removeClass("drag-hover drag-hover-invalid");
-                    },
+                    //accept: function (d) {
+                    //    var t = this;
+                    //    var text = $(this).text;
+                    //    return true;
+                    //},
+                    //over: function (e, ui) {
+                    //    var target: any = e.target;
+                    //    console.log("over " + target.title);
+                    //    var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
+                    //if (n.type == "Static suite") {
+                    //    $(e.target).addClass("drag-hover");
+                    //}
+                    //else {
+                    //    $(e.target).addClass("drag-hover-invalid");
+                    //}
+                    //},
+                    //out: function (e, ui) {
+                    //    var target: any = e.target;
+                    //    console.log("out " + target.title);
+                    //    //$(e.target).removeClass("drag-hover drag-hover-invalid");
+                    //},
                     drop: function (event, ui) {
                         var n = treeview.getNodeFromElement(event.target);
                         var action = ui.helper.data("MODE"); // TODO: rename to action

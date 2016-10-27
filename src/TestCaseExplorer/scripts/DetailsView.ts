@@ -120,7 +120,7 @@ export class DetailsView {
     }
 
     public refreshLeftTree() {
-        this._leftTreeView.refreshTreeView()
+        this._leftTreeView.refreshTreeView(true)
     }
 
 

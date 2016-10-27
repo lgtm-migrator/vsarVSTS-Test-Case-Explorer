@@ -266,7 +266,7 @@ export class TestCaseView {
             var testCaseIds = this._selectedRows.map(i => { return i["System.Id"]; }).join(",");
             TreeViewDataService.removeTestCaseFromSuite(this._selectedValue.testPlanId, this._selectedValue.suiteId, testCaseIds).then(result => {
                 that.RefreshGrid(this._selectedPivot, this._selectedValue, this._showRecursive);
-                that._leftTreeView.refreshTreeView();
+                that._leftTreeView.refreshTreeView(true);
             });
         }
     }
