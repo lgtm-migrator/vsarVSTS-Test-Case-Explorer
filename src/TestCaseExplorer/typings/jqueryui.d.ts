@@ -1,12 +1,12 @@
-// Type definitions for jQueryUI 1.9
+﻿// Type definitions for jQueryUI 1.9
 // Project: http://jqueryui.com/
 // Definitions by: Boris Yankov <https://github.com/borisyankov/>, John Reilly <https://github.com/johnnyreilly>
-// Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+// Definitions: https://github.com/borisyankov/DefinitelyTyped
+
+/// <reference path='jquery/jquery.d.ts' />
 
 
-/// <reference path="../jquery/jquery.d.ts"/>
-
-declare namespace JQueryUI {
+declare module JQueryUI {
     // Accordion //////////////////////////////////////////////////
 
     interface AccordionOptions extends AccordionEvents {
@@ -49,7 +49,7 @@ declare namespace JQueryUI {
         delay?: number;
         disabled?: boolean;
         minLength?: number;
-        position?: any; // object
+        position?: string;
         source?: any; // [], string or ()
     }
 
@@ -77,7 +77,6 @@ declare namespace JQueryUI {
 
     interface Autocomplete extends Widget, AutocompleteOptions {
         escapeRegex: (value: string) => string;
-        filter: (array: any, term: string) => any;
     }
 
 
@@ -346,7 +345,6 @@ declare namespace JQueryUI {
         buttons?: { [buttonText: string]: (event?: Event) => void } | DialogButtonOptions[];
         closeOnEscape?: boolean;
         closeText?: string;
-        appendTo?: string;
         dialogClass?: string;
         disabled?: boolean;
         draggable?: boolean;
@@ -365,7 +363,6 @@ declare namespace JQueryUI {
         width?: any; // number or string
         zIndex?: number;
 
-		open?: DialogEvent;
         close?: DialogEvent;
     }
 
@@ -477,10 +474,9 @@ declare namespace JQueryUI {
     }
 
     interface DroppableOptions extends DroppableEvents {
+        disabled?: boolean;
         accept?: any;
         activeClass?: string;
-        addClasses?: boolean;
-        disabled?: boolean;
         greedy?: boolean;
         hoverClass?: string;
         scope?: string;
@@ -501,7 +497,7 @@ declare namespace JQueryUI {
 
     // Menu //////////////////////////////////////////////////
 
-    interface MenuOptions extends MenuEvents {
+    interface MenuOptions {
         disabled?: boolean;
         icons?: any;
         menus?: string;
@@ -510,7 +506,6 @@ declare namespace JQueryUI {
     }
 
     interface MenuUIParams {
-        item?: JQuery;
     }
 
     interface MenuEvent {
@@ -524,7 +519,7 @@ declare namespace JQueryUI {
         select?: MenuEvent;
     }
 
-    interface Menu extends Widget, MenuOptions {
+    interface Menu extends Widget, MenuOptions, MenuEvents {
     }
 
 
@@ -595,7 +590,6 @@ declare namespace JQueryUI {
         resize?: ResizableEvent;
         start?: ResizableEvent;
         stop?: ResizableEvent;
-        create?: ResizableEvents;
     }
 
     interface Resizable extends Widget, ResizableOptions {
@@ -615,12 +609,12 @@ declare namespace JQueryUI {
     }
 
     interface SelectableEvents {
-        selected? (event: Event, ui: { selected?: Element; }): void;
-        selecting? (event: Event, ui: { selecting?: Element; }): void;
-        start? (event: Event, ui: any): void;
-        stop? (event: Event, ui: any): void;
-        unselected? (event: Event, ui: { unselected: Element; }): void;
-        unselecting? (event: Event, ui: { unselecting: Element; }): void;
+        selected?(event: Event, ui: { selected?: Element; }): void;
+        selecting?(event: Event, ui: { selecting?: Element; }): void;
+        start?(event: Event, ui: any): void;
+        stop?(event: Event, ui: any): void;
+        unselected?(event: Event, ui: { unselected: Element; }): void;
+        unselecting?(event: Event, ui: { unselecting: Element; }): void;
     }
 
     interface Selectable extends Widget, SelectableOptions {
@@ -638,7 +632,6 @@ declare namespace JQueryUI {
         step?: number;
         value?: number;
         values?: number[];
-        highlight?: boolean;
     }
 
     interface SliderUIParams {
@@ -1705,7 +1698,7 @@ interface JQuery {
     sortable(methodName: string): JQuery;
     sortable(options: JQueryUI.SortableOptions): JQuery;
     sortable(optionLiteral: string, optionName: string): any;
-    sortable(methodName: 'serialize', options?: { key?: string; attribute?: string; expression?: RegExp }): string;
+    sortable(methodName: 'serialize', options: { key?: string; attribute?: string; expression?: RegExp }): string;
     sortable(optionLiteral: string, options: JQueryUI.SortableOptions): any;
     sortable(optionLiteral: string, optionName: string, optionValue: any): JQuery;
 
@@ -1795,7 +1788,7 @@ interface JQuery {
     uniqueId(): JQuery;
     removeUniqueId(): JQuery;
     scrollParent(): JQuery;
-    zIndex(): number;
+    zIndex(): JQuery;
     zIndex(zIndex: number): JQuery;
 
     widget: JQueryUI.Widget;
@@ -1810,35 +1803,3 @@ interface JQueryStatic {
     Widget: JQueryUI.Widget;
 }
 
-interface JQueryEasingFunctions {
-    easeInQuad: JQueryEasingFunction;
-    easeOutQuad: JQueryEasingFunction;
-    easeInOutQuad: JQueryEasingFunction;
-    easeInCubic: JQueryEasingFunction;
-    easeOutCubic: JQueryEasingFunction;
-    easeInOutCubic: JQueryEasingFunction;
-    easeInQuart: JQueryEasingFunction;
-    easeOutQuart: JQueryEasingFunction;
-    easeInOutQuart: JQueryEasingFunction;
-    easeInQuint: JQueryEasingFunction;
-    easeOutQuint: JQueryEasingFunction;
-    easeInOutQuint: JQueryEasingFunction;
-    easeInExpo: JQueryEasingFunction;
-    easeOutExpo: JQueryEasingFunction;
-    easeInOutExpo: JQueryEasingFunction;
-    easeInSine: JQueryEasingFunction;
-    easeOutSine: JQueryEasingFunction;
-    easeInOutSine: JQueryEasingFunction;
-    easeInCirc: JQueryEasingFunction;
-    easeOutCirc: JQueryEasingFunction;
-    easeInOutCirc: JQueryEasingFunction;
-    easeInElastic: JQueryEasingFunction;
-    easeOutElastic: JQueryEasingFunction;
-    easeInOutElastic: JQueryEasingFunction;
-    easeInBack: JQueryEasingFunction;
-    easeOutBack: JQueryEasingFunction;
-    easeInOutBack: JQueryEasingFunction;
-    easeInBounce: JQueryEasingFunction;
-    easeOutBounce: JQueryEasingFunction;
-    easeInOutBounce: JQueryEasingFunction;
-}

@@ -13,8 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path="ai.0.22.19-build00125.d.ts" />
-
+/// <reference path='../typings/tsd.d.ts' />
 class TelemetryClient {
 
     private static telemetryClient: TelemetryClient;

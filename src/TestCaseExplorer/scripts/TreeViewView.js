@@ -13,7 +13,6 @@
 // </summary>
 //---------------------------------------------------------------------
 define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI", "scripts/Common", "VSS/Context"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI, Common, Context) {
-    "use strict";
     var constAllTestPlanName = "--- All Test plans ----";
     var TreeviewView = (function () {
         function TreeviewView() {
@@ -457,7 +456,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             }
         };
         return TreeviewView;
-    }());
+    })();
     exports.TreeviewView = TreeviewView;
     function ExpandTree(tree, nodeExpansion) {
         UtilsUI.walkTree.call(tree.rootNode, function (n) {
