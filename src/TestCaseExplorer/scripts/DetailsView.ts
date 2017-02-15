@@ -14,7 +14,6 @@
 //---------------------------------------------------------------------
 
 /// <reference path='../typings/tsd.d.ts' />
-/// <reference path="telemetryclient.ts" />
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
@@ -26,13 +25,16 @@ import Navigation = require("VSS/Controls/Navigation");
 import TestContracts = require("TFS/TestManagement/Contracts");
 import Notifications = require("VSS/Controls/Notifications");
 
+import Context = require("VSS/Context");
+
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import Common = require("scripts/Common");
 import LeftTreeView = require("scripts/TreeViewView");
 import CloneTestSuite = require("scripts/CloneTestSuiteForm");
+import TelemetryClient = require("scripts/TelemetryClient");
 //import CloneTestPlan = require("scripts/CloneTestPlanForm");
-import Context = require("VSS/Context");
+
 
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
@@ -255,7 +257,7 @@ class partOfTestSuitesPane implements IPaneRefresh {
     }
 
     public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuite");
+        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.PartOfTestSuite");
         var pane = this;
         if (id == null) {
             pane._grid.setDataSource(null);
@@ -320,7 +322,7 @@ class testPlanPane implements IPaneRefresh {
             },
             err => {
                 console.log(err);
-                TelemetryClient.getClient().trackException(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
             }
         );
 
@@ -759,7 +761,7 @@ class testPlanPane implements IPaneRefresh {
 
 
     public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.TestPlans");
+        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.TestPlans");
     }
 }
 
@@ -816,7 +818,7 @@ class testResultsPane implements IPaneRefresh {
     }
 
     public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.TestResults");
+        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.TestResults");
         var pane = this;
         if (id == null) {
             pane._grid.setDataSource(null);
@@ -885,7 +887,7 @@ class linkedRequirementsPane implements IPaneRefresh {
     }
 
     public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.LinkedRequirements");
+        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.LinkedRequirements");
         var pane = this;
         pane._grid.setDataSource(null);
         if (id != null) {

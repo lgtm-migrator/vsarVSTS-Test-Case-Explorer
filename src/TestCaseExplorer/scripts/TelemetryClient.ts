@@ -14,7 +14,11 @@
 //---------------------------------------------------------------------
 
 /// <reference path='../typings/tsd.d.ts' />
-class TelemetryClient {
+
+import VSS_VSS = require("VSS/VSS");
+
+export class TelemetryClient implements VSS_VSS.errorPublisher {
+
 
     private static telemetryClient: TelemetryClient;
     public static getClient(): TelemetryClient {
@@ -30,6 +34,7 @@ class TelemetryClient {
     private appInsightsClient: Microsoft.ApplicationInsights.AppInsights;
 
     private Init() {
+        var self = this;
         try {
             var snippet: any = {
                 config: {
@@ -41,8 +46,14 @@ class TelemetryClient {
             var init = new Microsoft.ApplicationInsights.Initialization(snippet);
             this.appInsightsClient = init.loadAppInsights();
 
+
+            window.onerror = this.appInsightsClient._onerror;
+            VSS_VSS.errorHandler.attachErrorPublisher(self);
+
             var webContext = VSS.getWebContext();
             this.appInsightsClient.setAuthenticatedUserContext(webContext.user.id, webContext.collection.id);
+
+
         }
         catch (e) {
             this.appInsightsClient = null;
@@ -50,6 +61,17 @@ class TelemetryClient {
         }
     }
 
+    public publishError(err: TfsError): void {
+
+        var e:Error = new Error();
+        e.name = err.name;
+        e.message = err.message;
+        // e.stack = err.stack; How strange ?
+        
+
+        this.appInsightsClient.trackException(e)
+
+    }
     public startTrackPageView(name?: string) {
         try {
             if (this.appInsightsClient != null) {

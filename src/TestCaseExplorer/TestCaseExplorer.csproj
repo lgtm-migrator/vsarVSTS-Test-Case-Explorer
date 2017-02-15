@@ -59,8 +59,7 @@
     <Content Include="img\Short-Icon.png" />
     <Content Include="img\testPlan.png" />
     <Content Include="index.html" />
-    <Content Include="scripts\lib\ai.0.22.9-build00167.js" />
-    <Content Include="scripts\lib\ai.0.22.9-build00167.min.js" />
+    <Content Include="scripts\lib\ai.1.0.7.min.js" />
     <Content Include="scripts\lib\ai.js" />
     <Content Include="scripts\lib\jquery_2.1.4.min.js" />
     <Content Include="scripts\lib\q.js" />
@@ -84,7 +83,7 @@
     <TypeScriptCompile Include="scripts\TestCaseView.ts" />
     <TypeScriptCompile Include="scripts\TreeViewDataService.ts" />
     <TypeScriptCompile Include="scripts\TreeViewView.ts" />
-    <TypeScriptCompile Include="typings\ai.0.22.9-build00167.d.ts" />
+    <TypeScriptCompile Include="typings\ai.1.0.0-build00159.d.ts" />
     <TypeScriptCompile Include="typings\jasmine\jasmine.d.ts" />
     <TypeScriptCompile Include="typings\jqueryui.d.ts" />
     <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />

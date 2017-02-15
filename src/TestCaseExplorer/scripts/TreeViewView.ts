@@ -14,7 +14,6 @@
 //---------------------------------------------------------------------
 
 /// <reference path='../typings/tsd.d.ts' />
-/// <reference path="telemetryclient.ts" />
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
@@ -27,6 +26,9 @@ import Q = require("q");
 import Common = require("scripts/Common");
 import Context = require("VSS/Context");
 import CloneTestPlan = require("scripts/CloneTestPlanForm");
+
+
+import TelemetryClient = require("scripts/TelemetryClient");
 
 export interface TreeviewSelectedCallback { (type: string, value: string, showRecursive: boolean): void }
 
@@ -49,7 +51,7 @@ export class TreeviewView {
     public PivotSources: string[] = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
 
     public initialize(callback: TreeviewSelectedCallback) {
-        TelemetryClient.getClient().trackPageView("TreeView");
+        TelemetryClient.TelemetryClient.getClient().trackPageView("TreeView");
         var view = this;
         view._showRecursive = false;
         view._callback = callback;
@@ -142,7 +144,7 @@ export class TreeviewView {
             },
             err => {
                 console.log(err);
-                TelemetryClient.getClient().trackException(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
             }
         );
         
@@ -246,7 +248,7 @@ export class TreeviewView {
 
     public refreshTreeView(keepState: boolean) {
         this.StartLoading(true, "Loading pivot data");
-        TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
+        TelemetryClient.TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
 
         var id = 0;
         if (keepState && this._treeview.getSelectedNode() != null) {

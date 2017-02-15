@@ -12,14 +12,14 @@
 //    of the tree view (pivot).
 // </summary>
 //---------------------------------------------------------------------
-define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI", "scripts/Common", "VSS/Context"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI, Common, Context) {
+define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI", "scripts/Common", "VSS/Context", "scripts/TelemetryClient"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI, Common, Context, TelemetryClient) {
     var constAllTestPlanName = "--- All Test plans ----";
     var TreeviewView = (function () {
         function TreeviewView() {
             this.PivotSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
         }
         TreeviewView.prototype.initialize = function (callback) {
-            TelemetryClient.getClient().trackPageView("TreeView");
+            TelemetryClient.TelemetryClient.getClient().trackPageView("TreeView");
             var view = this;
             view._showRecursive = false;
             view._callback = callback;
@@ -93,7 +93,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 view._cboTestPlan.setSelectedIndex(0);
             }, function (err) {
                 console.log(err);
-                TelemetryClient.getClient().trackException(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
             });
             return cboTestPlan;
         };
@@ -184,7 +184,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         TreeviewView.prototype.refreshTreeView = function (keepState) {
             var _this = this;
             this.StartLoading(true, "Loading pivot data");
-            TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
+            TelemetryClient.TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
             var id = 0;
             if (keepState && this._treeview.getSelectedNode() != null) {
                 id = this._treeview.getSelectedNode().id;

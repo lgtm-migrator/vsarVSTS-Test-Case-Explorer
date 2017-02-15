@@ -14,7 +14,6 @@
 //---------------------------------------------------------------------
 
 /// <reference path='../typings/tsd.d.ts' />
-/// <reference path="telemetryclient.ts" />
 
 import Controls = require("VSS/Controls");
 import Grids = require("VSS/Controls/Grids");
@@ -35,6 +34,8 @@ import Common = require("scripts/Common");
 import ColumnOptionsView = require("scripts/ColumnsOptionsView");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import LeftTreeView = require("scripts/TreeViewView");
+
+import TelemetryClient = require("scripts/TelemetryClient");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
 
@@ -170,7 +171,7 @@ export class TestCaseView {
                 view.DoneLoading();
             },
             err=> {
-                TelemetryClient.getClient().trackException(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
                 console.log(err);
                 view.DoneLoading();
             }
@@ -184,7 +185,7 @@ export class TestCaseView {
         var view = this;
         this._leftTreeView = leftTreeView;
 
-        TelemetryClient.getClient().trackPageView("TestCaseView");
+        TelemetryClient.TelemetryClient.getClient().trackPageView("TestCaseView");
 
         this._paneToggler = paneToggler;
         this._fields = this._commonField;
@@ -376,7 +377,7 @@ export class TestCaseView {
     }
 
     private initFilter(view: TestCaseView) {
-        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
+        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
 
         Controls.create(Navigation.PivotFilter, $("#testCaseView-filter-container"), {
             behavior: "dropdown",
@@ -421,7 +422,7 @@ export class TestCaseView {
                         view.DoRefreshGrid(view._fields);
                     },
                     err=> {
-                        TelemetryClient.getClient().trackException(err);
+                        TelemetryClient.TelemetryClient.getClient().trackException(err);
                         console.log(err);
                     }
                 );
