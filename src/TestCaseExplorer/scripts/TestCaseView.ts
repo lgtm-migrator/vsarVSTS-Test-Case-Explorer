@@ -379,6 +379,8 @@ export class TestCaseView {
     private initFilter(view: TestCaseView) {
         TelemetryClient.TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
 
+        var self = this;
+
         Controls.create(Navigation.PivotFilter, $("#testCaseView-filter-container"), {
             behavior: "dropdown",
             text: "Filter",
@@ -395,7 +397,7 @@ export class TestCaseView {
                 var filterPromise: IPromise<TestCaseDataService.ITestCaseFilter>;
                 var filterMode: TestCaseDataService.filterMode;
                 var filterData: any;
-
+                self.StartLoading(true, "Applying filters");
                 switch (command) {
                     case "TC_WithOUT_Requirement":
                         filterPromise = view.getOrphanTestCaseFilter(TestCaseDataService.filterMode.Contains)
@@ -420,8 +422,10 @@ export class TestCaseView {
                     filter => {
                         view._currentFilter = filter;
                         view.DoRefreshGrid(view._fields);
+                        self.DoneLoading();
                     },
                     err=> {
+                        self.DoneLoading();
                         TelemetryClient.TelemetryClient.getClient().trackException(err);
                         console.log(err);
                     }
