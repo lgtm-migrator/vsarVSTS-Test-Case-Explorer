@@ -572,7 +572,7 @@ class testPlanPane implements IPaneRefresh {
     }
 
     private showNotification(message: String) {
-        this._message.setMessage(message + " is being cloned, you need to refresh to see the completed result.", Notifications.MessageAreaType.Info);
+        this._message.setMessage(message + " is being cloned! The operation can take some time...", Notifications.MessageAreaType.Info);
     }
 
     private processDropTestSuite(ui, n, mode) {
@@ -632,20 +632,31 @@ class testPlanPane implements IPaneRefresh {
 
     private cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements) {
         var view = this;
-        view.ShowMsg("Cloning in progress");
+        var s = "Cloning in progress"
+        view.ShowMsg(s);
         console.log("cloning test suite...");
         TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements).then(result => {
             view.refreshTestPlan();
-            setTimeout(function(){
+
+            setTimeout(function () {
+                s = s + "...";
+                console.log("   checking status of clone operation " + result.opId);
+                view.ShowMsg(s);
+
                 TreeViewDataService.querryCloneOperationStatus(result.opId).then(cloneStat => {
                     switch (cloneStat.state) {
                         case TestContracts.CloneOperationState.Failed:
                             view.ShowErr(cloneStat.message);
                             break;
                         case TestContracts.CloneOperationState.Succeeded:
+                            view.ShowMsg("Cloning completed")
                             view.ShowDone();
                             break;
+                        default:
+                            console.log("   checking status of clone operation = " + cloneStat.state);
+                            console.log(cloneStat);
                     }
+
                 });
 
             }, 3000);
