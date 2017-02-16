@@ -340,8 +340,9 @@ class testPlanPane implements IPaneRefresh {
                 over: function (event, ui) {
                     that.droppableOver($(this), event, ui);
                 }
-             
-            })            
+           
+            }),
+            
         };
 
         var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
@@ -595,7 +596,7 @@ class testPlanPane implements IPaneRefresh {
         console.log("target plan id: " + targetPlanId);
         console.log("target suite id: " + targetSuiteId);
 
-        view.ShowMsg(mode + " from " + sourcePlanId + ":" + sourceSuiteId + " to " + targetPlanId + ":" + targetSuiteId + " please wait while operation completes");
+        view.ShowMsg(mode + " test suite from " + sourcePlanName + ":" + sourceSuiteId + " to " + targetPlanName + ":" + targetSuiteId + " please wait while operation completes");
 
         switch (mode) {
             case "MOVE":
@@ -703,7 +704,7 @@ class testPlanPane implements IPaneRefresh {
         console.log("target suite id: " + targetSuiteId);
         console.log("ids: " + tcIds.join(","));
 
-        this.ShowMsg(mode + " from " + sourcePlanId+":" + sourceSuiteId + " to " + targetPlanId + ":"+ targetSuiteId);
+        this.ShowMsg(mode + " test case(s) from " + sourcePlanId+":" + sourceSuiteId + " to " + targetPlanId + ":"+ targetSuiteId);
         switch (mode) {
             case "MOVE":
                 TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(

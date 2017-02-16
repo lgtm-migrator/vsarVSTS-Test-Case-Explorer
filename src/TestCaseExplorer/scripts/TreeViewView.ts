@@ -61,14 +61,67 @@ export class TreeviewView {
 
         var treeOptions: TreeView.ITreeOptions = {
             clickSelects: true,
-            nodes: null
+            nodes: null,
+            droppable: $.extend({
+                scope: "test-case-scope",
+                greedy: true,
+                tolerance: "pointer",
+                over: function (e, ui) {
+                    var target: any = e.target;
+                    console.log("over " + target.title);
+                },
+                out: function (e, ui) {
+                    var target: any = e.target;
+                    console.log("out " + target.title);
+                },
+                drop: function (event: any, ui) {
+                    var n: TreeView.TreeNode = view._treeview.getNodeFromElement(event.target);
+
+                    var action = ui.helper.data("MODE");  // TODO: rename to action
+                    var mode = view.getCurrentDragMode(event);
+
+                    switch (action) {
+                        case "TEST_CASE":
+                            view.processDropTestCase(ui, n, view._currentSource, mode);
+                            break;
+                        default:    // TODO: verify this should not happen
+                            console.log("treeview::drop - undefined action");
+                            break;
+                    }
+                }
+            }),
+            draggable: {
+                distance: 10,
+                cursorAt: { top: -5, left: -5 },
+                refreshPositions: true,
+                scroll: true,
+                containment: "",
+                appendTo: document.body,
+                helper: function (event, ui) {
+                    var title = event.currentTarget.title;
+                    var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
+
+                    var $dragItemTitle = $("<div />").addClass("node-content");
+                    var $dragItemIcon = $("<span class='icon tree-node-img' />").addClass(draggedNode.icon);
+                    $dragItemTitle.append($dragItemIcon);
+                    $dragItemTitle.append($("<span />").text(draggedNode.text));
+                    $dragItemTitle.css("width", event.currentTarget.clientWidth);
+
+                    var $dragTile = Common.createDragTile("MOVE", $dragItemTitle);
+                    $dragTile.data("PLAN_ID", draggedNode.config);
+                    $dragTile.data("SUITE_ID", draggedNode.id);
+                    $dragTile.data("MODE", "TEST_SUITE");
+
+                    return $dragTile;
+                }
+            }
         };
        
-        var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
+        view._treeview= Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
 
-        treeview.onItemClick = function (node, nodeElement, e) {
+        view._treeview.onItemClick = function (node, nodeElement, e) {
             if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
-                treeview.setSelectedNode(node);
+                view._treeview.setSelectedNode(node);
                 view._currentNode = node;
                 view._currentSource = view._cboSource.getText();
                 if (view._currentNode != null) {
@@ -79,9 +132,7 @@ export class TreeviewView {
         };
 
         view.ToggleTestPlanSelectionArea();
-
-        view._treeview = treeview;
-
+        
         //Add toolbar
         this.initMenu(this);
 
@@ -96,7 +147,7 @@ export class TreeviewView {
                 view._currentSource = selectedPivot;
                 view.ToggleTestPlanSelectionArea()
                 view._cboSource.setText(selectedPivot);
-                view.LoadTreeview(view._cboSource.getText(), treeview, 0);
+                view.LoadTreeview(view._cboSource.getText(), view._treeview, 0);
             })
         });
     }
@@ -371,133 +422,72 @@ export class TreeviewView {
             tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
         }
 
-        TreeViewDataService.getNodes(pivot, tp).then(function (data) {
-            treeview.rootNode.clear();
-            treeview.rootNode.addRange(data);
-            treeview._draw();
+        TreeViewDataService.getNodes(pivot, tp).then(
+            data => {
+                treeview.rootNode.clear();
+                treeview.rootNode.addRange(data);
+                treeview.updateNode(treeview.rootNode);
+                
+                //treeview._draw();
 
-            var n = treeview.rootNode;
+                var n = treeview.rootNode;
 
-            //Empty other panes 
-            //var selectedIndex = (view._currentSource == "Test plan") ? 1 : 0;
+                var selectedNode = n.children[0];
 
-            /*
-            if (view._currentSource == "Test plan") {
-                if (n.children[0].hasChildren) {
-                    treeview.setSelectedNode(n.children[0].children[0]);
-                    view._currentNode = n.children[0].children[0];
-                    view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
+                if (selectedNodeId != 0) {
+                    selectedNode = view.getTreeviewNode(n, selectedNodeId);
                 }
-            }
-            else {
-                treeview.setSelectedNode(n.children[0]);
-                view._currentNode = n.children[0];
-            }
-            */
-
-            var selectedNode = n.children[0];
-
-            if (selectedNodeId != 0) {
-                selectedNode = view.getTreeviewNode(n, selectedNodeId);
-            }
-            if (selectedNode != null) {
-                treeview.setSelectedNode(selectedNode);
-                view._currentNode = selectedNode;
-                selectedNode.selected = true;
-                selectedNode.expanded = true;
-                if (view._currentSource == "Test plan") {
-                    view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
+                if (selectedNode != null) {
+                    treeview.setSelectedNode(selectedNode);
+                    view._currentNode = selectedNode;
+                    selectedNode.selected = true;
+                    selectedNode.expanded = true;
+                    if (view._currentSource == "Test plan") {
+                        view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
+                    }
                 }
-            }
 
-            view.RefreshGrid();
+                view.RefreshGrid();
 
-            n.expanded = true;
-            var elem = treeview._getNodeElement(n);
-            treeview._setNodeExpansion(n, elem, true);
-
-            treeview.rootNode.children.forEach(n => {
+                n.expanded = true;
                 var elem = treeview._getNodeElement(n);
                 treeview._setNodeExpansion(n, elem, true);
-            });
 
-            //$("#treeview-container > li.node").droppable({
-            $("li.node").droppable({
-                scope: "test-case-scope",
-                greedy: true,
-                tolerance: "pointer",
-                //accept: function (d) {
-                //    var t = this;
-                //    var text = $(this).text;
-                //    return true;
-                //},
-                over: function (e, ui) {
-                    var target: any = e.target;
-                    console.log("over " + target.title);
-
-                    //var n: TreeView.TreeNode = treeview.getNodeFromElement(e.target);
-                    //if (n.type == "Static suite") {
-                    //    $(e.target).addClass("drag-hover");
-                    //}
-                    //else {
-                    //    $(e.target).addClass("drag-hover-invalid");
-                    //}
-                },
-                out: function (e, ui) {
-                    var target: any = e.target;
-                    console.log("out " + target.title);
-
-                    //$(e.target).removeClass("drag-hover drag-hover-invalid");
-                },
-                drop: function (event: any, ui) {
-
-                    var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
-
-                    var action = ui.helper.data("MODE");  // TODO: rename to action
-                    var mode = view.getCurrentDragMode(event);
-
-                    switch (action) {
-                        case "TEST_CASE":
-                            view.processDropTestCase(ui, n, view._currentSource, mode);
-                            break;
-                        default:    // TODO: verify this should not happen
-                            console.log("treeview::drop - undefined action");
-                            break;
-                    }
-                }
-            });
-
-            if (view._currentSource == "Test plan"){ 
-                $("li.node").draggable({
-                    distance: 10,
-                    cursorAt: { top: -5, left: -5 },
-                    refreshPositions: true,
-                    scroll: true,
-                    scope: "test-case-scope",
-                    //revert: "invalid",
-                    appendTo: document.body,
-                    helper: function (event, ui) {
-                        var title = event.currentTarget.title;
-                        var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
-
-                        var $dragItemTitle = $("<div />").addClass("node-content");
-                        var $dragItemIcon = $("<span class='icon tree-node-img' />").addClass(draggedNode.icon);
-                        $dragItemTitle.append($dragItemIcon);
-                        $dragItemTitle.append($("<span />").text(draggedNode.text));
-                        $dragItemTitle.css("width", event.currentTarget.clientWidth);
-
-                        var $dragTile = Common.createDragTile("MOVE", $dragItemTitle);
-                        $dragTile.data("PLAN_ID", draggedNode.config);
-                        $dragTile.data("SUITE_ID", draggedNode.id);
-                        $dragTile.data("MODE", "TEST_SUITE");
-
-                        return $dragTile;
-                    }
+                treeview.rootNode.children.forEach(n => {
+                    var elem = treeview._getNodeElement(n);
+                    treeview._setNodeExpansion(n, elem, true);
                 });
-            } 
+                if (view._currentSource == "Test plan"){ 
+                    $("#treeview-container li.node").draggable({
+                        distance: 10,
+                        cursorAt: { top: -5, left: -5 },
+                        refreshPositions: true,
+                        scroll: true,
+                        scope: "test-case-scope",
+                        //revert: "invalid",
+                        appendTo: document.body,
+                        helper: function (event, ui) {
+                            var title = event.currentTarget.title;
+                            var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
 
-            deferred.resolve(data);
-        });
+                            var $dragItemTitle = $("<div />").addClass("node-content");
+                            var $dragItemIcon = $("<span class='icon tree-node-img' />").addClass(draggedNode.icon);
+                            $dragItemTitle.append($dragItemIcon);
+                            $dragItemTitle.append($("<span />").text(draggedNode.text));
+                            $dragItemTitle.css("width", event.currentTarget.clientWidth);
+
+                            var $dragTile = Common.createDragTile("MOVE", $dragItemTitle);
+                            $dragTile.data("PLAN_ID", draggedNode.config);
+                            $dragTile.data("SUITE_ID", draggedNode.id);
+                            $dragTile.data("MODE", "TEST_SUITE");
+
+                            return $dragTile;
+                        }
+                    });
+                } 
+
+                deferred.resolve(data);
+            });
 
         return deferred.promise();
     }
