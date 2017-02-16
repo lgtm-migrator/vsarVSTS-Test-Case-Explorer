@@ -380,7 +380,8 @@ export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targ
     // TODO: clone with hierarchy does not work?
     testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(
         data => {
-            console.log("Clone test suite completed: " + data.completionDate);
+            console.log("Clone test suite started: " + data.creationDate);
+            
             deferred.resolve(data);
         },
         err => {
