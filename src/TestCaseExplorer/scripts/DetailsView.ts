@@ -285,7 +285,7 @@ class partOfTestSuitesPane implements IPaneRefresh {
 
 var msgOptions: Notifications.IMessageAreaControlOptions = {
     type: Notifications.MessageAreaType.Info,
-    closeable: true,
+    closeable: false,
     expanded: false,
     showIcon: true
 };
@@ -595,7 +595,7 @@ class testPlanPane implements IPaneRefresh {
         console.log("target plan id: " + targetPlanId);
         console.log("target suite id: " + targetSuiteId);
 
-        this.ShowMsg(mode + " from " + sourcePlanId + ":" + sourceSuiteId + " to " + targetPlanId + ":" + targetSuiteId);
+        view.ShowMsg(mode + " from " + sourcePlanId + ":" + sourceSuiteId + " to " + targetPlanId + ":" + targetSuiteId + " please wait while operation completes");
 
         switch (mode) {
             case "MOVE":
@@ -603,6 +603,8 @@ class testPlanPane implements IPaneRefresh {
                     result => {
                         TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
                             result => {
+                                view.ShowMsg(mode + " completed");
+                                view.HideMsg();
                                 view.refreshTestPlan();
                                 view._view.refreshLeftTree();
                                 view._view.refreshTestCaseView();
@@ -616,6 +618,7 @@ class testPlanPane implements IPaneRefresh {
             case "ADD":
                 TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
                     result => {
+                        view.ShowMsg(mode + " completed");
                         view.refreshTestPlan();
                         view._view.refreshLeftTree();
                         view._view.refreshTestCaseView();
@@ -740,8 +743,9 @@ class testPlanPane implements IPaneRefresh {
 
     public ShowMsg(msg: string) {
         $("#message-container").show();
+        this._message.clear();
         this._message.initializeOptions(msgOptions);
-        this._message.setMessage(msg);
+        this._message.setMessage(msg, Notifications.MessageAreaType.Info);
     }
     public ShowDone() {
         var view = this;
