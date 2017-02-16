@@ -619,6 +619,7 @@ class testPlanPane implements IPaneRefresh {
                 TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
                     result => {
                         view.ShowMsg(mode + " completed");
+                        view.HideMsg();
                         view.refreshTestPlan();
                         view._view.refreshLeftTree();
                         view._view.refreshTestCaseView();
