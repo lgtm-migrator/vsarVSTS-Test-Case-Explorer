@@ -51,7 +51,6 @@ export class DetailsView {
 
     private _selectedMasterId: string
     private _PaneLst: IPaneRefresh[];
-
     public initialize(paneToggler: Toggler.DetailsPaneToggler, leftTreeView: LeftTreeView.TreeviewView) {
 
         this._PaneLst = [];
@@ -298,6 +297,8 @@ class testPlanPane implements IPaneRefresh {
     private _treeView: TreeView.TreeView;
     private _message: Notifications.MessageAreaControl;
     private PreventDropOverDubbelBouble = false;
+    private _interval: number;
+
 
     public initialize(view: DetailsView) {
         this._view = view;
@@ -376,55 +377,7 @@ class testPlanPane implements IPaneRefresh {
 
         var treeView = this._treeView;
         var leftTreeView = this._view._leftTreeView;
-        /*
-        $("#detailPanels").droppable({
-            scope: "test-case-scope",
-            greedy: true,
-            tolerance: "pointer",
-            drop: function (event, ui) {
-
-                var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
-                if (!isHosted) {
-                    alert("The clone operations are currently only supported in Visual Studio Team Services.");
-                    return;
-                }
-
-                var draggedNode: TreeView.TreeNode = that._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
-                var sourcePlanName: string = draggedNode.config.name;
-
-                VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
-
-                    var cloneTestPlanForm: CloneTestPlan.CloneTestPlanForm;
-                    var extensionCtx = VSS.getExtensionContext();
-                    var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".clone-testplan-form";
-
-                    var dialogOptions = {
-                        title: "Clone Test Plan",
-                        width: 600,
-                        height: 300,
-                        okText: "Clone",
-                        getDialogResult: function () {
-                            return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
-                        },
-                        okCallback: function (result: CloneTestPlan.IFormInput) {
-                            var draggedNode: TreeView.TreeNode = leftTreeView._treeview.getNodeFromElement(ui.draggable);
-                            TreeViewDataService.cloneTestPlan(draggedNode.config.testPlanId, [], result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath);
-                            that.showNotification("Test plan " + result.newTestPlanName);
-                        }
-                    };
-
-                    dialogService.openDialog(contributionId, dialogOptions).then(dialog => {
-                        dialog.getContributionInstance("clone-testplan-form").then(function (cloneTestPlanFormInstance: CloneTestPlan.CloneTestPlanForm) {
-                            cloneTestPlanForm = cloneTestPlanFormInstance;
-                            cloneTestPlanForm.init(sourcePlanName);
-                            dialog.updateOkButton(true);
-                        });
-                    });
-                });             
-            },
-            hoverClass:"accept-drop-hover"
-        });
-        */
+        
     }
 
     private droppableDrop(that: testPlanPane, event, ui) {
@@ -465,12 +418,6 @@ class testPlanPane implements IPaneRefresh {
             }
         }
     }
-
-
-    private areTestCasesDraggedOnQueryBasedSuite  ($draggedElement, suite) {
-        var areTestCasesBeingDragged = !$draggedElement.hasClass("tree-drag-tile");
-        //return areTestCasesBeingDragged && suite.type === TCMConstants.TestSuiteType.DynamicTestSuite;
-    };
 
     private droppableOver($node, event, ui) {
 
@@ -637,17 +584,16 @@ class testPlanPane implements IPaneRefresh {
         console.log("cloning test suite...");
         TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements).then(result => {
             view.refreshTestPlan();
-
-            setTimeout(function () {
-                console.log("   checking status of clone operation " + result.opId);
-                view.checkCloneStatus(view, result.opId, s);
-            }, 3000);
+            view._interval = setInterval(
+                () => {
+                    s = s + "...";
+                    view.checkCloneStatus(view, result.opId, s);
+                },
+                3000);
         });
     }
 
-    private checkCloneStatus(view, opId, s) {
-        s = s + "...";
-       
+    private checkCloneStatus(view, opId, s){
         view.ShowMsg(s);
 
         TreeViewDataService.querryCloneOperationStatus(opId).then(cloneStat => {
@@ -658,17 +604,15 @@ class testPlanPane implements IPaneRefresh {
                 case TestContracts.CloneOperationState.Succeeded:
                     view.ShowMsg("Cloning completed")
                     view.ShowDone();
+                    clearInterval(view.interval);
+                    
                     break;
                 default:
                     console.log("   checking status of clone operation = " + cloneStat.state);
-                    console.log(cloneStat);
-                    setTimeout( ()=> {
-                        console.log("   checking status of clone operation " + opId);
-                        view.checkCloneStatus(view, opId, s);
-                    }, 3000);
+                   
             }
         });
-
+        
     }
 
     private showCloneTestSuite(view: testPlanPane, sourcePlanName: string, sourcePlanId: number, sourceSuiteId: number, targetPlanName: string, targetPlanId: number, targetSuiteId: number) {
