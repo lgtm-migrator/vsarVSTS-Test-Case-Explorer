@@ -15,14 +15,16 @@
 
 /// <reference path='../typings/tsd.d.ts' />
 
+import Q = require("q");
+
 import Contracts = require("TFS/WorkItemTracking/Contracts");
 import TestClient = require("TFS/TestManagement/RestClient");
 import TestContracts = require("TFS/TestManagement/Contracts");
 import WITClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
-import Common = require("scripts/Common");
+import VSS_Service = require("VSS/Service");
 
-import Q = require("q");
+import Common = require("scripts/Common");
 
 export function getNodes(param, tp) {
 
@@ -132,10 +134,11 @@ export function getTestSuitesForTestCase(testCaseId: number): IPromise<any[]> {
 
 export function getTestResultsForTestCase(testCaseId: number): IPromise<any[]> {
     var deferred = $.Deferred<any[]>();
-    var tstClient = TestClient.getClient();
+    //var tstClient = TestClient.getClient(TestClient.TestHttpClient2_2);
+    let tstClient = VSS_Service.getClient<TestClient.TestHttpClient2_2>(TestClient.TestHttpClient2_2, undefined, undefined, undefined, null);
     var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
 
-    tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(
+    tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name).then(
         data => {
             deferred.resolve(data);
         },
