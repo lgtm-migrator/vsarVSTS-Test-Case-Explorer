@@ -205,7 +205,8 @@ function BuildTestSuiteTree(tsList: any[], parentNode: TreeView.TreeNode, allTS:
         if (t.testCaseCount > 0) {
             node.text += " (" + t.testCaseCount + ")";
         }
-        node.droppable = true
+        node.droppable = true;
+        node["draggable"] = true;
         node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt(t.plan.id) };
         if (t.parent != null) {
             node.icon = getIconFromSuiteType(t.suiteType);

@@ -62,7 +62,7 @@ export class TreeviewView {
         var treeOptions: TreeView.ITreeOptions = {
             clickSelects: true,
             nodes: null,
-            droppable: $.extend({
+            droppable: {
                 scope: "test-case-scope",
                 greedy: true,
                 tolerance: "pointer",
@@ -89,12 +89,13 @@ export class TreeviewView {
                             break;
                     }
                 }
-            }),
+            },
             draggable: {
                 distance: 10,
                 cursorAt: { top: -5, left: -5 },
                 refreshPositions: true,
                 scroll: true,
+                scope: "test-case-scope",
                 containment: "",
                 appendTo: document.body,
                 helper: function (event, ui) {
@@ -457,34 +458,34 @@ export class TreeviewView {
                     var elem = treeview._getNodeElement(n);
                     treeview._setNodeExpansion(n, elem, true);
                 });
-                if (view._currentSource == "Test plan"){ 
-                    $("#treeview-container li.node").draggable({
-                        distance: 10,
-                        cursorAt: { top: -5, left: -5 },
-                        refreshPositions: true,
-                        scroll: true,
-                        scope: "test-case-scope",
-                        //revert: "invalid",
-                        appendTo: document.body,
-                        helper: function (event, ui) {
-                            var title = event.currentTarget.title;
-                            var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
+                //if (view._currentSource == "Test plan"){ 
+                //    $("#treeview-container li.node").draggable({
+                //        distance: 10,
+                //        cursorAt: { top: -5, left: -5 },
+                //        refreshPositions: true,
+                //        scroll: true,
+                //        scope: "test-case-scope",
+                //        //revert: "invalid",
+                //        appendTo: document.body,
+                //        helper: function (event, ui) {
+                //            var title = event.currentTarget.title;
+                //            var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
 
-                            var $dragItemTitle = $("<div />").addClass("node-content");
-                            var $dragItemIcon = $("<span class='icon tree-node-img' />").addClass(draggedNode.icon);
-                            $dragItemTitle.append($dragItemIcon);
-                            $dragItemTitle.append($("<span />").text(draggedNode.text));
-                            $dragItemTitle.css("width", event.currentTarget.clientWidth);
+                //            var $dragItemTitle = $("<div />").addClass("node-content");
+                //            var $dragItemIcon = $("<span class='icon tree-node-img' />").addClass(draggedNode.icon);
+                //            $dragItemTitle.append($dragItemIcon);
+                //            $dragItemTitle.append($("<span />").text(draggedNode.text));
+                //            $dragItemTitle.css("width", event.currentTarget.clientWidth);
 
-                            var $dragTile = Common.createDragTile("MOVE", $dragItemTitle);
-                            $dragTile.data("PLAN_ID", draggedNode.config);
-                            $dragTile.data("SUITE_ID", draggedNode.id);
-                            $dragTile.data("MODE", "TEST_SUITE");
+                //            var $dragTile = Common.createDragTile("MOVE", $dragItemTitle);
+                //            $dragTile.data("PLAN_ID", draggedNode.config);
+                //            $dragTile.data("SUITE_ID", draggedNode.id);
+                //            $dragTile.data("MODE", "TEST_SUITE");
 
-                            return $dragTile;
-                        }
-                    });
-                } 
+                //            return $dragTile;
+                //        }
+                //    });
+                //} 
 
                 deferred.resolve(data);
             });
