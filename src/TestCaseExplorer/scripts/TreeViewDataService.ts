@@ -307,7 +307,7 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
            
         node.id = item.id;
         node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
-
+        node.droppable = true;
         node.expanded = item.expanded;
         if (item.children && item.children.length > 0) {
             node.addRange(convertToTreeNodes(item.children, itemPath));
