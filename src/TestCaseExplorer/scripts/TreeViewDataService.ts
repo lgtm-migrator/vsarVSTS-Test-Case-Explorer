@@ -26,6 +26,10 @@ import VSS_Service = require("VSS/Service");
 
 import Common = require("scripts/Common");
 
+
+var const_Pivot_TestPlan = "Test plan";
+var const_Pivot_Priority = "Priority";
+
 export function getNodes(param, tp) {
 
     switch (param) {
@@ -33,11 +37,11 @@ export function getNodes(param, tp) {
             return getStructure(Contracts.TreeStructureGroup.Areas);
         case "Iteration path":
             return getStructure(Contracts.TreeStructureGroup.Iterations);
-        case "Priority":
+        case const_Pivot_Priority:
             return getPrioriy();
         case "State":
             return getStates();
-        case "Test plan":
+        case const_Pivot_TestPlan:
             if (tp === null) {
                 //Fetch All TestPlans
                 return getTestPlansWithSuite();
@@ -235,7 +239,9 @@ function getStructure(structure: Contracts.TreeStructureGroup): IPromise<TreeVie
     var client = WITClient.getClient();
     client.getRootNodes(VSS.getWebContext().project.name, 11).then(
         function (data: Contracts.WorkItemClassificationNode[]) {
-            deferred.resolve(convertToTreeNodes([data[structure]], ""));
+            var nodes = convertToTreeNodes([data[structure]], "")
+            nodes[0].expanded = true;
+            deferred.resolve(nodes);
         },
         err => {
             deferred.reject(err);
@@ -255,7 +261,7 @@ function getStates(): IPromise<TreeView.TreeNode[]> {
         client.getWorkItemType(project, witCat.defaultWorkItemType.name).then(function (data) {
             var d: any = data;
 
-            var t = { name: "States", children: [] };
+            var t = { name: "States", children: [], expanded:true };
             for (var s in d.transitions) {
                 if (s != "") {
                     t.children.push({ name: s, config: s });
@@ -276,7 +282,7 @@ function getPrioriy(): IPromise<TreeView.TreeNode[]> {
 
     var client = WITClient.getClient();
     client.getWorkItemType(VSS.getWebContext().project.name, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(data => {
-        var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
+        var d = [{ name: const_Pivot_Priority, expanded: true, config: "root", children: [{ name: "1", config: "1", type:"Prio" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
 
         deferred.resolve(convertToTreeNodes(d, ""));
     });

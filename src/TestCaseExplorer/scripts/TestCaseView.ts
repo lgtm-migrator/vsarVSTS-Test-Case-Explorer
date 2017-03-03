@@ -39,6 +39,11 @@ import TelemetryClient = require("scripts/TelemetryClient");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
 
+var const_Pivot_TestPlan = "Test plan";
+var const_Pivot_Priority = "Priority";
+
+
+
 export class TestCaseView {
 
     private _paneToggler: DetailsToggle.DetailsPaneToggler;
@@ -107,18 +112,18 @@ export class TestCaseView {
                 this._selectedValueWithField = { "System.IterationPath": value.path };
                 fields = Common.MergeColumnLists( this._fields, [{ field: "System.IterationPath", name: "Iteration Path", width: 200 }]);
                 break;
-            case "Priority":
+            case const_Pivot_Priority:
                 if (fieldLst.indexOf("Microsoft.VSTS.Common.Priority") == -1) {
                     fieldLst.push("Microsoft.VSTS.Common.Priority");
                 }
                 var priority: string = "any";
-                if (value.name != "Priority") {
+                if (value.name != const_Pivot_Priority) {
                     priority = value.name;
-                    this._selectedValueWithField = { "Priority": value.name };
+                    this._selectedValueWithField = { const_Pivot_Priority: value.name };
                 }
                 promise = TestCaseDataService.getTestCasesByPriority(priority, fieldLst);
                 title = "Test cases with priority: " + priority;
-                fields = Common.MergeColumnLists(this._fields, [{ field: "Microsoft.VSTS.Common.Priority", name: "Priority", width: 200 }]);
+                fields = Common.MergeColumnLists(this._fields, [{ field: "Microsoft.VSTS.Common.Priority", name: const_Pivot_Priority, width: 200 }]);
                 break;
             case "State":
                 if (fieldLst.indexOf("System.State") == -1) {
@@ -132,7 +137,7 @@ export class TestCaseView {
                 title = "Test cases with state: " + state;
                 fields = Common.MergeColumnLists(this._fields, [{ field: "System.State", name: "State", width: 200 }]);
                 break;
-            case "Test plan":
+            case const_Pivot_TestPlan:
                 promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, fieldLst , showRecursive);
                 fields =  Common.MergeColumnLists(this._fields, [{ field: "TC::Present.In.Suite", name: "Present in suites", width: 150 }]);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
@@ -467,7 +472,7 @@ export class TestCaseView {
                         .text(numOfSelectedItems);
                     var $dragType = $("<span />")
                         .addClass("drag-tile-drag-type")
-                        .text(view._selectedPivot == "Test plan" ? "Move" : "Attach");
+                        .text(view._selectedPivot == const_Pivot_TestPlan ? "Move" : "Attach");
 
                     var $dragHead = $("<div />")
                         .addClass("drag-tile-head")
@@ -507,7 +512,7 @@ export class TestCaseView {
             }
 
             view._menubar.updateCommandStates([{ id: "open-testcase", disabled: (view._selectedRows.length != 1) }]);
-            if (that._selectedPivot != "Test plan") {
+            if (that._selectedPivot != const_Pivot_TestPlan) {
                 view._menubar.updateCommandStates([{ id: "remove-testcase", hidden: true }]);
             }
             else {
@@ -543,7 +548,7 @@ export class TestCaseView {
         });
         
   
-        var $dragTile = Common.createDragTile(that._selectedPivot == "Test plan" ? "Move" : "Assign", $dragItemTitle);
+        var $dragTile = Common.createDragTile(that._selectedPivot == const_Pivot_TestPlan ? "Move" : "Assign", $dragItemTitle);
 
 
 
