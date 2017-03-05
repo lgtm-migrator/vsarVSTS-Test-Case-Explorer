@@ -321,13 +321,21 @@ export class TreeviewView {
             };
 
             dialogService.openDialog(contributionId, dialogOptions).then(dialog => {
-                dialog.getContributionInstance("clone-testplan-form").then(function (cloneTestPlanFormInstance: CloneTestPlan.CloneTestPlanForm) {
-                    cloneTestPlanForm = cloneTestPlanFormInstance;
-                    cloneTestPlanForm.init(sourcePlanName);
-                    cloneTestPlanForm.attachFormChanged(function (isValid) {
+                
+                dialog.getContributionInstance<CloneTestPlan.CloneTestPlanForm>("clone-testplan-form").then(
+                    cloneTestPlanFormInstance => {
+                    
+                    cloneTestPlanFormInstance.init(sourcePlanName);
+
+                    // Subscribe to form input changes and update the Ok enabled state
+                    cloneTestPlanFormInstance.attachFormChanged(function (isValid) {
+                        dialog.updateOkButton(isValid); 
+                    });
+
+                    cloneTestPlanFormInstance.isFormValid()["then"](function (isValid) {
                         dialog.updateOkButton(isValid);
                     });
-                    dialog.updateOkButton(false);
+
                 });
             });
         });

@@ -14,10 +14,11 @@ export interface IFormInput {
     cloneRequirements: boolean;
 }
 
-export class CloneTestPlanForm {
+export class CloneTestPlanForm  {
 
     private _areaPath: string;
-    private _iterationPath: string;
+    private _iterationPath: string; 
+    private callbacks = [];
 
     public init(testPlanName) {
         var that = this;
@@ -35,13 +36,30 @@ export class CloneTestPlanForm {
             //    that.createProjectsCombo(that, p);
             //});
         });
+
+        $("#targetTestPlan").change(e => {
+            console.log("EventFired");
+            that.inputChanged();
+        });
+    }
+    
+    public inputChanged() {
+        // Execute registered callbacks
+        for (var i = 0; i < this.callbacks.length; i++) {
+            this.callbacks[i](this.isFormValid());
+        }
     }
 
-    public attachFormChanged(dialogStateCallback) {
-        var testPlanName: string = $("#targetTestPlan").val();
-        var isValid = (testPlanName.length > 0);
-        dialogStateCallback(isValid);
+ 
+    public attachFormChanged(cb) {
+        this.callbacks.push(cb);
     }
+
+    public isFormValid(): boolean {
+        var testPlanName: string = $("#targetTestPlan").val();
+        return (testPlanName.length > 0);
+    }
+    
 
     private createProjectsCombo(that: CloneTestPlanForm, nodes) {
         var container = $("#targetProject");
