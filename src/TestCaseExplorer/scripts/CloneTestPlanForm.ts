@@ -22,29 +22,55 @@ export class CloneTestPlanForm {
     public init(testPlanName) {
         var that = this;
 
-        $("#sourceTestPlan").val(testPlanName);
+        $("#testPlanInfo").text("Clone test plan '" + testPlanName + "'.");
+        $("#targetTestPlan").val(testPlanName + " - Clone");
 
         var p1 = TreeViewDataService.getNodes("Area path", null);
         var p2 = TreeViewDataService.getNodes("Iteration path", null);
-
         Q.all([p1, p2]).then(categories => {
             that.createAreasCombo(that, categories[0]);
             that.createIterationsCombo(that, categories[1]);
+
+            //TreeViewDataService.getProjects().then(p => {
+            //    that.createProjectsCombo(that, p);
+            //});
         });
+    }
+
+    public attachFormChanged(dialogStateCallback) {
+        var testPlanName: string = $("#targetTestPlan").val();
+        var isValid = (testPlanName.length > 0);
+        dialogStateCallback(isValid);
+    }
+
+    private createProjectsCombo(that: CloneTestPlanForm, nodes) {
+        var container = $("#targetProject");
+
+        var treeOptions: Combos.IComboOptions = {
+            source: nodes,
+            change: function () {
+                that._areaPath = this.getText();
+            }
+        };
+
+        var combo = Controls.create(Combos.Combo, container, treeOptions);
+        //combo.setSelectedIndex(0);
+        combo.setText(VSS.getWebContext().project.name);
     }
 
     private createAreasCombo(that: CloneTestPlanForm, nodes) {
         var container = $("#targetAreaPath");
 
         var treeOptions: Combos.IComboOptions = {
-            type: TreeView.ComboTreeBehaviorName, 
+            type: TreeView.ComboTreeBehaviorName,
             source: nodes,
             change: function () {
                 that._areaPath = this.getText();
             }
-    };
+        };
 
-        Controls.create(Combos.Combo, container, treeOptions);
+        var combo = Controls.create(Combos.Combo, container, treeOptions);
+        combo.setSelectedIndex(0);
     }
 
     private createIterationsCombo(that: CloneTestPlanForm, nodes) {
@@ -58,7 +84,8 @@ export class CloneTestPlanForm {
             }
         };
 
-        Controls.create(Combos.Combo, container, treeOptions);
+        var combo = Controls.create(Combos.Combo, container, treeOptions);
+        combo.setSelectedIndex(0);
     }
 
     public getFormData(): IFormInput {

@@ -12,18 +12,21 @@
 //    for the tree view.
 // </summary>
 //---------------------------------------------------------------------
-define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "scripts/Common", "q"], function (require, exports, Contracts, TestClient, WITClient, TreeView, Common, Q) {
+define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "VSS/Service", "TFS/Core/RestClient", "scripts/Common"], function (require, exports, Q, Contracts, TestClient, WITClient, TreeView, VSS_Service, CoreClient, Common) {
+    "use strict";
+    var const_Pivot_TestPlan = "Test plan";
+    var const_Pivot_Priority = "Priority";
     function getNodes(param, tp) {
         switch (param) {
             case "Area path":
                 return getStructure(Contracts.TreeStructureGroup.Areas);
             case "Iteration path":
                 return getStructure(Contracts.TreeStructureGroup.Iterations);
-            case "Priority":
+            case const_Pivot_Priority:
                 return getPrioriy();
             case "State":
                 return getStates();
-            case "Test plan":
+            case const_Pivot_TestPlan:
                 if (tp === null) {
                     //Fetch All TestPlans
                     return getTestPlansWithSuite();
@@ -110,9 +113,10 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
     exports.getTestSuitesForTestCase = getTestSuitesForTestCase;
     function getTestResultsForTestCase(testCaseId) {
         var deferred = $.Deferred();
-        var tstClient = TestClient.getClient();
+        //var tstClient = TestClient.getClient(TestClient.TestHttpClient2_2);
+        var tstClient = VSS_Service.getClient(TestClient.TestHttpClient2_2, undefined, undefined, undefined, null);
         var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
-        tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name, true).then(function (data) {
+        tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name).then(function (data) {
             deferred.resolve(data);
         }, function (err) {
             deferred.reject(err);
@@ -166,6 +170,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
                 node.text += " (" + t.testCaseCount + ")";
             }
             node.droppable = true;
+            node["draggable"] = true;
             node.config = { name: t.name, suiteId: t.id, testPlanId: parseInt(t.plan.id) };
             if (t.parent != null) {
                 node.icon = getIconFromSuiteType(t.suiteType);
@@ -189,7 +194,9 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var deferred = $.Deferred();
         var client = WITClient.getClient();
         client.getRootNodes(VSS.getWebContext().project.name, 11).then(function (data) {
-            deferred.resolve(convertToTreeNodes([data[structure]], ""));
+            var nodes = convertToTreeNodes([data[structure]], "");
+            nodes[0].expanded = true;
+            deferred.resolve(nodes);
         }, function (err) {
             deferred.reject(err);
         });
@@ -202,7 +209,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         client.getWorkItemTypeCategory(project, "Microsoft.TestCaseCategory").then(function (witCat) {
             client.getWorkItemType(project, witCat.defaultWorkItemType.name).then(function (data) {
                 var d = data;
-                var t = { name: "States", children: [] };
+                var t = { name: "States", children: [], expanded: true };
                 for (var s in d.transitions) {
                     if (s != "") {
                         t.children.push({ name: s, config: s });
@@ -219,7 +226,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         var deferred = $.Deferred();
         var client = WITClient.getClient();
         client.getWorkItemType(VSS.getWebContext().project.name, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(function (data) {
-            var d = [{ name: "Priority", children: [{ name: "1", config: "1" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
+            var d = [{ name: const_Pivot_Priority, expanded: true, config: "root", children: [{ name: "1", config: "1", type: "Prio" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
             deferred.resolve(convertToTreeNodes(d, ""));
         });
         return deferred.promise();
@@ -245,6 +252,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
             node.icon = item.icon;
             node.id = item.id;
             node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
+            node.droppable = true;
             node.expanded = item.expanded;
             if (item.children && item.children.length > 0) {
                 node.addRange(convertToTreeNodes(item.children, itemPath));
@@ -305,7 +313,7 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         };
         // TODO: clone with hierarchy does not work?
         testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(function (data) {
-            console.log("Clone test suite completed: " + data.completionDate);
+            console.log("Clone test suite started: " + data.creationDate);
             deferred.resolve(data);
         }, function (err) {
             deferred.reject(err);
@@ -466,5 +474,16 @@ define(["require", "exports", "TFS/WorkItemTracking/Contracts", "TFS/TestManagem
         return deferred.promise();
     }
     exports.removeTestCaseFromSuite = removeTestCaseFromSuite;
+    function getProjects() {
+        var deferred = $.Deferred();
+        var coreClient = CoreClient.getClient();
+        coreClient.getProjects().then(function (data) {
+            deferred.resolve(data.map(function (p) { return p.name; }));
+        }, function (err) {
+            deferred.reject(err);
+        });
+        return deferred.promise();
+    }
+    exports.getProjects = getProjects;
 });
 //# sourceMappingURL=TreeViewDataService.js.map

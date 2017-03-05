@@ -20,7 +20,40 @@
     <link rel="stylesheet" type="text/css" href="css/app.css">
 </head>
 <body>
+
     <div>
+        <p id="testPlanInfo">Clone test plan</p>
+    </div>
+    <div>
+        <p>Note: the clone operation will run in the backgrund. This means not all test suites and test cases will appear immediately so you will have to refresh the test plan until all suites appear.</p>
+    </div>
+    <br />
+    <div>
+        <label for="targetTestPlan">Test plan name</label>
+        <input class="cellText" type="text" id="targetTestPlan" />
+    </div>
+    <br />
+    <!--<div>
+        <label for="targetProject">Project</label>
+        <div style="z-index: 1000" id="targetProject" />
+    </div>
+    <br />-->
+    <div>
+        <label for="targetAreaPath">Area path</label>
+        <div style="z-index: 1000" id="targetAreaPath"></div>
+    </div>
+    <br />
+    <div>
+        <label for="targetIterationPath">Iteration path</label>
+        <div style="z-index: 1000" id="targetIterationPath"></div>
+    </div>
+    <br />
+    <div>
+        <input type="checkbox" id="cloneRequirements" />
+        <label for="cloneRequirements">Clone requirements</label>
+    </div>
+ 
+    <!--<div>
         <table style="width: 100%;">
             <tbody>
                 <tr>
@@ -70,7 +103,7 @@
                 </tr>
             </tbody>
         </table>
-    </div>
+    </div>-->
 
     <script src="scripts/lib/VSS.SDK.js"></script>
     <script type="text/javascript">

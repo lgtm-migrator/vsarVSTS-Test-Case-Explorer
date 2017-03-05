@@ -307,8 +307,8 @@ export class TreeviewView {
 
             var dialogOptions = {
                 title: "Clone Test Plan",
-                width: 600,
-                height: 250,
+                width: 400,
+                height: 500,
                 okText: "Clone",
                 getDialogResult: function () {
                     return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
@@ -324,7 +324,10 @@ export class TreeviewView {
                 dialog.getContributionInstance("clone-testplan-form").then(function (cloneTestPlanFormInstance: CloneTestPlan.CloneTestPlanForm) {
                     cloneTestPlanForm = cloneTestPlanFormInstance;
                     cloneTestPlanForm.init(sourcePlanName);
-                    dialog.updateOkButton(true);
+                    cloneTestPlanForm.attachFormChanged(function (isValid) {
+                        dialog.updateOkButton(isValid);
+                    });
+                    dialog.updateOkButton(false);
                 });
             });
         });

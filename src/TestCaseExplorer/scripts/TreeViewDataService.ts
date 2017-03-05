@@ -23,6 +23,8 @@ import TestContracts = require("TFS/TestManagement/Contracts");
 import WITClient = require("TFS/WorkItemTracking/RestClient");
 import TreeView = require("VSS/Controls/TreeView");
 import VSS_Service = require("VSS/Service");
+import CoreClient = require("TFS/Core/RestClient");
+import CoreContracts = require("TFS/Core/Contracts");
 
 import Common = require("scripts/Common");
 
@@ -598,6 +600,22 @@ export function removeTestCaseFromSuite(planId: number, suiteId: number, testCas
     tstClient.removeTestCasesFromSuiteUrl(VSS.getWebContext().project.name, planId, suiteId, testCaseIds).then(
         data => {
             deferred.resolve(data);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
+    return deferred.promise();
+}
+
+export function getProjects(): IPromise<string[]> {
+    var deferred = $.Deferred<string[]>();
+
+    var coreClient = CoreClient.getClient();
+    coreClient.getProjects().then(
+        data => {                
+            deferred.resolve(data.map(p => { return p.name }));
         },
         err => {
             deferred.reject(err);
