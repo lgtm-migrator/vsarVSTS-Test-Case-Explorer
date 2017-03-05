@@ -170,15 +170,21 @@ export class TreeviewView {
         console.log(node.text);
         console.log(node.text != this._currentSource);
 
-        if (this._currentSource == const_Pivot_Priority && node && node.text != this._currentSource) {
-            dropAllowed = true;
-          
-        }
-        if (this._currentSource == const_Pivot_TestPlan && node && node.type === "StaticTestSuite") {
-            
-            if (node.id !== ui.helper.data("SUITE_ID")) {
+        switch (this._currentSource) {
+            case const_Pivot_Priority:
+                if (node && node.text != this._currentSource) {
+                    dropAllowed = true;
+                }
+                break;
+            case const_Pivot_TestPlan:
+                if (node && node.type === "StaticTestSuite") {
+                    if (node.id !== ui.helper.data("SUITE_ID")) {
+                        dropAllowed = true;
+                    }
+                }
+                break;
+            default:
                 dropAllowed = true;
-            }
         }
 
         return dropAllowed;
