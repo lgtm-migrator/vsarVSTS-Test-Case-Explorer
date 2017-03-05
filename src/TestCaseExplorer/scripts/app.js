@@ -18,9 +18,9 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
     console.log("Loading TestCaseExplorer version " + VSS.getExtensionContext().version) + "...";
     Common.WIQLConstants.getWiqlConstants();
     var paneToggler = new DetailsToggle.DetailsPaneToggler();
-    var dv = new DetailsView.DetailsView();
-    var tc = new TestCaseView.TestCaseView();
     var tv = new TreeViewView.TreeviewView();
+    var tc = new TestCaseView.TestCaseView();
+    var dv = new DetailsView.DetailsView();
     tc.initialize(paneToggler, RefreshPane, tv);
     window.onkeydown = listenToTheKey;
     window.onkeyup = listenToTheKey;
@@ -62,8 +62,8 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
     paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(function (t) {
         tc.updateTogle(t);
     });
-    tv.initialize(RefreshGrid);
-    dv.initialize(paneToggler, tv);
+    tv.initialize(RefreshGrid, tc);
+    dv.initialize(paneToggler, tv, tc);
     function RefreshGrid(pivot, value, showRecursive) {
         tc.RefreshGrid(pivot, value, showRecursive);
         dv.selectionChanged(null);

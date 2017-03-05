@@ -21,9 +21,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         function TreeviewView() {
             this.PivotSources = ["Area path", "Iteration path", const_Pivot_Priority, "State", const_Pivot_TestPlan];
         }
-        TreeviewView.prototype.initialize = function (callback) {
+        TreeviewView.prototype.initialize = function (callback, tcView) {
             TelemetryClient.TelemetryClient.getClient().trackPageView("TreeView");
             var view = this;
+            view._tcView = tcView;
             view._showRecursive = false;
             view._callback = callback;
             view._cboSource = view.initSourceCbo();
@@ -217,9 +218,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             var suiteId = this._currentNode.config.suiteId;
             window.parent.location.href = url + project + "/_testManagement?planId=" + planId + "&suiteId=" + suiteId;
         };
-        TreeviewView.prototype.showNotification = function (message) {
-            //this._message.setMessage(message + " is being cloned, you need to refresh to see the completed result.", Notifications.MessageAreaType.Info);
-        };
         TreeviewView.prototype.cloneTestPlan = function () {
             var that = this;
             var isHosted = Context.getPageContext().webAccessConfiguration.isHosted;
@@ -242,13 +240,17 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
                     },
                     okCallback: function (result) {
-                        //var draggedNode: TreeView.TreeNode = that._treeview.getNodeFromElement(ui.draggable);
-                        TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath);
-                        that.showNotification("Test plan " + result.newTestPlanName);
+                        TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath).then(function (result) {
+                            that._tcView.ShowCloningMessage(result.opId).then(function (result) {
+                            });
+                        }, function (err) {
+                            that._tcView.ShowErr(err.message);
+                        });
                     }
                 };
                 dialogService.openDialog(contributionId, dialogOptions).then(function (dialog) {
                     dialog.getContributionInstance("clone-testplan-form").then(function (cloneTestPlanFormInstance) {
+                        cloneTestPlanForm = cloneTestPlanFormInstance;
                         cloneTestPlanFormInstance.init(sourcePlanName);
                         // Subscribe to form input changes and update the Ok enabled state
                         cloneTestPlanFormInstance.attachFormChanged(function (isValid) {
@@ -315,6 +317,20 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 dataService.setValue("SelectedPivot", _this._currentSource, { scopeType: "User" });
             });
         };
+        TreeviewView.prototype.refreshTestPlanCombo = function (view) {
+            var testPlanId = view._cboTestPlan.getSelectedIndex();
+            view._cboTestPlan.setSource(null);
+            TreeViewDataService.getTestPlans().then(function (data) {
+                view._testPlans = data[0].children;
+                var nAll = TreeView.TreeNode.create(constAllTestPlanName);
+                view._testPlans.push(nAll);
+                view._cboTestPlan.setSource(view._testPlans.map(function (i) { return i.text; }));
+                view._cboTestPlan.setSelectedIndex(testPlanId);
+            }, function (err) {
+                console.log(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
+            });
+        };
         TreeviewView.prototype.initMenu = function (view) {
             var menuItems = [
                 { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: Common.getToolbarIcon("show-recursive"), cssClass: Common.getToolbarCss() },
@@ -352,6 +368,9 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                             break;
                         case "refresh":
                             view.refreshTreeView(true);
+                            if (view._currentSource == const_Pivot_TestPlan) {
+                                view.refreshTestPlanCombo(view);
+                            }
                             break;
                         default:
                             alert("Unhandled action: " + command);

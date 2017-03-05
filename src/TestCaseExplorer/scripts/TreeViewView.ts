@@ -209,7 +209,6 @@ export class TreeviewView {
             dropTargetTxt = this._currentSource + " values";
         }
         
-
         if (!dropAllowed) {
             //Vi försöker släppa på nåt annat än static
             console.log("Hide");
@@ -292,8 +291,6 @@ export class TreeviewView {
         var suiteId = this._currentNode.config.suiteId
         window.parent.location.href = url + project + "/_testManagement?planId=" + planId + "&suiteId=" + suiteId;
     }
-
-
 
     private cloneTestPlan() {
         var that = this;
@@ -404,6 +401,7 @@ export class TreeviewView {
         if (keepState && this._treeview.getSelectedNode() != null) {
             id = this._treeview.getSelectedNode().id;
         }
+
         this.LoadTreeview(this._currentSource, this._treeview, id).then(a => {
             this.DoneLoading();
         });
@@ -413,6 +411,25 @@ export class TreeviewView {
                 // Set value in user scope
                 dataService.setValue("SelectedPivot", this._currentSource, { scopeType: "User" });
             });
+    }
+
+    private refreshTestPlanCombo(view: TreeviewView) {
+        var testPlanId = view._cboTestPlan.getSelectedIndex();
+        view._cboTestPlan.setSource(null);
+        TreeViewDataService.getTestPlans().then(
+            data => {
+                view._testPlans = data[0].children;
+                var nAll = TreeView.TreeNode.create(constAllTestPlanName);
+
+                view._testPlans.push(nAll);
+                view._cboTestPlan.setSource(view._testPlans.map(i => { return i.text; }));
+                view._cboTestPlan.setSelectedIndex(testPlanId);
+            },
+            err => {
+                console.log(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
+            }
+        );
     }
 
     private initMenu(view: TreeviewView) {
@@ -453,6 +470,9 @@ export class TreeviewView {
                         break;
                     case "refresh":
                         view.refreshTreeView(true);
+                        if (view._currentSource == const_Pivot_TestPlan) {
+                            view.refreshTestPlanCombo(view);
+                        }
                         break;
                     default:
                         alert("Unhandled action: " + command);
