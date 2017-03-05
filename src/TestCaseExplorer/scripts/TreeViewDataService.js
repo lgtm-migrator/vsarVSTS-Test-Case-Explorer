@@ -115,7 +115,7 @@ define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestMa
         var deferred = $.Deferred();
         //var tstClient = TestClient.getClient(TestClient.TestHttpClient2_2);
         var tstClient = VSS_Service.getClient(TestClient.TestHttpClient2_2, undefined, undefined, undefined, null);
-        var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
+        var q = { query: "Select * from TestResult WHERE TestCaseId=" + testCaseId + " AND State<>'Pending'" };
         tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name).then(function (data) {
             deferred.resolve(data);
         }, function (err) {

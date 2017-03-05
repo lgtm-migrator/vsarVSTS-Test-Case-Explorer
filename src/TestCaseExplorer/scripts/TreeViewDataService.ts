@@ -142,7 +142,7 @@ export function getTestResultsForTestCase(testCaseId: number): IPromise<any[]> {
     var deferred = $.Deferred<any[]>();
     //var tstClient = TestClient.getClient(TestClient.TestHttpClient2_2);
     let tstClient = VSS_Service.getClient<TestClient.TestHttpClient2_2>(TestClient.TestHttpClient2_2, undefined, undefined, undefined, null);
-    var q = { query: "Select * from TestResult  WHERE TestCaseId=" + testCaseId };
+    var q = { query: "Select * from TestResult WHERE TestCaseId=" + testCaseId + " AND State<>'Pending'"};
 
     tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name).then(
         data => {
