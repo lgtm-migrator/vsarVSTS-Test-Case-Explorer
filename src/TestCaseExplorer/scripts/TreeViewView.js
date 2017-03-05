@@ -119,13 +119,21 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             var dropAllowed = false;
             console.log(node.text);
             console.log(node.text != this._currentSource);
-            if (this._currentSource == const_Pivot_Priority && node && node.text != this._currentSource) {
-                dropAllowed = true;
-            }
-            if (this._currentSource == const_Pivot_TestPlan && node && node.type === "StaticTestSuite") {
-                if (node.id !== ui.helper.data("SUITE_ID")) {
+            switch (this._currentSource) {
+                case const_Pivot_Priority:
+                    if (node && node.text != this._currentSource) {
+                        dropAllowed = true;
+                    }
+                    break;
+                case const_Pivot_TestPlan:
+                    if (node && node.type === "StaticTestSuite") {
+                        if (node.id !== ui.helper.data("SUITE_ID")) {
+                            dropAllowed = true;
+                        }
+                    }
+                    break;
+                default:
                     dropAllowed = true;
-                }
             }
             return dropAllowed;
         };
@@ -241,12 +249,14 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 };
                 dialogService.openDialog(contributionId, dialogOptions).then(function (dialog) {
                     dialog.getContributionInstance("clone-testplan-form").then(function (cloneTestPlanFormInstance) {
-                        cloneTestPlanForm = cloneTestPlanFormInstance;
-                        cloneTestPlanForm.init(sourcePlanName);
-                        cloneTestPlanForm.attachFormChanged(function (isValid) {
+                        cloneTestPlanFormInstance.init(sourcePlanName);
+                        // Subscribe to form input changes and update the Ok enabled state
+                        cloneTestPlanFormInstance.attachFormChanged(function (isValid) {
                             dialog.updateOkButton(isValid);
                         });
-                        dialog.updateOkButton(false);
+                        cloneTestPlanFormInstance.isFormValid()["then"](function (isValid) {
+                            dialog.updateOkButton(isValid);
+                        });
                     });
                 });
             });

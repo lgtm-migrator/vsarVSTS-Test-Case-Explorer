@@ -258,10 +258,8 @@ class partOfTestSuitesPane implements IPaneRefresh {
     public masterIdChanged(id: string) {
         TelemetryClient.TelemetryClient.getClient().trackPageView("Details.PartOfTestSuite");
         var pane = this;
-        if (id == null) {
-            pane._grid.setDataSource(null);
-        }
-        else {
+        pane._grid.setDataSource(null);
+        if(id != null) {
             TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(
                 data=> {
                     if (data != null) {
@@ -303,7 +301,6 @@ class testPlanPane implements IPaneRefresh {
     public initialize(view: DetailsView) {
         this._view = view;
         var tpp = this;
-
         
         this._message = Controls.create<Notifications.MessageAreaControl, Notifications.IMessageAreaControlOptions>(Notifications.MessageAreaControl, $("#message-container"), msgOptions);
 
@@ -314,18 +311,7 @@ class testPlanPane implements IPaneRefresh {
 
         this._cbo = Controls.create(CtrlCombos.Combo, $("#details-cboTestPlan"), cboOptions);
 
-        TreeViewDataService.getTestPlans().then(
-            data => {
-                this._testPlans = data[0].children;
-                this._cbo.setSource(this._testPlans.map(i => { return i.text; }));
-                this._cbo.setSelectedIndex(0);
-                tpp.refreshTestPlan();
-            },
-            err => {
-                console.log(err);
-                TelemetryClient.TelemetryClient.getClient().trackException(err);
-            }
-        );
+        this.refreshTestPlanCombo();
 
         var that = this;
         var treeOptionsTestPlan: TreeView.ITreeOptions = {
@@ -455,9 +441,6 @@ class testPlanPane implements IPaneRefresh {
         }
     }
 
-
-
-
     private refreshTestPlan() {
         if (this._cbo.getSelectedIndex() >= 0) {
 
@@ -466,11 +449,13 @@ class testPlanPane implements IPaneRefresh {
             var treeView = this._treeView;
             var tpp = this;
 
+            treeView.rootNode.clear();
+            treeView._draw();
+
             var tp = this._testPlans[this._cbo.getSelectedIndex()];
             TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(
                 data => {
                     this._view.DoneLoading();
-                    this._treeView.rootNode.clear();
 
                     this._treeView.rootNode.addRange(data);
                     this._treeView._draw();
@@ -508,6 +493,22 @@ class testPlanPane implements IPaneRefresh {
                     console.log(err);
                 });
         }
+    }
+
+    private refreshTestPlanCombo() {
+        var tpp = this;
+        TreeViewDataService.getTestPlans().then(
+            data => {
+                tpp._testPlans = data[0].children;
+                tpp._cbo.setSource(tpp._testPlans.map(i => { return i.text; }));
+                tpp._cbo.setSelectedIndex(0);
+                tpp.refreshTestPlan();
+            },
+            err => {
+                console.log(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
+            }
+        );
     }
 
     // TODO: refactor to enum
@@ -727,10 +728,10 @@ class testPlanPane implements IPaneRefresh {
         this._message.clear();
     }
 
-
-
     public masterIdChanged(id: string) {
+        var view = this;
         TelemetryClient.TelemetryClient.getClient().trackPageView("Details.TestPlans");
+        view.refreshTestPlanCombo();
     }
 }
 
@@ -789,10 +790,8 @@ class testResultsPane implements IPaneRefresh {
     public masterIdChanged(id: string) {
         TelemetryClient.TelemetryClient.getClient().trackPageView("Details.TestResults");
         var pane = this;
-        if (id == null) {
-            pane._grid.setDataSource(null);
-        }
-        else {
+        pane._grid.setDataSource(null);
+        if (id != null) {
             TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(
                 data => {
                     var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
