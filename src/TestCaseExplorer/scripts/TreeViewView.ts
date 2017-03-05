@@ -26,6 +26,7 @@ import Q = require("q");
 import Common = require("scripts/Common");
 import Context = require("VSS/Context");
 import CloneTestPlan = require("scripts/CloneTestPlanForm");
+import TestCaseView = require("scripts/TestCaseView");
 
 
 import TelemetryClient = require("scripts/TelemetryClient");
@@ -50,13 +51,16 @@ export class TreeviewView {
     private _cboTestPlan: CtrlCombos.Combo;
     private _testPlans: TreeView.TreeNode[];
     private _cboSource: CtrlCombos.Combo;
+    private _tcView: TestCaseView.TestCaseView;
 
     public PivotSources: string[] = ["Area path", "Iteration path", const_Pivot_Priority, "State", const_Pivot_TestPlan];
     
 
-    public initialize(callback: TreeviewSelectedCallback) {
+    public initialize(callback: TreeviewSelectedCallback, tcView: TestCaseView.TestCaseView) {
         TelemetryClient.TelemetryClient.getClient().trackPageView("TreeView");
         var view = this;
+        view._tcView = tcView;
+
         view._showRecursive = false;
         view._callback = callback;
 
@@ -289,9 +293,7 @@ export class TreeviewView {
         window.parent.location.href = url + project + "/_testManagement?planId=" + planId + "&suiteId=" + suiteId;
     }
 
-    private showNotification(message: String) {
-                //this._message.setMessage(message + " is being cloned, you need to refresh to see the completed result.", Notifications.MessageAreaType.Info);
-    }
+
 
     private cloneTestPlan() {
         var that = this;
@@ -320,9 +322,15 @@ export class TreeviewView {
                     return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
                 },
                 okCallback: function (result: CloneTestPlan.IFormInput) {
-                    //var draggedNode: TreeView.TreeNode = that._treeview.getNodeFromElement(ui.draggable);
-                    TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath);
-                    that.showNotification("Test plan " + result.newTestPlanName);
+                    TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath).then(
+                        result => {
+                            that._tcView.ShowCloningMessage(result.opId).then(result => {
+                            })
+                        },
+                        err => {
+                            that._tcView.ShowErr(err.message);
+                        }
+                    );
                 }
             };
 
@@ -330,7 +338,8 @@ export class TreeviewView {
                 
                 dialog.getContributionInstance<CloneTestPlan.CloneTestPlanForm>("clone-testplan-form").then(
                     cloneTestPlanFormInstance => {
-                    
+                    cloneTestPlanForm = cloneTestPlanFormInstance;
+
                     cloneTestPlanFormInstance.init(sourcePlanName);
 
                     // Subscribe to form input changes and update the Ok enabled state

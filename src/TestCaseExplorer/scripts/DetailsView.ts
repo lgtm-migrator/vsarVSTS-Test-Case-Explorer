@@ -23,8 +23,6 @@ import Menus = require("VSS/Controls/Menus");
 import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import Navigation = require("VSS/Controls/Navigation");
 import TestContracts = require("TFS/TestManagement/Contracts");
-import Notifications = require("VSS/Controls/Notifications");
-
 import Context = require("VSS/Context");
 
 import Toggler = require("scripts/DetailsToggle");
@@ -32,6 +30,8 @@ import TreeViewDataService = require("scripts/TreeViewDataService");
 import Common = require("scripts/Common");
 import LeftTreeView = require("scripts/TreeViewView");
 import CloneTestSuite = require("scripts/CloneTestSuiteForm");
+import TestCaseView = require("scripts/TestCaseView");
+
 import TelemetryClient = require("scripts/TelemetryClient");
 //import CloneTestPlan = require("scripts/CloneTestPlanForm");
 
@@ -51,13 +51,15 @@ export class DetailsView {
 
     private _selectedMasterId: string
     private _PaneLst: IPaneRefresh[];
-    public initialize(paneToggler: Toggler.DetailsPaneToggler, leftTreeView: LeftTreeView.TreeviewView) {
+    public _tcView: TestCaseView.TestCaseView;
 
+    public initialize(paneToggler: Toggler.DetailsPaneToggler, leftTreeView: LeftTreeView.TreeviewView, tcView: TestCaseView.TestCaseView) {
+        this._tcView = tcView;
         this._PaneLst = [];
         this._toggler = paneToggler;
         this._leftTreeView = leftTreeView;
         var view = this;
-
+        
         var panels = [
             { id: "TestPlan", text: "Test plans" },
             { id: "TestSuites", text: "Test suites", selected: true },
@@ -282,12 +284,6 @@ class partOfTestSuitesPane implements IPaneRefresh {
 }
 
 
-var msgOptions: Notifications.IMessageAreaControlOptions = {
-    type: Notifications.MessageAreaType.Info,
-    closeable: false,
-    expanded: false,
-    showIcon: true
-};
 
 class testPlanPane implements IPaneRefresh {
     private _cbo: CtrlCombos.Combo;
@@ -295,18 +291,16 @@ class testPlanPane implements IPaneRefresh {
     private _view: DetailsView;
     private _grid;
     private _treeView: TreeView.TreeView;
-    private _message: Notifications.MessageAreaControl;
+   
     private PreventDropOverDubbelBouble = false;
-    private _interval: number;
-
+   
 
     public initialize(view: DetailsView) {
         this._view = view;
         var tpp = this;
 
         
-        this._message = Controls.create<Notifications.MessageAreaControl, Notifications.IMessageAreaControlOptions>(Notifications.MessageAreaControl, $("#message-container"), msgOptions);
-
+    
         var cboOptions: CtrlCombos.IComboOptions = {
             mode: "drop",
             allowEdit: false,
@@ -455,9 +449,6 @@ class testPlanPane implements IPaneRefresh {
         }
     }
 
-
-
-
     private refreshTestPlan() {
         if (this._cbo.getSelectedIndex() >= 0) {
 
@@ -518,12 +509,8 @@ class testPlanPane implements IPaneRefresh {
         return mode;
     }
 
-    private showNotification(message: String) {
-        this._message.setMessage(message + " is being cloned! The operation can take some time...", Notifications.MessageAreaType.Info);
-    }
-
     private processDropTestSuite(ui, n, mode) {
-        var view = this;
+        var self = this;
 
         var draggedNode: TreeView.TreeNode = this._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
 
@@ -542,8 +529,9 @@ class testPlanPane implements IPaneRefresh {
         console.log("target plan name: " + targetPlanName);
         console.log("target plan id: " + targetPlanId);
         console.log("target suite id: " + targetSuiteId);
-
-        view.ShowMsg(mode + " test suite from " + sourcePlanName + ":" + sourceSuiteId + " to " + targetPlanName + ":" + targetSuiteId + " please wait while operation completes");
+        if(mode=="MOVE" ||mode=="ADD"){
+            self._view._tcView.ShowMsg(mode + " test suite from " + sourcePlanName + ":" + sourceSuiteId + " to " + targetPlanName + ":" + targetSuiteId + " please wait while operation completes");
+        }
 
         switch (mode) {
             case "MOVE":
@@ -551,11 +539,11 @@ class testPlanPane implements IPaneRefresh {
                     result => {
                         TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
                             result => {
-                                view.ShowMsg(mode + " completed");
-                                view.HideMsg();
-                                view.refreshTestPlan();
-                                view._view.refreshLeftTree();
-                                view._view.refreshTestCaseView();
+                                self._view._tcView.ShowMsg(mode + " completed");
+                                self._view._tcView.HideMsg();
+                                self.refreshTestPlan();
+                                self._view.refreshLeftTree();
+                                self._view.refreshTestCaseView();
                             });
                     }
                 );
@@ -566,11 +554,11 @@ class testPlanPane implements IPaneRefresh {
             case "ADD":
                 TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
                     result => {
-                        view.ShowMsg(mode + " completed");
-                        view.HideMsg();
-                        view.refreshTestPlan();
-                        view._view.refreshLeftTree();
-                        view._view.refreshTestCaseView();
+                        self._view._tcView.ShowMsg(mode + " completed");
+                        self._view._tcView.HideMsg();
+                        self.refreshTestPlan();
+                        self._view.refreshLeftTree();
+                        self._view.refreshTestCaseView();
                     }
                 );
                 break;
@@ -578,42 +566,21 @@ class testPlanPane implements IPaneRefresh {
     }
 
     private cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements) {
-        var view = this;
-        var s = "Cloning in progress"
-        view.ShowMsg(s);
+        var self = this;
+       
         console.log("cloning test suite...");
-        TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements).then(result => {
-            view.refreshTestPlan();
-            view._interval = setInterval(
-                () => {
-                    s = s + "...";
-                    view.checkCloneStatus(view, result.opId, s);
-                },
-                3000);
-        });
-    }
-
-    private checkCloneStatus(view, opId, s){
-        view.ShowMsg(s);
-
-        TreeViewDataService.querryCloneOperationStatus(opId).then(cloneStat => {
-            switch (cloneStat.state) {
-                case TestContracts.CloneOperationState.Failed:
-                    view.ShowErr(cloneStat.message);
-                    break;
-                case TestContracts.CloneOperationState.Succeeded:
-                    view.ShowMsg("Cloning completed")
-                    view.ShowDone();
-                    clearInterval(view.interval);
-                    
-                    break;
-                default:
-                    console.log("   checking status of clone operation = " + cloneStat.state);
-                   
+        TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements).then(
+            result => {
+                self.refreshTestPlan();
+                self._view._tcView.ShowCloningMessage(result.opId);
+            },
+            err => {
+                self._view._tcView.ShowErr(err.message);
             }
-        });
-        
+        );
     }
+
+   
 
     private showCloneTestSuite(view: testPlanPane, sourcePlanName: string, sourcePlanId: number, sourceSuiteId: number, targetPlanName: string, targetPlanId: number, targetSuiteId: number) {
 
@@ -639,7 +606,7 @@ class testPlanPane implements IPaneRefresh {
                 },
                 okCallback: function (result: CloneTestSuite.IFormInput) {
                     view.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, result.cloneChildSuites, result.cloneRequirements);
-                    view.showNotification("Test suite " + targetSuiteId);
+                    
                 }
             };
 
@@ -667,7 +634,10 @@ class testPlanPane implements IPaneRefresh {
         console.log("target suite id: " + targetSuiteId);
         console.log("ids: " + tcIds.join(","));
 
-        this.ShowMsg(mode + " test case(s) from " + sourcePlanId+":" + sourceSuiteId + " to " + targetPlanId + ":"+ targetSuiteId);
+        if (mode == "MOVE" || mode == "ADD") {
+            this._view._tcView.ShowMsg(mode + " test case(s) from " + sourcePlanId + ":" + sourceSuiteId + " to " + targetPlanId + ":" + targetSuiteId);
+        }
+
         switch (mode) {
             case "MOVE":
                 TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
@@ -675,10 +645,10 @@ class testPlanPane implements IPaneRefresh {
                         TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(
                             result => {
                                 that._view.refreshTestCaseView();
-                                that.ShowDone();
+                                that._view._tcView.ShowDone();
                             },
                             err => {
-                                that.ShowErr("Failed" + err.message);
+                                that._view._tcView.ShowErr("Failed" + err.message);
                             }
                         );
                     }
@@ -688,10 +658,10 @@ class testPlanPane implements IPaneRefresh {
                 TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
                     result => {
                         that._view.refreshTestCaseView();
-                        that.ShowDone();
+                        that._view._tcView.ShowDone();
                     },
                     err => {
-                        that.ShowErr("Failed" + err.message);
+                        that._view._tcView.ShowErr("Failed" + err.message);
                     });
                 break;
         }
@@ -706,26 +676,7 @@ class testPlanPane implements IPaneRefresh {
         $("#details-TestPlan").css("display", "none");
     }
 
-    public ShowMsg(msg: string) {
-        $("#message-container").show();
-        this._message.clear();
-        this._message.initializeOptions(msgOptions);
-        this._message.setMessage(msg, Notifications.MessageAreaType.Info);
-    }
-    public ShowDone() {
-        var view = this;
-        setTimeout(() => { view.HideMsg(); }, 3000);
-    } 
-    public ShowErr(msg) {
-        var view = this;
-        this._message.setError(msg);
-    } 
-
-
-    public HideMsg() {
-        $("#message-container").hide();
-        this._message.clear();
-    }
+    
 
 
 

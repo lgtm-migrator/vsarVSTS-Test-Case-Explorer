@@ -27,9 +27,9 @@ import SplitterControls = require("VSS/Controls/Splitter");
 
 Common.WIQLConstants.getWiqlConstants();
 var paneToggler = new DetailsToggle.DetailsPaneToggler();
-var dv = new DetailsView.DetailsView();
-var tc = new TestCaseView.TestCaseView();
 var tv = new TreeViewView.TreeviewView();
+var tc = new TestCaseView.TestCaseView();
+var dv = new DetailsView.DetailsView();
 
 tc.initialize(paneToggler, RefreshPane, tv);
 
@@ -52,6 +52,7 @@ function listenToTheKey(e) {
         else {
             mode = "Move";
         }
+     
         var text = $(".drag-tile-drag-type").text();
 
         if (text != "Attach") {
@@ -81,8 +82,8 @@ paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(functi
     tc.updateTogle(t);
 });
 
-tv.initialize(RefreshGrid);
-dv.initialize(paneToggler, tv);
+tv.initialize(RefreshGrid, tc);
+dv.initialize(paneToggler, tv, tc);
 
 function RefreshGrid(pivot: string, value: string, showRecursive: boolean): void {
     tc.RefreshGrid(pivot, value, showRecursive);

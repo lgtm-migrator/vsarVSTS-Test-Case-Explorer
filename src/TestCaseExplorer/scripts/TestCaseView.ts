@@ -29,6 +29,9 @@ import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import CoreUtils = require("VSS/Utils/Core");
 import CtrlCombos = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
+import Notifications = require("VSS/Controls/Notifications");
+
+
 import TestCaseDataService = require("scripts/TestCaseDataService");
 import Common = require("scripts/Common");
 import ColumnOptionsView = require("scripts/ColumnsOptionsView");
@@ -43,6 +46,12 @@ var const_Pivot_TestPlan = "Test plan";
 var const_Pivot_Priority = "Priority";
 
 
+var msgOptions: Notifications.IMessageAreaControlOptions = {
+    type: Notifications.MessageAreaType.Info,
+    closeable: false,
+    expanded: false,
+    showIcon: true
+};
 
 export class TestCaseView {
 
@@ -51,6 +60,7 @@ export class TestCaseView {
     private _menubar: Menus.MenuBar;
     private _fields: Common.ICustomColumnDef[];
     private _showTestResults: boolean = false;
+
 
     private _commonField: Common.ICustomColumnDef[] = [
         { field: "System.Id", name: "Id", width: 75 },
@@ -74,6 +84,9 @@ export class TestCaseView {
     private _selectedValueWithField;
     private _selectedRows: number[];
     private _leftTreeView: LeftTreeView.TreeviewView;
+
+    private _interval: number;
+    private _message: Notifications.MessageAreaControl;
 
     public RefreshGrid(pivot: string, value, showRecursive: boolean) {
 
@@ -191,6 +204,8 @@ export class TestCaseView {
         this._leftTreeView = leftTreeView;
 
         TelemetryClient.TelemetryClient.getClient().trackPageView("TestCaseView");
+
+        this._message = Controls.create<Notifications.MessageAreaControl, Notifications.IMessageAreaControlOptions>(Notifications.MessageAreaControl, $("#message-container"), msgOptions);
 
         this._paneToggler = paneToggler;
         this._fields = this._commonField;
@@ -645,6 +660,72 @@ export class TestCaseView {
             this._waitControl.endWait();
             this._waitControl = null;
         }
+    }
+
+    public ShowCloningMessage(opId:number):IPromise<any> {
+        var deferred = $.Deferred<any>();
+
+        var self = this;
+        var s = "Cloning in progress"
+        self.ShowMsg(s);
+        self._interval = setInterval(
+            () => {
+                s = s + "...";
+                self.ShowMsg(s);
+                console.log(s);
+                console.log("Checking clone status");
+                self.checkCloneStatus( opId, s);
+            },
+            3000);
+        return deferred.promise();
+    }
+
+    private checkCloneStatus( opId, s) {
+        var self = this;
+        var deferred = $.Deferred<any>();
+
+        self.ShowMsg(s);
+
+        TreeViewDataService.querryCloneOperationStatus(opId).then(cloneStat => {
+            switch (cloneStat.state) {
+                case TestContracts.CloneOperationState.Failed:
+                    self.ShowErr(cloneStat.message);
+                    deferred.reject(cloneStat)
+                    break;
+                case TestContracts.CloneOperationState.Succeeded:
+                    self.ShowMsg("Cloning completed")
+                    self.ShowDone();
+                    clearInterval(self._interval);
+                    deferred.resolve(cloneStat);
+                    break;
+                default:
+                    console.log("   checking status of clone operation = " + cloneStat.state);
+
+            }
+        });
+        return deferred.promise();
+
+    }
+
+    public ShowMsg(msg: string) {
+        $("#message-container").show();
+        this._message.clear();
+        this._message.initializeOptions(msgOptions);
+        this._message.setMessage(msg, Notifications.MessageAreaType.Info);
+    }
+    public ShowDone() {
+        var view = this;
+        setTimeout(() => { view.HideMsg(); }, 3000);
+    }
+    public ShowErr(msg) {
+        var view = this;
+        this._message.setError(msg);
+    }
+
+
+    public HideMsg() {
+        $("#message-container").hide();
+        this._message.clear();
     }
 }
 
