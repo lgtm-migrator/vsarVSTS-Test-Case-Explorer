@@ -190,15 +190,17 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         };
         TreeviewView.prototype.initTestPlanCbo = function () {
             var view = this;
-            var cboOTestPlanptions = {
-                mode: "drop",
-                allowEdit: false,
-                change: function () {
-                    view._currentTestPlan = view._cboTestPlan.getText();
-                    view.refreshTreeView(false);
-                }
-            };
-            var cboTestPlan = Controls.create(CtrlCombos.Combo, $("#left-cboTestPlan"), cboOTestPlanptions);
+            if (view._cboTestPlan == null) {
+                var cboOTestPlanptions = {
+                    mode: "drop",
+                    allowEdit: false,
+                    change: function () {
+                        view._currentTestPlan = view._cboTestPlan.getText();
+                        view.refreshTreeView(false);
+                    }
+                };
+                view._cboTestPlan = Controls.create(CtrlCombos.Combo, $("#left-cboTestPlan"), cboOTestPlanptions);
+            }
             TreeViewDataService.getTestPlans().then(function (data) {
                 view._testPlans = data[0].children;
                 var nAll = TreeView.TreeNode.create(constAllTestPlanName);
@@ -209,7 +211,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 console.log(err);
                 TelemetryClient.TelemetryClient.getClient().trackException(err);
             });
-            return cboTestPlan;
+            return view._cboTestPlan;
         };
         TreeviewView.prototype.openTestSuite = function () {
             var url = VSS.getWebContext().collection.uri;
@@ -240,7 +242,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
                     },
                     okCallback: function (result) {
-                        TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath).then(function (result) {
+                        TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.projectName, result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath).then(function (result) {
                             that._tcView.ShowCloningMessage(result.opId).then(function (result) {
                             });
                         }, function (err) {
@@ -268,6 +270,8 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             if (this._currentNode.config.type == "TestPlan") {
                 if (confirm("Are you sure you want to delete test plan " + this._currentNode.text + "?")) {
                     TreeViewDataService.removeTestPlan(this._currentNode.config.testPlanId).then(function (result) {
+                        that._cboTestPlan.setSelectedIndex(0);
+                        that.initTestPlanCbo();
                         that.refreshTreeView(false);
                     });
                 }

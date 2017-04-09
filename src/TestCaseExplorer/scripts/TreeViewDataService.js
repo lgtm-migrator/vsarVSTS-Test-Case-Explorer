@@ -19,9 +19,9 @@ define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestMa
     function getNodes(param, tp) {
         switch (param) {
             case "Area path":
-                return getStructure(Contracts.TreeStructureGroup.Areas);
+                return getStructure(Contracts.TreeStructureGroup.Areas, tp);
             case "Iteration path":
-                return getStructure(Contracts.TreeStructureGroup.Iterations);
+                return getStructure(Contracts.TreeStructureGroup.Iterations, tp);
             case const_Pivot_Priority:
                 return getPrioriy();
             case "State":
@@ -190,10 +190,10 @@ define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestMa
         });
         return returnNode;
     }
-    function getStructure(structure) {
+    function getStructure(structure, teamProject) {
         var deferred = $.Deferred();
         var client = WITClient.getClient();
-        client.getRootNodes(VSS.getWebContext().project.name, 11).then(function (data) {
+        client.getRootNodes(teamProject, 11).then(function (data) {
             var nodes = convertToTreeNodes([data[structure]], "");
             nodes[0].expanded = true;
             deferred.resolve(nodes);
@@ -261,11 +261,11 @@ define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestMa
         });
         return a;
     }
-    function cloneTestPlan(sourcePlanId, sourceSuiteIds, testPlanName, cloneRequirements, areaPath, iterationPath) {
+    function cloneTestPlan(sourcePlanId, sourceSuiteIds, projectName, testPlanName, cloneRequirements, areaPath, iterationPath) {
         var deferred = $.Deferred();
         var testPlan = {
             name: testPlanName,
-            project: VSS.getWebContext().project.name
+            project: { "Name": projectName }
         };
         var cloneRequest = {
             destinationTestPlan: testPlan,
@@ -273,12 +273,16 @@ define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestMa
                 cloneRequirements: cloneRequirements,
                 copyAllSuites: true,
                 copyAncestorHierarchy: true,
-                overrideParameters: { "System.AreaPath": areaPath, "System.IterationPath": iterationPath },
+                overrideParameters: {},
                 destinationWorkItemType: "Test Case",
                 relatedLinkComment: "Comment"
             },
             suiteIds: sourceSuiteIds
         };
+        if (areaPath != "")
+            $.extend(cloneRequest.options.overrideParameters, { "System.AreaPath": areaPath });
+        if (iterationPath != "")
+            $.extend(cloneRequest.options.overrideParameters, { "System.IterationPath": iterationPath });
         var testCaseClient = TestClient.getClient();
         testCaseClient.cloneTestPlan(cloneRequest, VSS.getWebContext().project.name, sourcePlanId).then(function (data) {
             console.log("Clone test plan completed: " + data.completionDate);
@@ -478,7 +482,7 @@ define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestMa
         var deferred = $.Deferred();
         var coreClient = CoreClient.getClient();
         coreClient.getProjects().then(function (data) {
-            deferred.resolve(data.map(function (p) { return p.name; }));
+            deferred.resolve(data.map(function (p) { return p.name; }).sort(function (a, b) { return a.localeCompare(b); }));
         }, function (err) {
             deferred.reject(err);
         });

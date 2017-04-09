@@ -36,9 +36,9 @@ export function getNodes(param, tp) {
 
     switch (param) {
         case "Area path":
-            return getStructure(Contracts.TreeStructureGroup.Areas);
+            return getStructure(Contracts.TreeStructureGroup.Areas, tp);
         case "Iteration path":
-            return getStructure(Contracts.TreeStructureGroup.Iterations);
+            return getStructure(Contracts.TreeStructureGroup.Iterations, tp);
         case const_Pivot_Priority:
             return getPrioriy();
         case "State":
@@ -235,11 +235,11 @@ function BuildTestSuiteTree(tsList: any[], parentNode: TreeView.TreeNode, allTS:
     return returnNode;
 }
 
-function getStructure(structure: Contracts.TreeStructureGroup): IPromise<TreeView.TreeNode[]> {
+function getStructure(structure: Contracts.TreeStructureGroup, teamProject: string): IPromise<TreeView.TreeNode[]> {
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var client = WITClient.getClient();
-    client.getRootNodes(VSS.getWebContext().project.name, 11).then(
+    client.getRootNodes(teamProject, 11).then(
         function (data: Contracts.WorkItemClassificationNode[]) {
             var nodes = convertToTreeNodes([data[structure]], "")
             nodes[0].expanded = true;
@@ -326,12 +326,12 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
     return a;
 }
 
-export function cloneTestPlan(sourcePlanId: number, sourceSuiteIds: number[], testPlanName: string, cloneRequirements: boolean, areaPath?: string, iterationPath?: string): IPromise<TestContracts.CloneOperationInformation> {
+export function cloneTestPlan(sourcePlanId: number, sourceSuiteIds: number[], projectName: string, testPlanName: string, cloneRequirements: boolean, areaPath?: string, iterationPath?: string): IPromise<TestContracts.CloneOperationInformation> {
     var deferred = $.Deferred<TestContracts.CloneOperationInformation>();
 
     var testPlan: any = {
         name: testPlanName,
-        project: VSS.getWebContext().project.name
+        project: { "Name": projectName } 
     };
 
     var cloneRequest: TestContracts.TestPlanCloneRequest = {
@@ -340,12 +340,15 @@ export function cloneTestPlan(sourcePlanId: number, sourceSuiteIds: number[], te
             cloneRequirements: cloneRequirements,
             copyAllSuites: true,
             copyAncestorHierarchy: true,
-            overrideParameters: { "System.AreaPath": areaPath, "System.IterationPath": iterationPath},
+            overrideParameters: {},
             destinationWorkItemType: "Test Case",
             relatedLinkComment: "Comment"
         },
         suiteIds: sourceSuiteIds
     };
+
+    if (areaPath != "") $.extend(cloneRequest.options.overrideParameters, { "System.AreaPath": areaPath });
+    if (iterationPath != "") $.extend(cloneRequest.options.overrideParameters, { "System.IterationPath": iterationPath });
 
     var testCaseClient = TestClient.getClient();
     testCaseClient.cloneTestPlan(cloneRequest, VSS.getWebContext().project.name, sourcePlanId).then(
@@ -615,7 +618,7 @@ export function getProjects(): IPromise<string[]> {
     var coreClient = CoreClient.getClient();
     coreClient.getProjects().then(
         data => {                
-            deferred.resolve(data.map(p => { return p.name }));
+            deferred.resolve(data.map(p => { return p.name }).sort(function(a, b) { return a.localeCompare(b); }));
         },
         err => {
             deferred.reject(err);

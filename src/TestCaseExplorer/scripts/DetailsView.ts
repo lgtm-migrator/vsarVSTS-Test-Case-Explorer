@@ -40,7 +40,7 @@ interface IPaneRefresh {
     initialize(view: DetailsView): void;
     hide(): void;
     show(): void;
-    masterIdChanged(id: string): void;
+    masterIdChanged(id: string, isRefresh: boolean): void;
 }
 
 export class DetailsView {
@@ -109,13 +109,15 @@ export class DetailsView {
 
     public selectionChanged(id: string) {
         if (this._selectedPane != null) {
-            this._selectedMasterId = id;
-            this._selectedPane.masterIdChanged(id);
+            if (this._selectedMasterId != id) {
+                this._selectedMasterId = id;
+                this._selectedPane.masterIdChanged(id, false);
+            }
         }
     }
 
     public Refresh(): void {
-        this.selectionChanged(this._selectedMasterId);
+        this._selectedPane.masterIdChanged(this._selectedMasterId, true);
     }
 
     public refreshTestCaseView(): void {
@@ -161,7 +163,7 @@ export class DetailsView {
 
         this._selectedPane = pane;
         this._selectedPane.show();
-        this._selectedPane.masterIdChanged(this._selectedMasterId);
+        this._selectedPane.masterIdChanged(this._selectedMasterId, false);
     }
 
     public StartLoading(longRunning, message) {
@@ -257,7 +259,7 @@ class partOfTestSuitesPane implements IPaneRefresh {
         $("#details-testSuites").css("display", "none");
     }
 
-    public masterIdChanged(id: string) {
+    public masterIdChanged(id: string, isRefresh: boolean) {
         TelemetryClient.TelemetryClient.getClient().trackPageView("Details.PartOfTestSuite");
         var pane = this;
         pane._grid.setDataSource(null);
@@ -280,8 +282,6 @@ class partOfTestSuitesPane implements IPaneRefresh {
         }
     }
 }
-
-
 
 class testPlanPane implements IPaneRefresh {
     private _cbo: CtrlCombos.Combo;
@@ -584,8 +584,6 @@ class testPlanPane implements IPaneRefresh {
         );
     }
 
-   
-
     private showCloneTestSuite(view: testPlanPane, sourcePlanName: string, sourcePlanId: number, sourceSuiteId: number, targetPlanName: string, targetPlanId: number, targetSuiteId: number) {
 
         var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
@@ -680,12 +678,12 @@ class testPlanPane implements IPaneRefresh {
         $("#details-TestPlan").css("display", "none");
     }
 
-    
-
-    public masterIdChanged(id: string) {
-        var view = this;
-        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.TestPlans");
-        view.refreshTestPlanCombo();
+    public masterIdChanged(id: string, isRefresh: boolean) {
+        if (isRefresh) {
+            var view = this;
+            TelemetryClient.TelemetryClient.getClient().trackPageView("Details.TestPlans");
+            view.refreshTestPlanCombo();
+        }
     }
 }
 
@@ -741,7 +739,7 @@ class testResultsPane implements IPaneRefresh {
         $("#details-title").text("Recent test results");
     }
 
-    public masterIdChanged(id: string) {
+    public masterIdChanged(id: string, isRefresh: boolean) {
         TelemetryClient.TelemetryClient.getClient().trackPageView("Details.TestResults");
         var pane = this;
         pane._grid.setDataSource(null);
@@ -808,7 +806,7 @@ class linkedRequirementsPane implements IPaneRefresh {
         $("#details-title").text("Linked requirements");
     }
 
-    public masterIdChanged(id: string) {
+    public masterIdChanged(id: string, isRefresh: boolean) {
         TelemetryClient.TelemetryClient.getClient().trackPageView("Details.LinkedRequirements");
         var pane = this;
         pane._grid.setDataSource(null);

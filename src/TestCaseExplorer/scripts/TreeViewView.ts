@@ -255,16 +255,18 @@ export class TreeviewView {
     private initTestPlanCbo(): CtrlCombos.Combo {
         var view = this;
 
-        var cboOTestPlanptions: CtrlCombos.IComboOptions = {
-            mode: "drop",
-            allowEdit: false,
-            change: function() {
-                view._currentTestPlan = view._cboTestPlan.getText();
-                view.refreshTreeView(false);
-            }
-        };
+        if (view._cboTestPlan == null) {
+            var cboOTestPlanptions: CtrlCombos.IComboOptions = {
+                mode: "drop",
+                allowEdit: false,
+                change: function () {
+                    view._currentTestPlan = view._cboTestPlan.getText();
+                    view.refreshTreeView(false);
+                }
+            };
 
-        var cboTestPlan = Controls.create(CtrlCombos.Combo, $("#left-cboTestPlan"), cboOTestPlanptions);
+            view._cboTestPlan = Controls.create(CtrlCombos.Combo, $("#left-cboTestPlan"), cboOTestPlanptions);
+        }
 
         TreeViewDataService.getTestPlans().then(
             data => {
@@ -281,7 +283,7 @@ export class TreeviewView {
             }
         );
         
-        return cboTestPlan;
+        return view._cboTestPlan;
     }
 
     private openTestSuite() {
@@ -319,7 +321,7 @@ export class TreeviewView {
                     return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
                 },
                 okCallback: function (result: CloneTestPlan.IFormInput) {
-                    TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath).then(
+                    TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.projectName, result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath).then(
                         result => {
                             that._tcView.ShowCloningMessage(result.opId).then(result => {
                             })
@@ -358,6 +360,8 @@ export class TreeviewView {
         if (this._currentNode.config.type == "TestPlan") {
             if (confirm("Are you sure you want to delete test plan " + this._currentNode.text + "?")) {
                 TreeViewDataService.removeTestPlan(this._currentNode.config.testPlanId).then(result => {
+                    that._cboTestPlan.setSelectedIndex(0);
+                    that.initTestPlanCbo();
                     that.refreshTreeView(false);
                 });
             }
@@ -496,7 +500,7 @@ export class TreeviewView {
 
         if (longRunning) {
             var waitControlOptions: StatusIndicator.IWaitControlOptions = {
-                target: $(".wait-control-treeview-target"),
+                target: $(".wait-control-treeview-target"),                
                 message: message,
                 cancellable: false,
                 cancelTextFormat: "{0} to cancel",
