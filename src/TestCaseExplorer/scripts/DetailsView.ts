@@ -187,12 +187,15 @@ export class DetailsView {
 
     public DoneLoading() {
         $("body").css("cursor", "default");
-
-        if (this._waitControl != null) {
-            this._waitControl.cancelWait();
-            this._waitControl.endWait();
-            this._waitControl = null;
-        }
+        var view = this;
+        //setTimeout(3000, function () {
+            if (view._waitControl != null) {
+                view._waitControl.cancelWait();
+                view._waitControl.endWait();
+                view._waitControl = null;
+            }
+            
+        //});
     }
 }
 
