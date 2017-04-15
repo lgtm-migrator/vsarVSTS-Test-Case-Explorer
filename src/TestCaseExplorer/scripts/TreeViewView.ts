@@ -539,7 +539,7 @@ export class TreeviewView {
 
         var hideClone = (view._currentSource == const_Pivot_TestPlan) ? false : true;
         view._menubar.updateCommandStates([{ id: "clone-testplan", hidden: hideClone, disabled: true }]);
-
+        view._menubar.updateItems({ id: "clone-testplan", title: hideClone ? "Switch to test plan pivot and select a test plan to clone it":"Clone test plan" });
         var tp = null;
         if (this._currentTestPlan !== constAllTestPlanName) {
             tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
@@ -566,6 +566,7 @@ export class TreeviewView {
                     selectedNode.selected = true;
                     selectedNode.expanded = true;
                     if (view._currentSource == const_Pivot_TestPlan) {
+
                         view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
                     }
                 }
