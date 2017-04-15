@@ -143,7 +143,9 @@ export class TreeviewView {
                 if (view._currentNode != null) {
                     view.RefreshGrid();
                 }
-                view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
+                var isDisabled = view._currentNode.config.type != "TestPlan";
+                view.toogleCloneTestplanEnabled(isDisabled);
+
             }
         };
 
@@ -489,6 +491,24 @@ export class TreeviewView {
         this._menubar = menubar;
     }
 
+    private toogleCloneTestplanEnabled(isDisabled: boolean, msg?: string) {
+        var view = this;
+
+        if (msg == null) {
+            msg = "Select a test plan to clone it" 
+        }
+
+        var menus = view._menubar.getMenuItemSpecs();
+        menus.forEach(i => {
+            if (i.id === "clone-testplan") {
+                i.title = isDisabled ? msg: "Clone test plan";
+
+            }
+        });
+        view._menubar.updateItems(menus);
+        view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: isDisabled }]);
+    }
+
     public RefreshGrid() {
         if (this._currentNode != null) {
             this._callback(this._currentSource, this._currentNode.config, this._showRecursive);
@@ -538,8 +558,8 @@ export class TreeviewView {
         this._menubar.updateCommandStates([{ id: "open-testsuite", hidden: hideOpenSuite }]);
 
         var hideClone = (view._currentSource == const_Pivot_TestPlan) ? false : true;
-        view._menubar.updateCommandStates([{ id: "clone-testplan", hidden: hideClone, disabled: true }]);
-        view._menubar.updateItems({ id: "clone-testplan", title: hideClone ? "Switch to test plan pivot and select a test plan to clone it":"Clone test plan" });
+        view.toogleCloneTestplanEnabled(hideClone, "Select test plan pivot to clode a test plan");
+
         var tp = null;
         if (this._currentTestPlan !== constAllTestPlanName) {
             tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
@@ -566,8 +586,8 @@ export class TreeviewView {
                     selectedNode.selected = true;
                     selectedNode.expanded = true;
                     if (view._currentSource == const_Pivot_TestPlan) {
-
-                        view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
+                        view.toogleCloneTestplanEnabled(view._currentNode.config.type != "TestPlan");
+                        
                     }
                 }
 
