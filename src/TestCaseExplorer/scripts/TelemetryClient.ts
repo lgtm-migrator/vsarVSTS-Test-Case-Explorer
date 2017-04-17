@@ -16,9 +16,10 @@
 /// <reference path='../typings/tsd.d.ts' />
 
 import VSS_VSS = require("VSS/VSS");
+import Context = require("VSS/Context")
+
 
 export class TelemetryClient implements VSS_VSS.errorPublisher {
-
 
     private static telemetryClient: TelemetryClient;
     public static getClient(): TelemetryClient {
@@ -36,24 +37,37 @@ export class TelemetryClient implements VSS_VSS.errorPublisher {
     private Init() {
         var self = this;
         try {
+            var x = VSS.getExtensionContext();
+
             var snippet: any = {
                 config: {
-                    instrumentationKey: "b1d068b6-1388-43bb-b002-c6d9e9a45642",
+                    instrumentationKey: "__AppInsightsKey__"
                 }
             };
-            var x = VSS.getExtensionContext();
 
             var init = new Microsoft.ApplicationInsights.Initialization(snippet);
             this.appInsightsClient = init.loadAppInsights();
 
 
+            var webContext = VSS.getWebContext();
+            this.appInsightsClient.setAuthenticatedUserContext(webContext.user.id, webContext.account.name);
+            this.appInsightsClient.context.application.ver = Context.getPageContext().webAccessConfiguration.isHosted ? "hosted" : "onPrem";
+            this.appInsightsClient.context.application.build = VSS.getExtensionContext().version;
+
             window.onerror = this.appInsightsClient._onerror;
             VSS_VSS.errorHandler.attachErrorPublisher(self);
 
-            var webContext = VSS.getWebContext();
-            this.appInsightsClient.setAuthenticatedUserContext(webContext.user.id, webContext.collection.id);
-
-
+            try {
+                this.trackEvent("InitTelemetry", {
+                    version: VSS.getExtensionContext().version,
+                    isHosted: Context.getPageContext().webAccessConfiguration.isHosted,
+                    account: VSS.getWebContext().account.uri
+                });
+            }
+            catch (ex) {
+                //Just log to console 
+                console.log(ex);
+            }
         }
         catch (e) {
             this.appInsightsClient = null;
@@ -61,17 +75,23 @@ export class TelemetryClient implements VSS_VSS.errorPublisher {
         }
     }
 
-    public publishError(err: TfsError): void {
+    public publishError(error: TfsError): void {
 
-        var e:Error = new Error();
-        e.name = err.name;
-        e.message = err.message;
-        // e.stack = err.stack; How strange ?
-        
-
-        this.appInsightsClient.trackException(e)
+        var e = new Error();
+        e.name = error.name;
+        e.message = error.message;
+        e["stack"] = error.stack;
+        if (e.message.indexOf('%error="1660002";%') > 0) {
+            // SDK Bug causes getSettings & getDocument calls to recieven unhandled exceptions - despite beeing handled 
+            // just log it to console and kill it 
+            console.log(e.message)
+        }
+        else {
+            this.appInsightsClient.trackException(e)
+        }
 
     }
+
     public startTrackPageView(name?: string) {
         try {
             if (this.appInsightsClient != null) {
@@ -97,7 +117,7 @@ export class TelemetryClient implements VSS_VSS.errorPublisher {
     public trackPageView(name?: string, url?: string, properties?: Object, measurements?: Object, duration?: number) {
         try {
             if (this.appInsightsClient != null) {
-                this.appInsightsClient.trackPageView("TCExplorer." + name, url, properties, measurements, duration);        
+                this.appInsightsClient.trackPageView(name, url, properties, measurements, duration);
             }
         }
         catch (e) {
@@ -108,7 +128,8 @@ export class TelemetryClient implements VSS_VSS.errorPublisher {
     public trackEvent(name: string, properties?: Object, measurements?: Object) {
         try {
             if (this.appInsightsClient != null) {
-                this.appInsightsClient.trackEvent("TCExplorer." + name, properties, measurements);
+
+                this.appInsightsClient.trackEvent(name, properties, measurements);
                 this.appInsightsClient.flush();
             }
         }
@@ -132,7 +153,7 @@ export class TelemetryClient implements VSS_VSS.errorPublisher {
     public trackMetric(name: string, average: number, sampleCount?: number, min?: number, max?: number, properties?: Object) {
         try {
             if (this.appInsightsClient != null) {
-                this.appInsightsClient.trackMetric("TCExplorer." + name, average, sampleCount, min, max, properties);
+                this.appInsightsClient.trackMetric(name, average, sampleCount, min, max, properties);
                 this.appInsightsClient.flush();
             }
         }
@@ -140,4 +161,6 @@ export class TelemetryClient implements VSS_VSS.errorPublisher {
             console.log(e);
         }
     }
+
 }
+
