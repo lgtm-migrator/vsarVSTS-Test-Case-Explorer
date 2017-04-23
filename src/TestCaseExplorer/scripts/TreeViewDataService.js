@@ -19,9 +19,9 @@ define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestMa
     function getNodes(param, tp) {
         switch (param) {
             case "Area path":
-                return getStructure(Contracts.TreeStructureGroup.Areas, tp);
+                return getStructure(Contracts.TreeStructureGroup.Areas, VSS.getWebContext().project.name);
             case "Iteration path":
-                return getStructure(Contracts.TreeStructureGroup.Iterations, tp);
+                return getStructure(Contracts.TreeStructureGroup.Iterations, VSS.getWebContext().project.name);
             case const_Pivot_Priority:
                 return getPrioriy();
             case "State":

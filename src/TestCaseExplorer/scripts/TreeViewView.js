@@ -12,7 +12,7 @@
 //    of the tree view (pivot).
 // </summary>
 //---------------------------------------------------------------------
-define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI", "scripts/Common", "VSS/Context", "scripts/TelemetryClient"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI, Common, Context, TelemetryClient) {
+define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI", "scripts/Common", "scripts/TelemetryClient"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI, Common, TelemetryClient) {
     "use strict";
     var constAllTestPlanName = "--- All Test plans ----";
     var const_Pivot_TestPlan = "Test plan";
@@ -96,7 +96,8 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     if (view._currentNode != null) {
                         view.RefreshGrid();
                     }
-                    view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
+                    var isDisabled = view._currentNode.config.type != "TestPlan";
+                    view.toogleCloneTestplanEnabled(isDisabled);
                 }
             };
             view.ToggleTestPlanSelectionArea();
@@ -222,12 +223,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
         };
         TreeviewView.prototype.cloneTestPlan = function () {
             var that = this;
-            var isHosted = Context.getPageContext().webAccessConfiguration.isHosted;
-            if (!isHosted) {
-                alert("The clone operations are currently only supported in Visual Studio Team Services.");
-                return;
-            }
-            //var draggedNode: TreeView.TreeNode = that._treeview.getNodeFromElement(ui.draggable);
             var sourcePlanName = that._currentNode.config.name;
             VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService) {
                 var cloneTestPlanForm;
@@ -385,6 +380,20 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             var menubar = Controls.create(Menus.MenuBar, $("#treeview-menu-container"), menubarOptions);
             this._menubar = menubar;
         };
+        TreeviewView.prototype.toogleCloneTestplanEnabled = function (isDisabled, msg) {
+            var view = this;
+            if (msg == null) {
+                msg = "Select a test plan to clone it";
+            }
+            var menus = view._menubar.getMenuItemSpecs();
+            menus.forEach(function (i) {
+                if (i.id === "clone-testplan") {
+                    i.title = isDisabled ? msg : "Clone test plan";
+                }
+            });
+            view._menubar.updateItems(menus);
+            view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: isDisabled }]);
+        };
         TreeviewView.prototype.RefreshGrid = function () {
             if (this._currentNode != null) {
                 this._callback(this._currentSource, this._currentNode.config, this._showRecursive);
@@ -424,7 +433,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             var hideOpenSuite = (view._currentSource == const_Pivot_TestPlan) ? false : true;
             this._menubar.updateCommandStates([{ id: "open-testsuite", hidden: hideOpenSuite }]);
             var hideClone = (view._currentSource == const_Pivot_TestPlan) ? false : true;
-            view._menubar.updateCommandStates([{ id: "clone-testplan", hidden: hideClone, disabled: true }]);
+            view.toogleCloneTestplanEnabled(hideClone, "Select test plan pivot to clode a test plan");
             var tp = null;
             if (this._currentTestPlan !== constAllTestPlanName) {
                 tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
@@ -445,7 +454,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     selectedNode.selected = true;
                     selectedNode.expanded = true;
                     if (view._currentSource == const_Pivot_TestPlan) {
-                        view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: view._currentNode.config.type != "TestPlan" }]);
+                        view.toogleCloneTestplanEnabled(view._currentNode.config.type != "TestPlan");
                     }
                 }
                 view.RefreshGrid();

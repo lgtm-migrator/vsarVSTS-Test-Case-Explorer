@@ -32,10 +32,14 @@
   },
   "targets": [
     {
-      "id": "Microsoft.VisualStudio.Services"
+      "id": "Microsoft.VisualStudio.Services.Cloud"
+    },
+    {
+      "id": "Microsoft.TeamFoundation.Server",
+      "version": "[15.0,)"
     }
   ],
-  "links": {
+    "links": {
     "support": { "uri": "http://aka.ms/vsarcontact" }
   },
   "branding": {

@@ -589,12 +589,6 @@ class testPlanPane implements IPaneRefresh {
 
     private showCloneTestSuite(view: testPlanPane, sourcePlanName: string, sourcePlanId: number, sourceSuiteId: number, targetPlanName: string, targetPlanId: number, targetSuiteId: number) {
 
-        var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
-        if (!isHosted) {
-            alert("The clone operations are currently only supported in Visual Studio Team Services.");
-            return;
-        }
-
         VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
             
             var cloneTestSuiteForm: CloneTestSuite.CloneTestSuiteForm;

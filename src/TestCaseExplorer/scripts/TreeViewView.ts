@@ -299,13 +299,6 @@ export class TreeviewView {
     private cloneTestPlan() {
         var that = this;
 
-        var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
-        if (!isHosted) {
-            alert("The clone operations are currently only supported in Visual Studio Team Services.");
-            return;
-        }
-
-        //var draggedNode: TreeView.TreeNode = that._treeview.getNodeFromElement(ui.draggable);
         var sourcePlanName: string = that._currentNode.config.name;
 
         VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
