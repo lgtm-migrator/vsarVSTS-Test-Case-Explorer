@@ -142,50 +142,48 @@ export function MergeColumnLists(lst1: ICustomColumnDef[], lst2: ICustomColumnDe
 }
 
 export function getToolbarIcon(name): string {
-    var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
     var icon: string = "";
     switch (name) {
         case "show-recursive":
-            icon = isHosted ? "bowtie-row-child" : "icon-inherited-form";
+            icon = "bowtie-row-child";
             break;
         case "expand-all":
-            icon = isHosted ? "bowtie-toggle-expand-all" : "icon-tree-expand-all";
+            icon = "bowtie-toggle-expand-all";
             break;
         case "collapse-all":
-            icon = isHosted ? "bowtie-toggle-collapse" : "icon-tree-collapse-all";
+            icon = "bowtie-toggle-collapse";
             break;
         case "open-testsuite":
-            icon = isHosted ? "bowtie-arrow-open" : "icon-open";
+            icon = "bowtie-arrow-open";
             break;
         case "remove":
-            icon = isHosted ? "bowtie-edit-delete" : "icon-delete";
+            icon = "bowtie-edit-delete";
             break;
         case "refresh":
-            icon = isHosted ? "bowtie-navigate-refresh" : "icon-refresh";
+            icon = "bowtie-navigate-refresh";
             break;
         case "new-testcase":
-            icon = isHosted ? "icon-add-small" : "icon-add-small";
+            icon = "icon-add-small";
             break;
         case "open-testcase":
-            icon = isHosted ? "bowtie-arrow-open" : "icon-open";
+            icon = "bowtie-arrow-open";
             break;
         case "clone-testplan":
-            icon = isHosted ? "bowtie-edit-copy" : "edit-copy";
+            icon = "bowtie-edit-copy";
             break;
         case "remove-testcase":
-            icon = isHosted ? "bowtie-edit-delete" : "icon-delete";
+            icon = "bowtie-edit-delete";
             break;
         case "toggle":
-            icon = isHosted ? "bowtie-details-pane" : "icon-tfs-tcm-associated-pane-toggle";
+            icon = "bowtie-details-pane";
             break;
         case "":
-            icon = isHosted ? "" : "";
+            icon = "";
             break;
     }
     return icon;
 }
 
 export function getToolbarCss(): string {
-    var isHosted: boolean = Context.getPageContext().webAccessConfiguration.isHosted;
-    return isHosted ? "bowtie-icon" : "";
+    return "bowtie-icon";
 }
