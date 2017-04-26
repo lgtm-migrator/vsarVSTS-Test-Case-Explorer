@@ -41,7 +41,7 @@ export class TelemetryClient implements VSS_VSS.errorPublisher {
 
             var snippet: any = {
                 config: {
-                    instrumentationKey: "__AppInsightsKey__"
+                    instrumentationKey: "__INSTRUMENTATIONKEY__"
                 }
             };
 
