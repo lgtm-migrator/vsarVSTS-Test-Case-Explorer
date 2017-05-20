@@ -37,10 +37,15 @@ export function  createDragTile(dragType:string, $dragItemTitle:JQuery):JQuery {
         .text(dragType);
 
 
+    var $dragBottomHelp = $("<div>Shift= <b>ADD</b>  Ctrl = <b>CLONE</b> No key= <b>MOVE</b></div>")
+        .addClass("drag-help")
+ 
     var $dragHead = $("<div />")
         .addClass("drag-tile-head")
         .append($dragType)
         .append($dragItemTitle)
+        .append($dragBottomHelp);
+
 
     $dropAllowed.append($dragHead);
     $dragTile.append($dropAllowed);

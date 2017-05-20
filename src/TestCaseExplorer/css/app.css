@@ -154,10 +154,16 @@
 }
 
 .drag-tile-title {
-    
     text-align:center;
-    
 }
+
+.drag-help {
+  
+    font-size:smaller;
+    display:inline-block;
+}
+
+
 .drag-tile-head > .node-content{
     font-weight:bold;
     color:#007acc;
