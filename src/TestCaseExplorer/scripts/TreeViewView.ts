@@ -572,6 +572,11 @@ export class TreeviewView {
 
                 if (selectedNodeId != 0) {
                     selectedNode = view.getTreeviewNode(n, selectedNodeId);
+                    if (selectedNode == null) {
+                        //Strange - the selected node as been removed - set root as selected.
+                        console.log("Selected item missing - swithing to root")
+                        selectedNode = view._treeview.rootNode.children[0];
+                    }
                 }
                 if (selectedNode != null) {
                     treeview.setSelectedNode(selectedNode);
