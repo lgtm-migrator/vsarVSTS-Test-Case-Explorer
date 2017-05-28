@@ -57,8 +57,8 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
         saveWidth();
     });
     var splitter = Controls.Enhancement.getInstance(SplitterControls.Splitter, $(".right-hub-splitter"));
-    splitter.setMinWidth(220);
-    splitter._options.initialSize = 220;
+    splitter.setMinWidth(270);
+    splitter._options.initialSize = 270;
     paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(function (t) {
         tc.updateTogle(t);
     });

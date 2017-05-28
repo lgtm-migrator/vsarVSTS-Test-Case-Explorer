@@ -74,8 +74,8 @@ leftSplitter._element.on('changed', function () {
 });
 
 var splitter = <SplitterControls.Splitter>Controls.Enhancement.getInstance(SplitterControls.Splitter, $(".right-hub-splitter"));
-splitter.setMinWidth(220);
-splitter._options.initialSize = 220;
+splitter.setMinWidth(270);
+splitter._options.initialSize = 270;
 
 
 paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(function (t) {
