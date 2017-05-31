@@ -2,6 +2,10 @@
 
 The more test cases you have in your project the more challenging it can be to find and work with associated and relevant tests. This extension helps you manage your test cases better.
 
+Watch this short video to learn more about the Test Case Explorer extension:
+
+<video width="100%" src="http://video.ch9.ms/ch9/7b6b/55cced6a-a26b-40ca-bfd1-0ea42bbb7b6b/testcaseexplorerv2_high.mp4" controls> </video>
+
 ### Pivot test cases ###
 Pivot test cases by different dimensions such as `area path`, `iteration path`, `priority`, `state` and `test plan`.
 
