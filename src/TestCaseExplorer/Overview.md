@@ -56,9 +56,7 @@ Clone a test plan within the team project or to a different team project.
 ## Prerequisites ##
 
 - Team Foundation Team Services
-- Team Foundation Server 2015 Update 2 (or higher)
-
-**Note:** clone operations require Team Foundation Server 2017 (or higher)
+- Team Foundation Server 2017 (or higher)
 
 ## Contributors ##
 
