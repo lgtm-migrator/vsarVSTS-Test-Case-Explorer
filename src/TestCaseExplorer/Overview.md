@@ -1,4 +1,4 @@
-﻿## Pivot, filter, edit and analyze usage of test cases ##
+## Pivot, filter, edit and analyze usage of test cases ##
 
 The more test cases you have in your project the more challenging it can be to find and work with associated and relevant tests. This extension helps you manage your test cases better.
 
@@ -53,11 +53,6 @@ Clone a test plan within the team project or to a different team project.
 
 > Microsoft DevLabs is an outlet for experiments from Microsoft, experiments that represent some of the latest ideas around developer tools. Solutions in this category are designed for broad usage, and you are encouraged to use and provide feedback on them; however, these extensions are not supported nor are any commitments made as to their longevity.
 
-## Prerequisites ##
-
-- Team Foundation Team Services
-- Team Foundation Server 2017 (or higher)
-
 ## Contributors ##
 
 We thank the following contributor(s) for this extension: Mathias Olausson and Mattias Sköld.
@@ -66,7 +61,7 @@ We thank the following contributor(s) for this extension: Mathias Olausson and M
 
 We need your feedback! Here are some ways to connect with us:
 
-- Add a review below.
+- Add a comment in the Q&A section below and please add an actionable review.
 - Send us an [email](mailto://mktdevlabs@microsoft.com).
 
 Review the [list of features and resolved issues of latest tools and extensions](https://aka.ms/vsarreleases) for information on the latest releases.
