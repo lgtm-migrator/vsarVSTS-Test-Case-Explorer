@@ -156,6 +156,9 @@ export class TestCaseView {
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
                 break;
         }
+
+        view._menubar.updateCommandStates([{ id: "new-testcase", disabled: (pivot == const_Pivot_TestPlan) }]);
+
         $("#grid-title").text(title);
 
         promise.then(

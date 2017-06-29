@@ -14,6 +14,7 @@
 //---------------------------------------------------------------------
 define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestManagement/RestClient", "TFS/WorkItemTracking/RestClient", "VSS/Controls/TreeView", "VSS/Service", "TFS/Core/RestClient", "scripts/Common"], function (require, exports, Q, Contracts, TestClient, WITClient, TreeView, VSS_Service, CoreClient, Common) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var const_Pivot_TestPlan = "Test plan";
     var const_Pivot_Priority = "Priority";
     function getNodes(param, tp) {
@@ -267,22 +268,31 @@ define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestMa
             name: testPlanName,
             project: { "Name": projectName }
         };
+        if (areaPath == "")
+            areaPath = projectName;
+        if (iterationPath == "")
+            iterationPath = projectName;
         var cloneRequest = {
             destinationTestPlan: testPlan,
             options: {
                 cloneRequirements: cloneRequirements,
                 copyAllSuites: true,
                 copyAncestorHierarchy: true,
-                overrideParameters: {},
+                overrideParameters: {
+                    "System.AreaPath": areaPath,
+                    "System.IterationPath": iterationPath
+                },
                 destinationWorkItemType: "Test Case",
                 relatedLinkComment: "Comment"
             },
             suiteIds: sourceSuiteIds
         };
-        if (areaPath != "")
-            $.extend(cloneRequest.options.overrideParameters, { "System.AreaPath": areaPath });
-        if (iterationPath != "")
-            $.extend(cloneRequest.options.overrideParameters, { "System.IterationPath": iterationPath });
+        //cloneRequest.options.overrideParameters = {
+        //    "System.AreaPath": areaPath,
+        //    "System.IterationPath": iterationPath 
+        //};
+        //if (areaPath != "") $.extend(cloneRequest.options.overrideParameters, { "System.AreaPath": areaPath });
+        //if (iterationPath != "") $.extend(cloneRequest.options.overrideParameters, { "System.IterationPath": iterationPath });
         var testCaseClient = TestClient.getClient();
         testCaseClient.cloneTestPlan(cloneRequest, VSS.getWebContext().project.name, sourcePlanId).then(function (data) {
             console.log("Clone test plan completed: " + data.completionDate);

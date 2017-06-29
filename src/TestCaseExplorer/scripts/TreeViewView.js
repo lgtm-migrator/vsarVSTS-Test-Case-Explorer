@@ -14,6 +14,7 @@
 //---------------------------------------------------------------------
 define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Controls/StatusIndicator", "VSS/Controls/Menus", "VSS/Controls/Combos", "scripts/TreeViewDataService", "VSS/Utils/UI", "scripts/Common", "scripts/TelemetryClient"], function (require, exports, Controls, TreeView, StatusIndicator, Menus, CtrlCombos, TreeViewDataService, UtilsUI, Common, TelemetryClient) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var constAllTestPlanName = "--- All Test plans ----";
     var const_Pivot_TestPlan = "Test plan";
     var const_Pivot_Priority = "Priority";
@@ -447,6 +448,11 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 var selectedNode = n.children[0];
                 if (selectedNodeId != 0) {
                     selectedNode = view.getTreeviewNode(n, selectedNodeId);
+                    if (selectedNode == null) {
+                        //Strange - the selected node as been removed - set root as selected.
+                        console.log("Selected item missing - swithing to root");
+                        selectedNode = view._treeview.rootNode.children[0];
+                    }
                 }
                 if (selectedNode != null) {
                     treeview.setSelectedNode(selectedNode);
