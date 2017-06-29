@@ -42,7 +42,7 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
                 mode = "Move";
             }
             var text = $(".drag-tile-drag-type").text();
-            if (text != "Attach") {
+            if (text != "Assign") {
                 $(".drag-tile-drag-type").text(mode);
             }
         }

@@ -46,7 +46,7 @@ export class TreeviewView {
     private _callback: TreeviewSelectedCallback;
     public _currentTestPlan: string;
     public _currentNode: TreeView.TreeNode;
-    private _currentSource: string;
+    public _currentSource: string;
     private _waitControl: StatusIndicator.WaitControl;
     private _cboTestPlan: CtrlCombos.Combo;
     private _testPlans: TreeView.TreeNode[];

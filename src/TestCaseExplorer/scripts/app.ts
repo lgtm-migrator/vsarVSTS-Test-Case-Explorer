@@ -55,7 +55,7 @@ function listenToTheKey(e) {
      
         var text = $(".drag-tile-drag-type").text();
 
-        if (text != "Attach") {
+        if (text != "Assign") {
             $(".drag-tile-drag-type").text(mode);
         }
     }

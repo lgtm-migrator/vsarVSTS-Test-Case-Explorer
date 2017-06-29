@@ -299,7 +299,6 @@ class testPlanPane implements IPaneRefresh {
     public initialize(view: DetailsView) {
         this._view = view;
         var tpp = this;
-        
     
         var cboOptions: CtrlCombos.IComboOptions = {
             mode: "drop",
@@ -510,9 +509,15 @@ class testPlanPane implements IPaneRefresh {
 
     // TODO: refactor to enum
     private getCurrentDragMode(event): string {
-        var mode = "MOVE";
-        if (event.ctrlKey) mode = "CLONE";
-        if (event.shiftKey) mode = "ADD";
+        var mode = "";
+        if (this._view._leftTreeView._currentSource == "Test plan") {
+            mode = "MOVE";
+            if (event.ctrlKey) mode = "CLONE";
+            if (event.shiftKey) mode = "ADD";
+        }
+        else {
+            mode = "ASSIGN"
+        }
         return mode;
     }
 
@@ -636,6 +641,9 @@ class testPlanPane implements IPaneRefresh {
         if (mode == "MOVE" || mode == "ADD") {
             this._view._tcView.ShowMsg(mode + " test case(s) from " + sourcePlanId + ":" + sourceSuiteId + " to " + targetPlanId + ":" + targetSuiteId);
         }
+        else if (mode == "ASSIGN") {
+            this._view._tcView.ShowMsg("ADD test case(s) to " + targetPlanId + ":" + targetSuiteId);
+        }
 
         switch (mode) {
             case "MOVE":
@@ -654,6 +662,7 @@ class testPlanPane implements IPaneRefresh {
                 );
                 break;
             case "ADD":
+            case "ASSIGN":
                 TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
                     result => {
                         that._view.refreshTestCaseView();
