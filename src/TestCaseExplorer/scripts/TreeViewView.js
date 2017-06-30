@@ -238,8 +238,10 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                         return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
                     },
                     okCallback: function (result) {
-                        TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.projectName, result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath).then(function (result) {
-                            that._tcView.ShowCloningMessage(result.opId).then(function (result) {
+                        TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.projectName, result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath).then(function (cloneResult) {
+                            // ugly work-around since the clone api doesn't seem to set the area/iteration
+                            TreeViewDataService.updateAreaIteration(result.projectName, Number(cloneResult.destinationObject.id), result.areaPath, result.iterationPath);
+                            that._tcView.ShowCloningMessage(cloneResult.opId).then(function (cloneMessageresult) {
                             });
                         }, function (err) {
                             that._tcView.ShowErr(err.message);
@@ -446,6 +448,11 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                 //treeview._draw();
                 var n = treeview.rootNode;
                 var selectedNode = n.children[0];
+                //if (this._currentTestPlan == constAllTestPlanName) {
+                //    selectedNode = null;
+                //    selectedNodeId = 0;
+                //    this._currentNode = null;
+                //}
                 if (selectedNodeId != 0) {
                     selectedNode = view.getTreeviewNode(n, selectedNodeId);
                     if (selectedNode == null) {
@@ -471,31 +478,6 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
                     var elem = treeview._getNodeElement(n);
                     treeview._setNodeExpansion(n, elem, true);
                 });
-                //if (view._currentSource == const_Pivot_TestPlan){ 
-                //    $("#treeview-container li.node").draggable({
-                //        distance: 10,
-                //        cursorAt: { top: -5, left: -5 },
-                //        refreshPositions: true,
-                //        scroll: true,
-                //        scope: "test-case-scope",
-                //        //revert: "invalid",
-                //        appendTo: document.body,
-                //        helper: function (event, ui) {
-                //            var title = event.currentTarget.title;
-                //            var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
-                //            var $dragItemTitle = $("<div />").addClass("node-content");
-                //            var $dragItemIcon = $("<span class='icon tree-node-img' />").addClass(draggedNode.icon);
-                //            $dragItemTitle.append($dragItemIcon);
-                //            $dragItemTitle.append($("<span />").text(draggedNode.text));
-                //            $dragItemTitle.css("width", event.currentTarget.clientWidth);
-                //            var $dragTile = Common.createDragTile("MOVE", $dragItemTitle);
-                //            $dragTile.data("PLAN_ID", draggedNode.config);
-                //            $dragTile.data("SUITE_ID", draggedNode.id);
-                //            $dragTile.data("MODE", "TEST_SUITE");
-                //            return $dragTile;
-                //        }
-                //    });
-                //} 
                 deferred.resolve(data);
             });
             return deferred.promise();

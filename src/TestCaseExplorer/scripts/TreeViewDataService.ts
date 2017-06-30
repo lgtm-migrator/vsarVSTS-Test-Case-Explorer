@@ -82,6 +82,14 @@ export function AssignTestCasesToField(project, tcId: number, field, value): IPr
     return client.updateWorkItem([msg], tcId);
 }
 
+export function updateAreaIteration(project, workItemId: number, area: string, iteration: string): IPromise<any> {
+
+    var client = WITClient.getClient();
+    var msg = [{ "op": "add", "path": "/fields/System.AreaPath", "value": area },
+               { "op": "add", "path": "/fields/System.IterationPath", "value": iteration}];
+    return client.updateWorkItem(msg, workItemId);
+}
+
 export function getTestPlansWithSuite(): IPromise<TreeView.TreeNode[]> {
     var deferred = $.Deferred<TreeView.TreeNode[]>();
     var tstClient = TestClient.getClient();

@@ -66,6 +66,13 @@ define(["require", "exports", "q", "TFS/WorkItemTracking/Contracts", "TFS/TestMa
         return client.updateWorkItem([msg], tcId);
     }
     exports.AssignTestCasesToField = AssignTestCasesToField;
+    function updateAreaIteration(project, workItemId, area, iteration) {
+        var client = WITClient.getClient();
+        var msg = [{ "op": "add", "path": "/fields/System.AreaPath", "value": area },
+            { "op": "add", "path": "/fields/System.IterationPath", "value": iteration }];
+        return client.updateWorkItem(msg, workItemId);
+    }
+    exports.updateAreaIteration = updateAreaIteration;
     function getTestPlansWithSuite() {
         var deferred = $.Deferred();
         var tstClient = TestClient.getClient();
