@@ -63,15 +63,28 @@ export class CloneTestPlanForm  {
     
     private loadAreasIterations(teamProject: string) {
         var that = this;
-        var p1 = TreeViewDataService.getNodes("Area path", teamProject);
-        var p2 = TreeViewDataService.getNodes("Iteration path", teamProject);
+        var p1 = TreeViewDataService.getNodes("Area path", null, teamProject);
+        var p2 = TreeViewDataService.getNodes("Iteration path", null, teamProject);
+
+        this._areaCombo.setSource(null);
+        that._areaCombo.setText("");
+        this._iterationCombo.setSource(null);
+        that._iterationCombo.setText("");
+        that._areaPath = "";
+        that._iterationPath = "";
+
         Q.all([p1, p2]).then(categories => {
+
+            console.debug("loaded areas/iterations for " + teamProject);
+            categories[0].forEach(p => { console.debug("  Area: " + p.text); });
+            categories[1].forEach(p => { console.debug("  Iteration: " + p.text); });
+
             that._areaCombo.setSource(categories[0]);
             that._areaCombo.setSelectedIndex(0);
             that._iterationCombo.setSource(categories[1]);
             that._iterationCombo.setSelectedIndex(0);
-            this._areaPath = teamProject;
-            this._iterationPath = teamProject;
+            that._areaPath = teamProject;
+            that._iterationPath = teamProject;
         });
     }
 

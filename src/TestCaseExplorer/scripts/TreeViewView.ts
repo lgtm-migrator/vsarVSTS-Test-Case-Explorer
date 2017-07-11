@@ -496,8 +496,7 @@ export class TreeviewView {
         var menus = view._menubar.getMenuItemSpecs();
         menus.forEach(i => {
             if (i.id === "clone-testplan") {
-                i.title = isDisabled ? msg: "Clone test plan";
-
+                i.title = isDisabled ? msg : "Clone test plan";
             }
         });
         view._menubar.updateItems(menus);
@@ -560,7 +559,7 @@ export class TreeviewView {
             tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
         }
 
-        TreeViewDataService.getNodes(pivot, tp).then(
+        TreeViewDataService.getNodes(pivot, tp, VSS.getWebContext().project.name).then(
             data => {
                 treeview.rootNode.clear();
                 treeview.rootNode.addRange(data);

@@ -441,7 +441,7 @@ define(["require", "exports", "VSS/Controls", "VSS/Controls/TreeView", "VSS/Cont
             if (this._currentTestPlan !== constAllTestPlanName) {
                 tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
             }
-            TreeViewDataService.getNodes(pivot, tp).then(function (data) {
+            TreeViewDataService.getNodes(pivot, tp, VSS.getWebContext().project.name).then(function (data) {
                 treeview.rootNode.clear();
                 treeview.rootNode.addRange(data);
                 treeview.updateNode(treeview.rootNode);

@@ -32,25 +32,25 @@ import Common = require("scripts/Common");
 var const_Pivot_TestPlan = "Test plan";
 var const_Pivot_Priority = "Priority";
 
-export function getNodes(param, tp) {
+export function getNodes(param, testPlan, teamProject: string) {
 
     switch (param) {
         case "Area path":
-            return getStructure(Contracts.TreeStructureGroup.Areas, VSS.getWebContext().project.name);
+            return getStructure(Contracts.TreeStructureGroup.Areas, teamProject);
         case "Iteration path":
-            return getStructure(Contracts.TreeStructureGroup.Iterations, VSS.getWebContext().project.name);
+            return getStructure(Contracts.TreeStructureGroup.Iterations, teamProject);
         case const_Pivot_Priority:
             return getPrioriy();
         case "State":
             return getStates();
         case const_Pivot_TestPlan:
-            if (tp === null) {
+            if (testPlan === null) {
                 //Fetch All TestPlans
                 return getTestPlansWithSuite();
             }
             else {
                 //Fetch the TestPlan
-                return getTestPlanAndSuites(tp.id, tp.text) 
+                return getTestPlanAndSuites(testPlan.id, testPlan.text) 
             }
     }
 }
