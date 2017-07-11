@@ -157,7 +157,16 @@ export class TestCaseView {
                 break;
         }
 
-        view._menubar.updateCommandStates([{ id: "new-testcase", disabled: (pivot == const_Pivot_TestPlan) }]);
+        var isDisabled = (pivot == const_Pivot_TestPlan);
+        view._menubar.updateCommandStates([{ id: "new-testcase", disabled: isDisabled }]);
+
+        var menus = view._menubar.getMenuItemSpecs();
+        menus.forEach(i => {
+            if (i.id === "new-testcase") {
+                i.title = isDisabled ? "Test case cannot be created in the Test Plan pivot" : "Create test case";
+            }
+        });
+        view._menubar.updateItems(menus);
 
         $("#grid-title").text(title);
 
