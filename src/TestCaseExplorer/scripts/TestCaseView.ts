@@ -13,9 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
-/// <reference path="telemetryclient.ts" />
+/// <reference path='../typings/tsd.d.ts' />
 
 import Controls = require("VSS/Controls");
 import Grids = require("VSS/Controls/Grids");
@@ -31,13 +29,29 @@ import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import CoreUtils = require("VSS/Utils/Core");
 import CtrlCombos = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
+import Notifications = require("VSS/Controls/Notifications");
 
 
 import TestCaseDataService = require("scripts/TestCaseDataService");
 import Common = require("scripts/Common");
 import ColumnOptionsView = require("scripts/ColumnsOptionsView");
+import TreeViewDataService = require("scripts/TreeViewDataService");
+import LeftTreeView = require("scripts/TreeViewView");
+
+import TelemetryClient = require("scripts/TelemetryClient");
 
 export interface TestCaseViewSelectedCallback { (value: string): void }
+
+var const_Pivot_TestPlan = "Test plan";
+var const_Pivot_Priority = "Priority";
+
+
+var msgOptions: Notifications.IMessageAreaControlOptions = {
+    type: Notifications.MessageAreaType.Info,
+    closeable: false,
+    expanded: false,
+    showIcon: true
+};
 
 export class TestCaseView {
 
@@ -46,6 +60,7 @@ export class TestCaseView {
     private _menubar: Menus.MenuBar;
     private _fields: Common.ICustomColumnDef[];
     private _showTestResults: boolean = false;
+
 
     private _commonField: Common.ICustomColumnDef[] = [
         { field: "System.Id", name: "Id", width: 75 },
@@ -68,6 +83,10 @@ export class TestCaseView {
     private _showRecursive;
     private _selectedValueWithField;
     private _selectedRows: number[];
+    private _leftTreeView: LeftTreeView.TreeviewView;
+
+    private _interval: number;
+    private _message: Notifications.MessageAreaControl;
 
     public RefreshGrid(pivot: string, value, showRecursive: boolean) {
 
@@ -78,6 +97,7 @@ export class TestCaseView {
         this.StartLoading(true, "Fetching data");
         var promise: IPromise<any>;
         var title: string;
+        var fields: Common.ICustomColumnDef[];
 
         this._selectedPivot = pivot;
         this._selectedValue = value;
@@ -88,42 +108,66 @@ export class TestCaseView {
 
         switch (pivot) {
             case "Area path":
+                if (fieldLst.indexOf("System.AreaPath") == -1) {
+                    fieldLst.push("System.AreaPath");
+                }
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Area, value.path, showRecursive, fieldLst);
                 title = "Test cases with area path: " + value.path;
                 this._selectedValueWithField = { "System.AreaPath": value.path };
-                this._fields =  Common.MergeColumnLists(this._fields, [{ field: "System.AreaPath", name: "Area Path", width: 200 }]);
+                fields =  Common.MergeColumnLists(this._fields, [{ field: "System.AreaPath", name: "Area Path", width: 200 }]);
                 break;
             case "Iteration path":
+                if (fieldLst.indexOf("System.IterationPath") == -1) {
+                    fieldLst.push("System.IterationPath");
+                }
                 promise = TestCaseDataService.getTestCasesByProjectStructure(WorkItemContracts.TreeNodeStructureType.Iteration, value.path, showRecursive, fieldLst);
                 title = "Test cases with iteration path: " + value.path;
                 this._selectedValueWithField = { "System.IterationPath": value.path };
-                this._fields = Common.MergeColumnLists( this._fields, [{ field: "System.IterationPath", name: "Iteration Path", width: 200 }]);
+                fields = Common.MergeColumnLists( this._fields, [{ field: "System.IterationPath", name: "Iteration Path", width: 200 }]);
                 break;
-            case "Priority":
+            case const_Pivot_Priority:
+                if (fieldLst.indexOf("Microsoft.VSTS.Common.Priority") == -1) {
+                    fieldLst.push("Microsoft.VSTS.Common.Priority");
+                }
                 var priority: string = "any";
-                if (value.name != "Priority") {
+                if (value.name != const_Pivot_Priority) {
                     priority = value.name;
-                    this._selectedValueWithField = { "Priority": value.name };
+                    this._selectedValueWithField = { const_Pivot_Priority: value.name };
                 }
                 promise = TestCaseDataService.getTestCasesByPriority(priority, fieldLst);
                 title = "Test cases with priority: " + priority;
+                fields = Common.MergeColumnLists(this._fields, [{ field: "Microsoft.VSTS.Common.Priority", name: const_Pivot_Priority, width: 200 }]);
                 break;
             case "State":
+                if (fieldLst.indexOf("System.State") == -1) {
+                    fieldLst.push("System.State");
+                }
                 var state: string = "any";
                 if (value.name != "States") {
                     state = value.name;
                 }
                 promise = TestCaseDataService.getTestCasesByState(state, fieldLst)
                 title = "Test cases with state: " + state;
+                fields = Common.MergeColumnLists(this._fields, [{ field: "System.State", name: "State", width: 200 }]);
                 break;
-            case "Test plan":
-                
+            case const_Pivot_TestPlan:
                 promise = TestCaseDataService.getTestCasesByTestPlan(value.testPlanId, value.suiteId, fieldLst , showRecursive);
-                this._fields =  Common.MergeColumnLists(this._fields, [{ field: "TC::Present.In.Suite", name: "Present in suites", width: 150 }]);
+                fields =  Common.MergeColumnLists(this._fields, [{ field: "TC::Present.In.Suite", name: "Present in suites", width: 150 }]);
                 title = "Test suite: " + value.name + " (Suite Id: " + value.suiteId + ")";
-
                 break;
         }
+
+        var isDisabled = (pivot == const_Pivot_TestPlan);
+        view._menubar.updateCommandStates([{ id: "new-testcase", disabled: isDisabled }]);
+
+        var menus = view._menubar.getMenuItemSpecs();
+        menus.forEach(i => {
+            if (i.id === "new-testcase") {
+                i.title = isDisabled ? "Test case cannot be created in the Test Plan pivot" : "Create test case";
+            }
+        });
+        view._menubar.updateItems(menus);
+
         $("#grid-title").text(title);
 
         promise.then(
@@ -135,7 +179,7 @@ export class TestCaseView {
                         { field: "Outcome", name: "Last Outcome", width: 100, getCellContents: Common.getTestResultCellContent },
                         { field: "TestedDate", name: "Last tested date", width: 150 }];
 
-                    view._fields = Common.MergeColumnLists(view._fields, outcomeFields);
+                    fields = Common.MergeColumnLists(view._fields, outcomeFields);
 
                     TestCaseDataService.getTestResultsForTestCases(view._data.map(i=> { return i["System.Id"]; })).then(
                         data=> {
@@ -147,17 +191,17 @@ export class TestCaseView {
                                 row["TestedBy"] = r.runBy.displayName;
                                 row["TestDuration"] = r.durationInMs;
                             });
-                            view.DoRefreshGrid();
+                            view.DoRefreshGrid(fields);
                         },
                         err=> {
                         });
                 }
-                    view.DoRefreshGrid();
+                    view.DoRefreshGrid(fields);
 
                 view.DoneLoading();
             },
             err=> {
-                TelemetryClient.getClient().trackException(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
                 console.log(err);
                 view.DoneLoading();
             }
@@ -167,14 +211,16 @@ export class TestCaseView {
     public toggle() {
     }
 
-    public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback) {
+    public initialize(paneToggler: DetailsToggle.DetailsPaneToggler, selectCallBack: TestCaseViewSelectedCallback, leftTreeView: LeftTreeView.TreeviewView) {
         var view = this;
-        TelemetryClient.getClient().trackPageView("TestCaseView");
-        this._paneToggler = paneToggler;
+        this._leftTreeView = leftTreeView;
 
+        TelemetryClient.TelemetryClient.getClient().trackPageView("TestCaseView");
+
+        this._message = Controls.create<Notifications.MessageAreaControl, Notifications.IMessageAreaControlOptions>(Notifications.MessageAreaControl, $("#message-container"), msgOptions);
+
+        this._paneToggler = paneToggler;
         this._fields = this._commonField;
-        
-        
         this.loadColumnsSettings().then(
             userColumns=> {
                 view._fields = userColumns;
@@ -182,18 +228,18 @@ export class TestCaseView {
         this.initMenu(this, paneToggler);
         this.initFilter(this);
         this.initGrid(this, selectCallBack);
-
     }
 
     private initMenu(view: TestCaseView, paneToggler: DetailsToggle.DetailsPaneToggler) {
         var menuItems: any[] = [
-            { id: "new-testcase", text: "New", title: "Create test case", icon: "icon-add-small" },
-            { id: "open-testcase", showText: false, title: "Open test case", icon: "bowtie-arrow-open", cssClass: "bowtie-icon" },
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "new-testcase", text: "New", title: "Create test case", icon: Common.getToolbarIcon("new-testcase") },
+            { id: "open-testcase", showText: false, title: "Open test case", icon: Common.getToolbarIcon("open-testcase"), cssClass: Common.getToolbarCss() },
+            { id: "remove-testcase", showText: false, title: "Remove test case from this suite", icon: Common.getToolbarIcon("remove-testcase"), cssClass: Common.getToolbarCss() },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() },
             { separator: true },
             { id: "column-options", text: "Column options", title: "Choose columns for the grid", noIcon: true },
             //{ id: "latestTestResult", text: "Show TestResults", title: "Show latest test results", icon: "test-outcome-node-icon" },
-            { id: "toggle", showText: false, title: "Show/hide details pane", icon: "bowtie-details-pane", cssClass: "right-align bowtie-icon" }
+            { id: "toggle", showText: false, title: "Show/hide details pane", icon: Common.getToolbarIcon("toggle"), cssClass: Common.getToolbarCss() + " right-align" }
         ];
 
         var menubarOptions = {
@@ -217,15 +263,17 @@ export class TestCaseView {
                             workItemService.openWorkItem(item["System.Id"]);
                         });
                         break;
+                    case "remove-testcase":
+                        view.removeTestCase();
+                        break;
                     case "latestTestResult":
                         view._showTestResults = !view._showTestResults ;
                         view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
                         menubar.updateCommandStates([{ id: command, toggled: view._showTestResults }]);
                         break;
                     case "column-options":
-                        view.opedColumnOptionsDlg();
+                        view.openColumnOptionsDlg();
                         break;
-                       
                     case "refresh":
                         view.RefreshGrid(view._selectedPivot, view._selectedValue, view._showRecursive);
                         break;
@@ -241,12 +289,25 @@ export class TestCaseView {
         menubar.updateCommandStates([{ id: "toggle", toggled: view._paneToggler._isTestCaseDetailsPaneOn() }]);
     }
 
+    public RefreshTestCaseView() {
+        this.RefreshGrid(this._selectedPivot, this._selectedValue, this._showRecursive);
+    }
 
-    private opedColumnOptionsDlg() {
+    private removeTestCase() {
+        var that = this;
+        if (confirm("Are you sure you want to remove the selected test cases from the suite?")) {
+            var testCaseIds = this._selectedRows.map(i => { return i["System.Id"]; }).join(",");
+            TreeViewDataService.removeTestCaseFromSuite(this._selectedValue.testPlanId, this._selectedValue.suiteId, testCaseIds).then(result => {
+                that.RefreshGrid(this._selectedPivot, this._selectedValue, this._showRecursive);
+                that._leftTreeView.refreshTreeView(true);
+            });
+        }
+    }
+
+    private openColumnOptionsDlg() {
         var view = this;
         var extensionContext = VSS.getExtensionContext();
 
-     
         var dlgContent = $("#columnOptionsDlg").clone();
         dlgContent.show();
         dlgContent.find("#columnOptionsDlg").show();
@@ -255,12 +316,13 @@ export class TestCaseView {
           
         view._grid._columns.forEach(c => {
             var f = view._fields.filter(f => { return f.field === c.index })[0];
-            f.width = c.width;
+            if (f) {
+                f.width = c.width;
+            }
         });
 
         var fieldsToManage = this._fields.filter(f => { return f.field.indexOf("TC::") == -1 });
         coView.Init(dlgContent, fieldsToManage );
-
 
         var options: Dialogs.IModalDialogOptions = {
             width: 800,
@@ -274,11 +336,9 @@ export class TestCaseView {
             }
         };
 
-
         var dialog = Dialogs.show(Dialogs.ModalDialog, options);
         dialog.updateOkButton(true);
         dialog.setDialogResult(true);
-
     }
 
     private saveColumnsSettings() {
@@ -287,8 +347,8 @@ export class TestCaseView {
             dataService => {
                 // Set value in user scope
                 dataService.setValue("SelectedColumns_" + VSS.getWebContext().project.id, JSON.stringify(view._fields), { scopeType: "User" });
-            });
-    
+            }
+        );
     }
 
     private loadColumnsSettings(): IPromise<Common.ICustomColumnDef[]> {
@@ -332,12 +392,12 @@ export class TestCaseView {
     private localizeCommonFields(): IPromise<Common.ICustomColumnDef[]> {
         var view = this;
         var deferred = $.Deferred<Common.ICustomColumnDef[]>();
-        var witClient: WorkItemClient.WorkItemTrackingHttpClient3 = WorkItemClient.getClient();
+        var witClient: WorkItemClient.WorkItemTrackingHttpClient2_2 = WorkItemClient.getClient();
         var ctx = VSS.getWebContext();
         witClient.getWorkItemType(ctx.project.id, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(
             wit => {
                 view._commonField.forEach(f => {
-                    f.name = wit["fieldInstances"].filter(i => { return i.referenceName === f.field })[0].name;
+                    f.name = wit["fieldInstances"].filter(i => { return i.field.referenceName === f.field })[0].field.name;
                 })
                 deferred.resolve(view._commonField);
             },
@@ -349,9 +409,11 @@ export class TestCaseView {
     }
 
     private initFilter(view: TestCaseView) {
-        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
+        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.PartOfTestSuit");
 
-        Controls.create(Navigation.PivotFilter, $("#grid-filter"), {
+        var self = this;
+
+        Controls.create(Navigation.PivotFilter, $("#testCaseView-filter-container"), {
             behavior: "dropdown",
             text: "Filter",
             items: [
@@ -367,7 +429,7 @@ export class TestCaseView {
                 var filterPromise: IPromise<TestCaseDataService.ITestCaseFilter>;
                 var filterMode: TestCaseDataService.filterMode;
                 var filterData: any;
-
+                self.StartLoading(true, "Applying filters");
                 switch (command) {
                     case "TC_WithOUT_Requirement":
                         filterPromise = view.getOrphanTestCaseFilter(TestCaseDataService.filterMode.Contains)
@@ -391,58 +453,25 @@ export class TestCaseView {
                 filterPromise.then(
                     filter => {
                         view._currentFilter = filter;
-                        view.DoRefreshGrid();
+                        view.DoRefreshGrid(view._fields);
+                        self.DoneLoading();
                     },
                     err=> {
-                        TelemetryClient.getClient().trackException(err);
+                        self.DoneLoading();
+                        TelemetryClient.TelemetryClient.getClient().trackException(err);
                         console.log(err);
                     }
                 );
             }
         });
     }
-
-    private dragableStart(event, ui) {
-        //    this._clearRowMouseDownEventInfo();
-    }
-
-    private helperMultiSelectDrag(event, ui) {
-        var $dragTile;
-        var draggableItemText, numOfSelectedItems;
-        var selectedWorkItemIds = this._selectedRows;
-        var grd = this;
-
-        numOfSelectedItems = selectedWorkItemIds.length;
-        $dragTile = $("<div />")
-            .addClass("drag-tile")
-
-        if (numOfSelectedItems === 1) {
-
-            $dragTile.text("") //this.getColumnValue(dataIndex, this._getTitleColumnIndex()) || "");
-        }
-        else {
-            var $dragItemCount = $("<div />")
-                .addClass("drag-tile-item-count")
-                .text(numOfSelectedItems);
-            var $dragItemType = $("<span />")
-                .addClass("drag-tile-item-type")
-                .text(draggableItemText);
-            $dragTile.append($dragItemCount).append($dragItemType);
-        }
-
-        $dragTile.data("DROP_ACTION", "ASSOCIATE");
-        $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds);
-        $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
-        $dragTile.text(event.ctrlKey == true ? "Clone" : "Attach" + " " + selectedWorkItemIds.join("; "));
-
-        return $dragTile;
-    }
-
+   
     private initGrid(view: TestCaseView, selectCallBack: TestCaseViewSelectedCallback) {
+        var that = this;
         var options: Grids.IGridOptions = {
             height: "100%",
             width: "100%",
-            columns: this._fields.map(function (f) {
+            columns: that._fields.map(function (f) {
                 return { index: f.field, text: f.name, width: f.width };
             }),
             draggable: {
@@ -450,15 +479,13 @@ export class TestCaseView {
                 axis: "",
                 containment: "",
                 appendTo: document.body,
-                revert: "invalid",
+                //revert: "invalid",
                 refreshPositions: true,
                 scroll: false,
                 distance: 10,
-                zIndex: 1000,
-                cursor: "move",
                 cursorAt: { top: -5, left: -5 },
-
-                helper: function (event, ui) {
+                helper: function (event, ui) { return that._draggableHelper(that, event, ui); },
+                /*helper: function (event, ui) {
                     var $dragTile;
                     var draggableItemText, numOfSelectedItems;
                     var selectedWorkItemIds = view._selectedRows;
@@ -472,7 +499,7 @@ export class TestCaseView {
                         .text(numOfSelectedItems);
                     var $dragType = $("<span />")
                         .addClass("drag-tile-drag-type")
-                        .text(event.ctrlKey == true ? "Clone" : "Attach");
+                        .text(view._selectedPivot == const_Pivot_TestPlan ? "Move" : "Attach");
 
                     var $dragHead = $("<div />")
                         .addClass("drag-tile-head")
@@ -480,33 +507,21 @@ export class TestCaseView {
                         .append($dragItemCount);
 
                     $dragTile.append($dragHead);
+
                     $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i => { return i["System.Id"]; }));
-                    $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
-
-                    var $dragLst = $("<div />")
-                        .addClass("drag-tile-list")
-
-                    selectedWorkItemIds.forEach(r => {
-                        var id = r["System.Id"];
-                        $dragLst.append(
-                            $("<div />")
-                                .addClass(id.toString())
-                                .text(id + " " + r["System.Title"])
-                        );
-                    });
-                    $dragTile.append($dragLst);
+                    $dragTile.data("MODE", "TEST_CASE");
 
                     return $dragTile;
-                }
+                }*/
             },
+            
             openRowDetail: (index: number) => {
-                // Double clicking row or hitting enter key when the row is selected
-                // will cause this function to be executed
-                var item = this._grid.getRowData(index);
-                selectCallBack(item["System.Id"]);
-                WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
-                    workItemService.openWorkItem(item["System.Id"]);
-                });
+                that._openRowDetails(that, index, selectCallBack);
+                //var item = this._grid.getRowData(index);
+                //selectCallBack(item["System.Id"]);
+                //WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
+                //    workItemService.openWorkItem(item["System.Id"]);
+                //});
             }
 
         };
@@ -518,13 +533,64 @@ export class TestCaseView {
             var item = view._grid.getRowData(view._grid.getSelectedDataIndex());
             view._selectedRows = getSelectedWorkItemIds(view._grid);
 
-            if (item != null) {
-                var s = item["System.Id"];
-                selectCallBack(s);
+            var id = null;
+            if ((view._selectedRows.length == 1) && item != null) {
+                id = item["System.Id"];
             }
 
+            view._menubar.updateCommandStates([{ id: "open-testcase", disabled: (view._selectedRows.length != 1) }]);
+            if (that._selectedPivot != const_Pivot_TestPlan) {
+                view._menubar.updateCommandStates([{ id: "remove-testcase", hidden: true }]);
+            }
+            else {
+                view._menubar.updateCommandStates([{ id: "remove-testcase", disabled: (view._selectedRows.length == 0) }]);
+            }
+            selectCallBack(id);
+        });
+    }
+
+    private _draggableHelper(that: TestCaseView, event, ui) {
+       
+        var draggableItemText, numOfSelectedItems;
+        var selectedWorkItemIds = that._selectedRows;
+
+        numOfSelectedItems = selectedWorkItemIds.length;
+
+
+        var $dragItemCount = $("<div />")
+            .addClass("drag-tile-item-count")
+            .text(numOfSelectedItems);
+        
+
+        var $dragItemTitle = $("<div style='display:table'/>").addClass("node-content");
+
+        
+        selectedWorkItemIds.forEach(i => {
+            var $tr= $("<div style='display:table-row' />")
+
+            $tr.append($("<div class='grid-cell' style='display:table-cell' />").text(i["System.Id"]));
+            $tr.append($("<div class='grid-cell' style='display:table-cell' />").text(i["System.Title"]));
+
+            $dragItemTitle.append($tr);
         });
         
+  
+        var $dragTile = Common.createDragTile(that._selectedPivot == const_Pivot_TestPlan ? "Move" : "Assign", $dragItemTitle);
+
+
+
+        $dragTile.data("WORK_ITEM_IDS", selectedWorkItemIds.map(i => { return i["System.Id"]; }));
+        $dragTile.data("MODE", "TEST_CASE");
+
+        return $dragTile;
+    }
+
+    private _openRowDetails(that: TestCaseView, index: number, selectCallBack: TestCaseViewSelectedCallback) {
+        var item = that._grid.getRowData(index);
+        selectCallBack(item["System.Id"]);
+        WorkItemServices.WorkItemFormNavigationService.getService().then(workItemService => {
+            workItemService.openWorkItem(item["System.Id"]);
+        });
     }
 
     public updateTogle(paneToggler) {
@@ -536,7 +602,7 @@ export class TestCaseView {
         if (this._orphanTestCaseFilter == null) {
             this._orphanTestCaseFilter = new TestCaseDataService.wiqlFilter();
             this._orphanTestCaseFilter.setMode(mode);
-            return this._orphanTestCaseFilter.initialize(wiqlOrphaneTC);
+            return this._orphanTestCaseFilter.initialize(wiqlOrphanedTC);
         }
         else {
             var deferred = $.Deferred<TestCaseDataService.ITestCaseFilter>();
@@ -560,9 +626,9 @@ export class TestCaseView {
         }
     }
 
-    private DoRefreshGrid() {
+    private DoRefreshGrid(fields) {
 
-        var columns = this._fields.map(function (f) {
+        var columns = fields.map(function (f) {
             return { index: f.field, text: f.name, width: f.width, getCellContents: f.getCellContents};
         });
 
@@ -573,23 +639,11 @@ export class TestCaseView {
             this._grid.setDataSource(this._data, null, columns);
         }
 
+        if (this._data.length > 0) {
+            this._grid.setSelectedRowIndex(0);
+        }
+
         $("#grid-count").text("Showing " + this._grid._count + " of " + this._data.length + (this._data.length == 1 ? " test case" : " test cases"));
-
-        $(".grid-row-normal").draggable({
-            revert: "invalid",
-            appendTo: document.body,
-            helper: "clone",
-            zIndex: 1000,
-            cursor: "move",
-            cursorAt: { top: -5, left: -5 },
-            //scope: TFS_Agile.DragDropScopes.ProductBacklog,
-            //start: this._draggableStart,
-            //stop: this._draggableStop,
-            //helper: this._draggableHelper,
-            //drag: this._draggableDrag,
-            refreshPositions: true
-
-        });
     }
 
     public StartLoading(longRunning, message) {
@@ -619,6 +673,72 @@ export class TestCaseView {
             this._waitControl = null;
         }
     }
+
+    public ShowCloningMessage(opId:number):IPromise<any> {
+        var deferred = $.Deferred<any>();
+
+        var self = this;
+        var s = "Cloning in progress"
+        self.ShowMsg(s);
+        self._interval = setInterval(
+            () => {
+                s = s + "...";
+                self.ShowMsg(s);
+                console.log(s);
+                console.log("Checking clone status");
+                self.checkCloneStatus( opId, s);
+            },
+            3000);
+        return deferred.promise();
+    }
+
+    private checkCloneStatus( opId, s) {
+        var self = this;
+        var deferred = $.Deferred<any>();
+
+        self.ShowMsg(s);
+
+        TreeViewDataService.querryCloneOperationStatus(opId).then(cloneStat => {
+            switch (cloneStat.state) {
+                case TestContracts.CloneOperationState.Failed:
+                    self.ShowErr(cloneStat.message);
+                    deferred.reject(cloneStat)
+                    break;
+                case TestContracts.CloneOperationState.Succeeded:
+                    self.ShowMsg("Cloning completed")
+                    self.ShowDone();
+                    clearInterval(self._interval);
+                    deferred.resolve(cloneStat);
+                    break;
+                default:
+                    console.log("   checking status of clone operation = " + cloneStat.state);
+
+            }
+        });
+        return deferred.promise();
+
+    }
+
+    public ShowMsg(msg: string) {
+        $("#message-container").show();
+        this._message.clear();
+        this._message.initializeOptions(msgOptions);
+        this._message.setMessage(msg, Notifications.MessageAreaType.Info);
+    }
+    public ShowDone() {
+        var view = this;
+        setTimeout(() => { view.HideMsg(); }, 3000);
+    }
+    public ShowErr(msg) {
+        var view = this;
+        this._message.setError(msg);
+    }
+
+
+    public HideMsg() {
+        $("#message-container").hide();
+        this._message.clear();
+    }
 }
 
 function getSelectedWorkItemIds(grid: Grids.Grid): any[] {
@@ -628,4 +748,4 @@ function getSelectedWorkItemIds(grid: Grids.Grid): any[] {
     }
     return ids;
 };
-var wiqlOrphaneTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().TestCaseCategoryName + "') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().RequirementsCategoryName+ "') ORDER BY [Source].[System.Id] mode(DoesNotContain)"
+var wiqlOrphanedTC: string = "SELECT [Source].[System.Id] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = @project AND  [Source].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().TestCaseCategoryName + "') And ([System.Links.LinkType] <> '') And ([Target].[System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().RequirementsCategoryName+ "') ORDER BY [Source].[System.Id] mode(DoesNotContain)"

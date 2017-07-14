@@ -32,27 +32,35 @@
   },
   "targets": [
     {
-      "id": "Microsoft.VisualStudio.Services"
+      "id": "Microsoft.VisualStudio.Services.Cloud"
+    },
+    {
+      "id": "Microsoft.TeamFoundation.Server",
+      "version": "[15.0,)"
     }
   ],
-  "links": {
+    "links": {
     "support": { "uri": "http://aka.ms/vsarcontact" }
   },
   "branding": {
     "color": "rgb(51,65,133)",
     "theme": "dark"
   },
-    "files": [
+  "files": [
     {
       "path": "index.html",
       "addressable": true
     },
     {
-      "path": "scripts",
+      "path": "clone-testplan-form.html",
       "addressable": true
     },
     {
-      "path": "sdk",
+      "path": "clone-testsuite-form.html",
+      "addressable": true
+    },
+    {
+      "path": "scripts",
       "addressable": true
     },
     {
@@ -73,22 +81,36 @@
         "ms.vss-test-web.test-hub-group"
       ],
       "properties": {
-        "name": "Test cases",
+        "name": "Test Cases",
         "order": 100,
         "uri": "index.html"
       }
     },
     {
-          "id": "columnOptionsForm",
-          "targets": [
-              ".controls"
-          ],
-          "type": "ms.vss-web.control",
-          "properties": {
-              "uri": "columnoptions.html"
-          }
+      "id": "columnOptionsForm",
+      "targets": [
+        ".controls"
+      ],
+      "type": "ms.vss-web.control",
+      "properties": {
+        "uri": "columnoptions.html"
       }
-     
-
+    },
+    {
+      "id": "clone-testplan-form",
+      "type": "ms.vss-web.control",
+      "targets": [],
+      "properties": {
+        "uri": "clone-testplan-form.html"
+      }
+    },
+    {
+      "id": "clone-testsuite-form",
+      "type": "ms.vss-web.control",
+      "targets": [],
+      "properties": {
+        "uri": "clone-testsuite-form.html"
+      }
+    }
   ]
 }

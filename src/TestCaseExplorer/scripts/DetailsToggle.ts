@@ -13,8 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
+/// <reference path='../typings/tsd.d.ts' />
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
@@ -35,7 +34,6 @@ export class DetailsPaneToggler {
     private _PanePosition: string;
     private _positionFilter: any;
     private _$farRightPaneHubPivot: any;
-    //  private _savedPaneFilterItem: any;
     private _splitter: SplitterControls.Splitter;
     private _MasterForm;
     private _detailsForm;
@@ -202,10 +200,6 @@ export class DetailsPaneToggler {
             this._$farRightPaneHubPivot.css("display", "none");
 
             this._splitter.noSplit();
-            //this._MasterForm.unbind();
-            //this._MasterForm.hideElement();
-            //this._detailsForm.unbind();
-            //this._detailsForm.hide();
         }
         else {
             if (position === "right") {

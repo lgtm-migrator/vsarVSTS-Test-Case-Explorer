@@ -14,12 +14,39 @@
 //---------------------------------------------------------------------
 define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "scripts/DetailsView", "scripts/TestCaseView", "scripts/TreeViewView", "VSS/Controls", "VSS/Controls/Splitter"], function (require, exports, Common, DetailsToggle, DetailsView, TestCaseView, TreeViewView, Controls, SplitterControls) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /// <reference path='../typings/tsd.d.ts' />
+    console.log("Loading TestCaseExplorer version " + VSS.getExtensionContext().version) + "...";
     Common.WIQLConstants.getWiqlConstants();
     var paneToggler = new DetailsToggle.DetailsPaneToggler();
-    var dv = new DetailsView.DetailsView();
-    var tc = new TestCaseView.TestCaseView();
-    tc.initialize(paneToggler, RefreshPane);
     var tv = new TreeViewView.TreeviewView();
+    var tc = new TestCaseView.TestCaseView();
+    var dv = new DetailsView.DetailsView();
+    tc.initialize(paneToggler, RefreshPane, tv);
+    window.onkeydown = listenToTheKey;
+    window.onkeyup = listenToTheKey;
+    function listenToTheKey(e) {
+        if (e.which === 27 || e.keyCode === 27) {
+            console.log("cancelling drag...");
+            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+        }
+        else {
+            var mode = "";
+            if (e.ctrlKey) {
+                mode = "Clone";
+            }
+            else if (e.shiftKey) {
+                mode = "Add";
+            }
+            else {
+                mode = "Move";
+            }
+            var text = $(".drag-tile-drag-type").text();
+            if (text != "Assign") {
+                $(".drag-tile-drag-type").text(mode);
+            }
+        }
+    }
     var leftSplitter = Controls.Enhancement.getInstance(SplitterControls.Splitter, $(".left-hub-splitter"));
     VSS.getService(VSS.ServiceIds.ExtensionData).then(function (dataService) {
         var posReq = dataService.getValue("LeftPaneWidth", { scopeType: "User" }).then(function (width) {
@@ -31,11 +58,13 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
         saveWidth();
     });
     var splitter = Controls.Enhancement.getInstance(SplitterControls.Splitter, $(".right-hub-splitter"));
+    splitter.setMinWidth(270);
+    splitter._options.initialSize = 270;
     paneToggler.init(this, $(".far-right-pane-pivot"), splitter, tc, dv).then(function (t) {
         tc.updateTogle(t);
     });
-    tv.initialize(RefreshGrid);
-    dv.initialize(paneToggler);
+    tv.initialize(RefreshGrid, tc);
+    dv.initialize(paneToggler, tv, tc);
     function RefreshGrid(pivot, value, showRecursive) {
         tc.RefreshGrid(pivot, value, showRecursive);
         dv.selectionChanged(null);
@@ -52,41 +81,5 @@ define(["require", "exports", "scripts/Common", "scripts/DetailsToggle", "script
             });
         });
     }
-    var registrationForm = (function () {
-        var callbacks = [];
-        function inputChanged() {
-            // Execute registered callbacks
-            for (var i = 0; i < callbacks.length; i++) {
-                callbacks[i](isValid());
-            }
-        }
-        function isValid() {
-            // Check whether form is valid or not
-            return true; //!!(name.value) && !!(dateOfBirth.value) && !!(email.value);
-        }
-        function getFormData() {
-            // Get form values
-            return {};
-        }
-        //var name = document.getElementById("inpName");
-        //var dateOfBirth = document.getElementById("inpDob");
-        //var email = document.getElementById("inpEmail");
-        //name.addEventListener("change", inputChanged);
-        //dateOfBirth.addEventListener("change", inputChanged);
-        //email.addEventListener("change", inputChanged);
-        return {
-            isFormValid: function () {
-                return isValid();
-            },
-            getFormData: function () {
-                return getFormData();
-            },
-            attachFormChanged: function (cb) {
-                callbacks.push(cb);
-            }
-        };
-    })();
-    // Register form object to be used accross this extension
-    VSS.register("columnOptionsForm", registrationForm);
 });
 //# sourceMappingURL=app.js.map

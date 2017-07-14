@@ -41,6 +41,10 @@
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="clone-testplan-form.html" />
+    <Content Include="clone-testsuite-form.html" />
+    <Content Include="img\cancel.png" />
+    <Content Include="img\checkmark.gif" />
     <Content Include="img\image1.png" />
     <Content Include="img\image2.png" />
     <Content Include="img\image3.png" />
@@ -55,37 +59,41 @@
     <Content Include="img\Short-Icon.png" />
     <Content Include="img\testPlan.png" />
     <Content Include="index.html" />
-    <Content Include="sdk\scripts\ai.0.22.9-build00167.js" />
-    <Content Include="sdk\scripts\ai.0.22.9-build00167.min.js" />
-    <Content Include="sdk\scripts\q.js" />
-    <Content Include="sdk\scripts\VSS.SDK.js" />
-    <Content Include="sdk\scripts\VSS.SDK.min.js" />
+    <Content Include="scripts\lib\ai.1.0.7.min.js" />
+    <Content Include="scripts\lib\ai.js" />
+    <Content Include="scripts\lib\jquery_2.1.4.min.js" />
+    <Content Include="scripts\lib\q.js" />
+    <Content Include="scripts\lib\VSS.SDK.js" />
+    <Content Include="scripts\lib\VSS.SDK.min.js" />
     <Content Include="web.config">
       <SubType>Designer</SubType>
     </Content>
     <Content Include="package.json" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="scripts\ai.0.22.9-build00167.d.ts" />
     <TypeScriptCompile Include="scripts\app.ts" />
+    <TypeScriptCompile Include="scripts\CloneTestPlanForm.ts" />
+    <TypeScriptCompile Include="scripts\CloneTestSuiteForm.ts" />
     <TypeScriptCompile Include="scripts\ColumnsOptionsView.ts" />
     <TypeScriptCompile Include="scripts\Common.ts" />
     <TypeScriptCompile Include="scripts\DetailsToggle.ts" />
     <TypeScriptCompile Include="scripts\DetailsView.ts" />
-    <TypeScriptCompile Include="scripts\ref\jasmine\jasmine.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\jqueryui.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\jquery\jquery.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\knockout\knockout.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\q\Q.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\requirejs\require.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\tfs.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\tsd.d.ts" />
-    <TypeScriptCompile Include="scripts\ref\vss.d.ts" />
     <TypeScriptCompile Include="scripts\TelemetryClient.ts" />
     <TypeScriptCompile Include="scripts\TestCaseDataService.ts" />
     <TypeScriptCompile Include="scripts\TestCaseView.ts" />
     <TypeScriptCompile Include="scripts\TreeViewDataService.ts" />
     <TypeScriptCompile Include="scripts\TreeViewView.ts" />
+    <TypeScriptCompile Include="typings\ai.1.0.0-build00159.d.ts" />
+    <TypeScriptCompile Include="typings\jasmine\jasmine.d.ts" />
+    <TypeScriptCompile Include="typings\jqueryui.d.ts" />
+    <TypeScriptCompile Include="typings\jquery\jquery.d.ts" />
+    <TypeScriptCompile Include="typings\knockout\knockout.d.ts" />
+    <TypeScriptCompile Include="typings\q\Q.d.ts" />
+    <TypeScriptCompile Include="typings\requirejs\require.d.ts" />
+    <TypeScriptCompile Include="typings\rmo.d.ts" />
+    <TypeScriptCompile Include="typings\tfs.d.ts" />
+    <TypeScriptCompile Include="typings\tsd.d.ts" />
+    <TypeScriptCompile Include="typings\VSS.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="vss-extension.json" />

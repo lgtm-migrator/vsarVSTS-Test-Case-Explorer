@@ -13,15 +13,46 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/jqueryui.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
-/// <reference path="telemetryclient.ts" />
+/// <reference path='../typings/tsd.d.ts' />
 
 import WorkItemContracts = require("TFS/WorkItemTracking/Contracts");
 import WorkItemClient = require("TFS/WorkItemTracking/RestClient");
-
+import Context = require("VSS/Context");
 import Q = require("q");
+
+export function  createDragTile(dragType:string, $dragItemTitle:JQuery):JQuery {
+    var $dragTile = $("<div />")
+        .addClass("drag-tile")
+
+    var $dropNOTAllowed = $("<div style='display:none'/>").addClass("drop-not-allowed");
+    var $dropNOTAllowedIcon = $("<img src='img/cancel.png'/>")
+    var $dropNotAllowedMsg = $("<div>").addClass("drop-not-allowed-message");
+    $dropNOTAllowed.append($dropNOTAllowedIcon);
+    $dropNOTAllowed.append($dropNotAllowedMsg);
+    $dragTile.append($dropNOTAllowed);
+
+    var $dropAllowed = $("<div />").addClass("drop-allowed");
+    var $dragType = $("<span />")
+        .addClass("drag-tile-drag-type")
+        .text(dragType);
+
+
+    var $dragBottomHelp = $("<div>Shift= <b>ADD</b>  Ctrl = <b>CLONE</b> No key= <b>MOVE</b></div>")
+        .addClass("drag-help")
+ 
+    var $dragHead = $("<div />")
+        .addClass("drag-tile-head")
+        .append($dragType)
+        .append($dragItemTitle)
+        .append($dragBottomHelp);
+
+
+    $dropAllowed.append($dragHead);
+    $dragTile.append($dropAllowed);
+
+    return $dragTile;
+}
+
 
 export class WIQLConstants {
 
@@ -29,8 +60,8 @@ export class WIQLConstants {
     public TestCaseCategoryName: string = "Test Case Category";
     public RequirementsCategoryName: string = "Requirement Category";
 
-
     private static constants: WIQLConstants;
+
     public static getWiqlConstants(): WIQLConstants {
 
         if (!this.constants) {
@@ -40,8 +71,6 @@ export class WIQLConstants {
 
         return this.constants;
     }
-
-
 
     private Init() {
         try {
@@ -63,6 +92,7 @@ export class WIQLConstants {
         }
     }
 }
+
 export function getTestResultCellContent(rowInfo, dataIndex, expandedState, level, column, indentIndex, columnOrder) {
     var outcome = this.getColumnValue(dataIndex, column.index);
     var d = $("<div class='grid-cell'/>").width(column.width || 100)
@@ -114,5 +144,51 @@ export function MergeColumnLists(lst1: ICustomColumnDef[], lst2: ICustomColumnDe
     return a.filter(item => {
         return seen.hasOwnProperty(item.field) ? false : (seen[item.field] = true);
     });
+}
 
+export function getToolbarIcon(name): string {
+    var icon: string = "";
+    switch (name) {
+        case "show-recursive":
+            icon = "bowtie-row-child";
+            break;
+        case "expand-all":
+            icon = "bowtie-toggle-expand-all";
+            break;
+        case "collapse-all":
+            icon = "bowtie-toggle-collapse";
+            break;
+        case "open-testsuite":
+            icon = "bowtie-arrow-open";
+            break;
+        case "remove":
+            icon = "bowtie-edit-delete";
+            break;
+        case "refresh":
+            icon = "bowtie-navigate-refresh";
+            break;
+        case "new-testcase":
+            icon = "icon-add-small";
+            break;
+        case "open-testcase":
+            icon = "bowtie-arrow-open";
+            break;
+        case "clone-testplan":
+            icon = "bowtie-edit-copy";
+            break;
+        case "remove-testcase":
+            icon = "bowtie-edit-delete";
+            break;
+        case "toggle":
+            icon = "bowtie-details-pane";
+            break;
+        case "":
+            icon = "";
+            break;
+    }
+    return icon;
+}
+
+export function getToolbarCss(): string {
+    return "bowtie-icon";
 }

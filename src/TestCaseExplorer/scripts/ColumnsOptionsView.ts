@@ -1,4 +1,19 @@
-﻿import Controls = require("VSS/Controls");
+﻿//---------------------------------------------------------------------
+// <copyright file="ColumnsOptionsView.ts">
+//    This code is licensed under the MIT License.
+//    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF 
+//    ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED 
+//    TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+//    PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// </copyright>
+// <summary>
+//    This is part of the Test Case Explorer extensions
+//    from the ALM Rangers. This file contains the implementation
+//    of the column options dialog.
+// </summary>
+//---------------------------------------------------------------------
+
+import Controls = require("VSS/Controls");
 import Combos = require("VSS/Controls/Combos");
 import Grids = require("VSS/Controls/Grids");
 import Menus = require("VSS/Controls/Menus");
@@ -13,8 +28,6 @@ import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import CoreUtils = require("VSS/Utils/Core");
 import CtrlCombos = require("VSS/Controls/Combos");
 import WorkItemServices = require("TFS/WorkItemTracking/Services");
-
-
 import TestCaseDataService = require("scripts/TestCaseDataService");
 import Common = require("scripts/Common");
 
@@ -22,15 +35,11 @@ export interface TestCaseViewSelectedCallback { (value: string): void }
 
 export class ColumnOptionsView {
 
-    public _avaibleFields: WorkItemContracts.WorkItemFieldReference[];
+    public _avaibleFields;
     public _selectedColumns: Common.ICustomColumnDef[];
 
-
-//    private gridAvailbleFields: Grids.ListView;
-    private lstAvailbleFields: any;;
-
-    //private gridSelectedColumns: Grids.Grid;
-    private lstSelectedColumns: any
+    private lstAvailbleFields: any;
+    private lstSelectedColumns: any;
     private content;
 
     public Init(content, selectedColumns: Common.ICustomColumnDef[]) {
@@ -38,13 +47,13 @@ export class ColumnOptionsView {
         view.content = content;
         view._selectedColumns = selectedColumns;
 
-        var witClient:WorkItemClient.WorkItemTrackingHttpClient3 = WorkItemClient.getClient();
+        var witClient = WorkItemClient.getClient();
         var ctx = VSS.getWebContext();
 
         witClient.getWorkItemType(ctx.project.id, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(
-            wit=> {
-                view._avaibleFields = wit["fieldInstances"] // wit.fields.map(f=> { return f.field; });
-                view.setupAvailbleGrid()
+            wit => {
+                view._avaibleFields = wit["fieldInstances"]; 
+                view.setupAvailbleGrid();
             },
             err=> {
             }
@@ -83,14 +92,11 @@ export class ColumnOptionsView {
         view.lstAvailbleFields.on("dblclick", e=> { view.addColumn() }); 
             
         this.sortSelectOptions();
-
     }
-
 
     private setupSelectedColumnsGrid() {
         var view = this;
      
-
         this.lstSelectedColumns = this.content.find('#lst-selected-columns')
         this._selectedColumns.forEach(
             f=> {
@@ -146,7 +152,6 @@ export class ColumnOptionsView {
             var foo = view.lstSelectedColumns[0].offsetHeight;
             view.lstSelectedColumns[0].style.display = old;
         });
-
     }
 
     private setupMoveButtons() {
@@ -157,8 +162,6 @@ export class ColumnOptionsView {
         
         this.content.find('#cmdRemove').click(e => {
             view.removeColumn();
-
-           
         });        
     }
 
@@ -171,8 +174,8 @@ export class ColumnOptionsView {
         this.content.find('#cmdDown').click(e => {
             this.moveSelectOptions("down");
         });
-
     }
+
     private addColumn() {
         var view = this;
         var defWidth = 75;
@@ -202,10 +205,8 @@ export class ColumnOptionsView {
             view.lstAvailbleFields.append($('<option>').val(refName).text(txt));
 
             view.sortSelectOptions();
-
         });
     }
-
 
     private moveSelectOptions(direction: string) {
         var view = this;
@@ -255,25 +256,14 @@ export function Register() {
 
         function isValid() {
             // Check whether form is valid or not
-            return true; //!!(name.value) && !!(dateOfBirth.value) && !!(email.value);
+            return true;
         }
 
         function getFormData() {
             // Get form values
             return {
-                //name: name.value,
-                //dateOfBirth: dateOfBirth.value,
-                //email: email.value
             };
         }
-
-        //var name = document.getElementById("inpName");
-        //var dateOfBirth = document.getElementById("inpDob");
-        //var email = document.getElementById("inpEmail");
-
-        //name.addEventListener("change", inputChanged);
-        //dateOfBirth.addEventListener("change", inputChanged);
-        //email.addEventListener("change", inputChanged);
 
         return {
             isFormValid: function () {
@@ -290,6 +280,4 @@ export function Register() {
 
     // Register form object to be used accross this extension
     VSS.register("columnOptionsForm", registrationForm);
-
 }
-

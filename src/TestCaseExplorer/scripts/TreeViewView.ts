@@ -13,85 +13,144 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
-/// <reference path="telemetryclient.ts" />
+/// <reference path='../typings/tsd.d.ts' />
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
 import StatusIndicator = require("VSS/Controls/StatusIndicator");
-
 import Menus = require("VSS/Controls/Menus");
 import CtrlCombos = require("VSS/Controls/Combos");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import UtilsUI = require("VSS/Utils/UI");
-
 import Q = require("q");
+import Common = require("scripts/Common");
+import Context = require("VSS/Context");
+import CloneTestPlan = require("scripts/CloneTestPlanForm");
+import TestCaseView = require("scripts/TestCaseView");
+
+
+import TelemetryClient = require("scripts/TelemetryClient");
 
 export interface TreeviewSelectedCallback { (type: string, value: string, showRecursive: boolean): void }
+
+var constAllTestPlanName = "--- All Test plans ----";
+
+var const_Pivot_TestPlan = "Test plan";
+var const_Pivot_Priority = "Priority";
 
 export class TreeviewView {
 
     private _showRecursive: boolean;
     private _menubar: Menus.MenuBar;
-    private _treeview: TreeView.TreeView;
+    public _treeview: TreeView.TreeView;
     private _callback: TreeviewSelectedCallback;
-    private _currentNode: TreeView.TreeNode;
-    private _currentSource: string;
+    public _currentTestPlan: string;
+    public _currentNode: TreeView.TreeNode;
+    public _currentSource: string;
     private _waitControl: StatusIndicator.WaitControl;
+    private _cboTestPlan: CtrlCombos.Combo;
+    private _testPlans: TreeView.TreeNode[];
+    private _cboSource: CtrlCombos.Combo;
+    private _tcView: TestCaseView.TestCaseView;
 
-    public initialize(callback: TreeviewSelectedCallback) {
-        TelemetryClient.getClient().trackPageView("TreeView");
+    public PivotSources: string[] = ["Area path", "Iteration path", const_Pivot_Priority, "State", const_Pivot_TestPlan];
+    
+
+    public initialize(callback: TreeviewSelectedCallback, tcView: TestCaseView.TestCaseView) {
+        TelemetryClient.TelemetryClient.getClient().trackPageView("TreeView");
         var view = this;
+        view._tcView = tcView;
+
         view._showRecursive = false;
         view._callback = callback;
-        var cboSources = ["Area path", "Iteration path", "Priority", "State", "Test plan"];
 
-        var cboOptions: CtrlCombos.IComboOptions = {
-            mode: "drop",
-            allowEdit: false,
-            source: cboSources
-        };
-
-        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-Cbo-container"), cboOptions);
+        view._cboSource = view.initSourceCbo();
+        view._cboTestPlan = view.initTestPlanCbo();
 
         var treeOptions: TreeView.ITreeOptions = {
             clickSelects: true,
-            nodes: null
-        };
+            nodes: null,
+            droppable: {
+                scope: "test-case-scope",
+                greedy: true,
+                tolerance: "pointer",
+                over: function (e , ui) {
+                    console.log("enter over with targer =" + e.target.title + "org target text" + e.originalEvent.target.textContent);
+                    if (e.target.title === e.originalEvent.target.textContent) {
+                        view.droppableOver($(this), e, ui);
+                    }
+                    var target: any = e.target;
+                    
+                },
+                out: function (e, ui) {
+                    var target: any = e.target;
 
-        var treeview = Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
-        treeview.onItemClick = function (node, nodeElement, e) {
-            if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
-                treeview.setSelectedNode(node);
-                view._currentNode = node;
-                view._currentSource = cbo.getText();
-                if (view._currentNode != null) {
-                    view.RefreshGrid();
+                    console.log("out " + target.title);
+                },
+                drop: function (event: any, ui) {
+                    
+                    var n: TreeView.TreeNode = view._treeview.getNodeFromElement(event.target);
+                    if (view.acceptDropTest(n, ui)){
+                        var action = ui.helper.data("MODE");  // TODO: rename to action
+                        var mode = view.getCurrentDragMode(event);
+
+                        switch (action) {
+                            case "TEST_CASE":
+                                view.processDropTestCase(ui, n, view._currentSource, mode);
+                                break;
+                            default:    // TODO: verify this should not happen
+                                console.log("treeview::drop - undefined action");
+                                break;
+                        }
+                    }
+                }
+            },
+            draggable: {
+                distance: 10,
+                cursorAt: { top: -5, left: -5 },
+                refreshPositions: true,
+                scroll: true,
+                scope: "test-case-scope",
+                containment: "",
+                appendTo: document.body,
+                helper: function (event, ui) {
+                    var title = event.currentTarget.title;
+                    var draggedNode = view._treeview.getNodeFromElement(event.currentTarget);
+
+                    var $dragItemTitle = $("<div />").addClass("node-content");
+                    var $dragItemIcon = $("<span class='icon tree-node-img' />").addClass(draggedNode.icon);
+                    $dragItemTitle.append($dragItemIcon);
+                    $dragItemTitle.append($("<span />").text(draggedNode.text));
+                    $dragItemTitle.css("width", event.currentTarget.clientWidth);
+
+                    var $dragTile = Common.createDragTile("MOVE", $dragItemTitle);
+                    $dragTile.data("PLAN_ID", draggedNode.config);
+                    $dragTile.data("SUITE_ID", draggedNode.id);
+                    $dragTile.data("MODE", "TEST_SUITE");
+
+                    return $dragTile;
                 }
             }
         };
+       
+        view._treeview= Controls.create(TreeView.TreeView, $("#treeview-container"), treeOptions);
 
-        //Hook up change for cbo to redraw treeview
-        $("#treeview-Cbo-container").change(function () {
-            view._currentSource = cbo.getText();
-            view.updateTreeView();
-            //view.StartLoading(true, "Loading pivot data");
-            //view._currentSource = cbo.getText();
-            //TelemetryClient.getClient().trackPageView("TreeView." + cbo.getText());
-            //view.LoadTreeview(view._currentSource, treeview).then(a => {
-            //    view.DoneLoading()
-            //});
+        view._treeview.onItemClick = function (node, nodeElement, e) {
+            if ((node.text != "Test plans") || (node.text == "Test plans" && node.id)) {
+                view._treeview.setSelectedNode(node);
+                view._currentNode = node;
+                view._currentSource = view._cboSource.getText();
+                if (view._currentNode != null) {
+                    view.RefreshGrid();
+                }
+                var isDisabled = view._currentNode.config.type != "TestPlan";
+                view.toogleCloneTestplanEnabled(isDisabled);
 
-            //VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
-            //    dataService => {
-            //        // Set value in user scope
-            //        dataService.setValue("SelectedPivot", cbo.getText(), { scopeType: "User" });
-            //    });
-        });
+            }
+        };
 
-        view._treeview = treeview;
-
+        view.ToggleTestPlanSelectionArea();
+        
         //Add toolbar
         this.initMenu(this);
 
@@ -100,22 +159,252 @@ export class TreeviewView {
             // Set value in user scope
             dataService.getValue("SelectedPivot", { scopeType: "User" }).then(function (selectedPivot: any) {
                 if (selectedPivot == null || selectedPivot == "") {
-                    selectedPivot = cboSources[0];
+                    selectedPivot = view.PivotSources[0];
                 }
+                
                 view._currentSource = selectedPivot;
-
-                cbo.setText(selectedPivot);
-                view.LoadTreeview(cbo.getText(), treeview);
-
+                view.ToggleTestPlanSelectionArea()
+                view._cboSource.setText(selectedPivot);
+                view.LoadTreeview(view._cboSource.getText(), view._treeview, 0);
             })
         });
     }
 
-    private updateTreeView() {
+    private acceptDropTest(node, ui): boolean {
+
+        var dropAllowed = false;
+        console.log(node.text);
+        console.log(node.text != this._currentSource);
+
+        switch (this._currentSource) {
+            case const_Pivot_Priority:
+                if (node && node.text != this._currentSource) {
+                    dropAllowed = true;
+                }
+                break;
+            case const_Pivot_TestPlan:
+                if (node && node.type === "StaticTestSuite") {
+                    if (node.id !== ui.helper.data("SUITE_ID")) {
+                        dropAllowed = true;
+                    }
+                }
+                break;
+            default:
+                dropAllowed = true;
+        }
+
+        return dropAllowed;
+    }
+
+    private droppableOver($node, event, ui) {
+
+        var node = this._treeview._getNode($node);
+        var $dragElem = ui.helper;
+
+        var dropAllowed = this.acceptDropTest(node, ui);
+        var dropTargetTxt = "" ;
+            
+        if (this._currentSource == const_Pivot_TestPlan) {
+            dropTargetTxt = "static suites";
+        }
+        else {
+            dropTargetTxt = this._currentSource + " values";
+        }
+        
+        if (!dropAllowed) {
+            //Vi försöker släppa på nåt annat än static
+            console.log("Hide");
+            $dragElem.find(".drop-allowed").hide();
+            $dragElem.find(".drop-not-allowed").show();
+            $dragElem.find(".drop-not-allowed-message").text("You can only " + this.getCurrentDragMode(event).toLowerCase() + " to " + dropTargetTxt)
+        } else {
+            if (this._currentSource == const_Pivot_TestPlan &&  node.id === ui.helper.data("SUITE_ID")) {
+                $dragElem.find(".drop-allowed").hide();
+                $dragElem.find(".drop-not-allowed").show();
+                $dragElem.find(".drop-not-allowed-message").text("You can not " + this.getCurrentDragMode(event).toLowerCase() + " to self")
+            }
+            else {
+                console.log("show");
+                $dragElem.find(".drop-allowed").show();
+                $dragElem.find(".drop-not-allowed").hide();
+            }
+        }
+        $("ul.tree-children li.droppable-hover").removeClass("droppable-hover");
+        $("ul.tree-children li.selected").removeClass("selected");
+
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    private initSourceCbo(): CtrlCombos.Combo{
+        var view = this;
+        
+        var cboOptions: CtrlCombos.IComboOptions = {
+            mode: "drop",
+            allowEdit: false,
+            source: view.PivotSources,
+            change:function () {
+                view._currentSource = cbo.getText();
+                view.ToggleTestPlanSelectionArea()
+                view.refreshTreeView(false);
+            }
+        };
+        var cbo = Controls.create(CtrlCombos.Combo, $("#treeview-pivot-Cbo-container "), cboOptions);
+
+        return cbo;
+    }
+
+    private initTestPlanCbo(): CtrlCombos.Combo {
+        var view = this;
+
+        if (view._cboTestPlan == null) {
+            var cboOTestPlanptions: CtrlCombos.IComboOptions = {
+                mode: "drop",
+                allowEdit: false,
+                change: function () {
+                    view._currentTestPlan = view._cboTestPlan.getText();
+                    view.refreshTreeView(false);
+                }
+            };
+
+            view._cboTestPlan = Controls.create(CtrlCombos.Combo, $("#left-cboTestPlan"), cboOTestPlanptions);
+        }
+
+        TreeViewDataService.getTestPlans().then(
+            data => {
+                view._testPlans = data[0].children;
+                var nAll = TreeView.TreeNode.create(constAllTestPlanName);
+
+                view._testPlans.push(nAll);
+                view._cboTestPlan.setSource(view._testPlans.map(i => { return i.text; }));
+                view._cboTestPlan.setSelectedIndex(0);
+            },
+            err => {
+                console.log(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
+            }
+        );
+        
+        return view._cboTestPlan;
+    }
+
+    private openTestSuite() {
+        var url = VSS.getWebContext().collection.uri;
+        var project = VSS.getWebContext().project.name;
+        var planId = this._currentNode.config.testPlanId;
+        var suiteId = this._currentNode.config.suiteId
+        window.parent.location.href = url + project + "/_testManagement?planId=" + planId + "&suiteId=" + suiteId;
+    }
+
+    private cloneTestPlan() {
+        var that = this;
+
+        var sourcePlanName: string = that._currentNode.config.name;
+
+        VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
+
+            var cloneTestPlanForm: CloneTestPlan.CloneTestPlanForm;
+            var extensionCtx = VSS.getExtensionContext();
+            var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".clone-testplan-form";
+
+            var dialogOptions = {
+                title: "Clone Test Plan",
+                width: 400,
+                height: 500,
+                okText: "Clone",
+                getDialogResult: function () {
+                    return cloneTestPlanForm ? cloneTestPlanForm.getFormData() : null;
+                },
+                okCallback: function (result: CloneTestPlan.IFormInput) {
+                    TreeViewDataService.cloneTestPlan(that._currentNode.config.testPlanId, [], result.projectName, result.newTestPlanName, result.cloneRequirements, result.areaPath, result.iterationPath).then(
+                        cloneResult => {
+                            // ugly work-around since the clone api doesn't seem to set the area/iteration
+                            TreeViewDataService.updateAreaIteration(result.projectName, Number(cloneResult.destinationObject.id), result.areaPath, result.iterationPath);
+                            that._tcView.ShowCloningMessage(cloneResult.opId).then(cloneMessageresult => {
+                            })
+                        },
+                        err => {
+                            that._tcView.ShowErr(err.message);
+                        }
+                    );
+                }
+            };
+
+            dialogService.openDialog(contributionId, dialogOptions).then(dialog => {
+                
+                dialog.getContributionInstance<CloneTestPlan.CloneTestPlanForm>("clone-testplan-form").then(
+                    cloneTestPlanFormInstance => {
+                    cloneTestPlanForm = cloneTestPlanFormInstance;
+
+                    cloneTestPlanFormInstance.init(sourcePlanName);
+
+                    // Subscribe to form input changes and update the Ok enabled state
+                    cloneTestPlanFormInstance.attachFormChanged(function (isValid) {
+                        dialog.updateOkButton(isValid); 
+                    });
+
+                    cloneTestPlanFormInstance.isFormValid()["then"](function (isValid) {
+                        dialog.updateOkButton(isValid);
+                    });
+
+                });
+            });
+        });
+    }
+
+    private removePlanOrSuite() {
+        var that = this;
+        if (this._currentNode.config.type == "TestPlan") {
+            if (confirm("Are you sure you want to delete test plan " + this._currentNode.text + "?")) {
+                TreeViewDataService.removeTestPlan(this._currentNode.config.testPlanId).then(result => {
+                    that._cboTestPlan.setSelectedIndex(0);
+                    that.initTestPlanCbo();
+                    that.refreshTreeView(false);
+                });
+            }
+        }
+        else {
+            if (confirm("Are you sure you want to delete test suite " + this._currentNode.text + "?")) {
+                TreeViewDataService.removeTestSuite(this._currentNode.config.testPlanId, this._currentNode.config.suiteId).then(result => {
+                    that.refreshTreeView(false);
+                });
+            }
+        }
+    }
+
+    private ToggleTestPlanSelectionArea()
+    {
+        if (this._currentSource === const_Pivot_TestPlan) {
+            $("#left-cboTestPlan-container").show();
+        } else {
+            $("#left-cboTestPlan-container").hide();
+        }
+    }
+
+    private getTreeviewNode(node: TreeView.TreeNode, id) {
+        if (node.id == id) return node;
+        else if (node.children != null) {
+            var i = 0;
+            var result = null;
+            for (i = 0; result == null && i < node.children.length; i++) {
+                result = this.getTreeviewNode(node.children[i], id);
+            } 
+            return result;
+        }
+        return null;
+    }
+
+    public refreshTreeView(keepState: boolean) {
         this.StartLoading(true, "Loading pivot data");
-        TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
-        this.LoadTreeview(this._currentSource, this._treeview).then(a => {
-            this.DoneLoading()
+        TelemetryClient.TelemetryClient.getClient().trackPageView("TreeView." + this._currentSource);
+
+        var id = 0;
+        if (keepState && this._treeview.getSelectedNode() != null) {
+            id = this._treeview.getSelectedNode().id;
+        }
+
+        this.LoadTreeview(this._currentSource, this._treeview, id).then(a => {
+            this.DoneLoading();
         });
 
         VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(
@@ -125,13 +414,34 @@ export class TreeviewView {
             });
     }
 
+    private refreshTestPlanCombo(view: TreeviewView) {
+        var testPlanId = view._cboTestPlan.getSelectedIndex();
+        view._cboTestPlan.setSource(null);
+        TreeViewDataService.getTestPlans().then(
+            data => {
+                view._testPlans = data[0].children;
+                var nAll = TreeView.TreeNode.create(constAllTestPlanName);
+
+                view._testPlans.push(nAll);
+                view._cboTestPlan.setSource(view._testPlans.map(i => { return i.text; }));
+                view._cboTestPlan.setSelectedIndex(testPlanId);
+            },
+            err => {
+                console.log(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
+            }
+        );
+    }
+
     private initMenu(view: TreeviewView) {
-        //var menuItems: Menus.IMenuItemSpec[] = [
-        var menuItems: any[] = [
-            { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: "child-node-icon" },
-            { id: "expand-all", showText: false, title: "Expand all", icon: "bowtie-toggle-expand-all", cssClass: "bowtie-icon" },
-            { id: "collapse-all", showText: false, title: "Collapse all", icon: "bowtie-toggle-collapse", cssClass: "bowtie-icon" },
-            { id: "refresh", showText: false, title: "Refresh treeview", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" }
+        var menuItems: Menus.IMenuItemSpec[] = [
+            { id: "show-recursive", showText: false, title: "Show tests from child suites", icon: Common.getToolbarIcon("show-recursive"), cssClass: Common.getToolbarCss() },
+            { id: "expand-all", showText: false, title: "Expand all", icon: Common.getToolbarIcon("expand-all"), cssClass: Common.getToolbarCss() },
+            { id: "collapse-all", showText: false, title: "Collapse all", icon: Common.getToolbarIcon("collapse-all"), cssClass: Common.getToolbarCss() },
+            { id: "open-testsuite", showText: false, title: "Jump to test plan hub", icon: Common.getToolbarIcon("open-testsuite"), cssClass: Common.getToolbarCss() },
+            { id: "clone-testplan", showText: false, title: "Clone test plan", icon: Common.getToolbarIcon("clone-testplan"), cssClass: Common.getToolbarCss() },
+            { id: "remove", showText: false, title: "Delete", icon: Common.getToolbarIcon("remove"), cssClass: Common.getToolbarCss() },
+            { id: "refresh", showText: false, title: "Refresh treeview", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {
@@ -150,8 +460,20 @@ export class TreeviewView {
                     case "collapse-all":
                         ExpandTree(view._treeview, false);
                         break;
+                    case "open-testsuite":
+                        view.openTestSuite();
+                        break;
+                    case "clone-testplan":
+                        view.cloneTestPlan();
+                        break;
+                    case "remove":
+                        view.removePlanOrSuite();
+                        break;
                     case "refresh":
-                        view.updateTreeView();
+                        view.refreshTreeView(true);
+                        if (view._currentSource == const_Pivot_TestPlan) {
+                            view.refreshTestPlanCombo(view);
+                        }
                         break;
                     default:
                         alert("Unhandled action: " + command);
@@ -162,6 +484,23 @@ export class TreeviewView {
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#treeview-menu-container"), menubarOptions);
         this._menubar = menubar;
+    }
+
+    private toogleCloneTestplanEnabled(isDisabled: boolean, msg?: string) {
+        var view = this;
+
+        if (msg == null) {
+            msg = "Select a test plan to clone it" 
+        }
+
+        var menus = view._menubar.getMenuItemSpecs();
+        menus.forEach(i => {
+            if (i.id === "clone-testplan") {
+                i.title = isDisabled ? msg : "Clone test plan";
+            }
+        });
+        view._menubar.updateItems(menus);
+        view._menubar.updateCommandStates([{ id: "clone-testplan", disabled: isDisabled }]);
     }
 
     public RefreshGrid() {
@@ -175,7 +514,7 @@ export class TreeviewView {
 
         if (longRunning) {
             var waitControlOptions: StatusIndicator.IWaitControlOptions = {
-                target: $(".wait-control-treeview-target"),
+                target: $(".wait-control-treeview-target"),                
                 message: message,
                 cancellable: false,
                 cancelTextFormat: "{0} to cancel",
@@ -199,159 +538,101 @@ export class TreeviewView {
         }
     }
 
-    public LoadTreeview(pivot: string, treeview: TreeView.TreeView): IPromise<any> {
+    public LoadTreeview(pivot: string, treeview: TreeView.TreeView, selectedNodeId: Number): IPromise<any> {
         var deferred = $.Deferred<any>();
         var view = this;
 
-        var disableShowRecursive = (view._currentSource == "Priority" || view._currentSource == "State") ? true : false;
+        var disableShowRecursive = (view._currentSource == const_Pivot_Priority || view._currentSource == "State") ? true : false;
         this._menubar.updateCommandStates([{ id: "show-recursive", toggled: view._showRecursive, disabled: disableShowRecursive }]);
 
-        TreeViewDataService.getNodes(pivot).then(function (data) {
-            treeview.rootNode.clear();
-            treeview.rootNode.addRange(data);
-            treeview._draw();
+        var hideRemove = (view._currentSource == const_Pivot_TestPlan) ? false : true;
+        this._menubar.updateCommandStates([{ id: "remove", hidden: hideRemove }]);
 
-            var n = treeview.rootNode;
+        var hideOpenSuite = (view._currentSource == const_Pivot_TestPlan) ? false : true;
+        this._menubar.updateCommandStates([{ id: "open-testsuite", hidden: hideOpenSuite }]);
 
-            //Empty other panes 
-            var selectedIndex = (view._currentSource == "Test plan") ? 1 : 0;
-            if (view._currentSource == "Test plan") {
-                if (n.children[0].hasChildren) {
-                    treeview.setSelectedNode(n.children[0].children[0]);
-                    view._currentNode = n.children[0].children[0];
-                }
-            }
-            else {
-                treeview.setSelectedNode(n.children[0]);
-                view._currentNode = n.children[0];
-            }
+        var hideClone = (view._currentSource == const_Pivot_TestPlan) ? false : true;
+        view.toogleCloneTestplanEnabled(hideClone, "Select test plan pivot to clode a test plan");
 
-            view.RefreshGrid();
+        var tp = null;
+        if (this._currentTestPlan !== constAllTestPlanName) {
+            tp = this._testPlans[this._cboTestPlan.getSelectedIndex()];
+        }
 
-            var elem = treeview._getNodeElement(n);
-            treeview._setNodeExpansion(n, elem, true);
+        TreeViewDataService.getNodes(pivot, tp, VSS.getWebContext().project.name).then(
+            data => {
+                treeview.rootNode.clear();
+                treeview.rootNode.addRange(data);
+                treeview.updateNode(treeview.rootNode);
+                
+                //treeview._draw();
 
-            treeview.rootNode.children.forEach(n => {
-                var elem = treeview._getNodeElement(n);
-                treeview._setNodeExpansion(n, elem, true);
-            });
+                var n = treeview.rootNode;
 
-            $("li.node").draggable({
-                scope: "test-case-scope",
-                     //           scope: "TCExplorer.TreeView",
-                revert: "invalid",
-                appendTo: document.body,
-                helper: function (event, ui) {
-                    //TODO - VISUAL for CLONE suite..
-                    var $dragTile;
-                    var draggableItemText, numOfSelectedItems;
-                    var dummy = {};
-                    dummy["SuiteId"] = view._treeview.getSelectedNode().id;
-                    dummy["Title"] = view._treeview.getSelectedNode().text;
-                    dummy["PlanId"] = view._treeview.getSelectedNode().config;
-                    dummy["Icon"] = view._treeview.getSelectedNode().icon;
+                var selectedNode = n.children[0];
+                //if (this._currentTestPlan == constAllTestPlanName) {
+                //    selectedNode = null;
+                //    selectedNodeId = 0;
+                //    this._currentNode = null;
+                //}
 
-                    var selectedSuites = [dummy];
-
-                    numOfSelectedItems = selectedSuites.length;
-                    $dragTile = $("<div />")
-                        .addClass("drag-tile")
-
-                    var $dragItemCount = $("<div />")
-                        .addClass("drag-tile-item-count")
-                        .text(numOfSelectedItems);
-                    var $dragType = $("<span />")
-                        .addClass("drag-tile-drag-type")
-                        .text(event.ctrlKey == true ? "Copy" : "Clone");
-
-                    var $dragHead = $("<div />")
-                        .addClass("drag-tile-head")
-                        .append($dragType)
-                        .append($dragItemCount);
-
-                    $dragTile.append($dragHead);
-                    $dragTile.data("DROP_ACTION", "CLONE");
-                    $dragTile.data("PLAN_ID", selectedSuites.map(i => { return i["PlanId"]; }));
-                    $dragTile.data("SUITE_ID", selectedSuites.map(i => { return i["SuiteId"]; }));
-                    $dragTile.data("MODE", event.ctrlKey == true ? "Clone" : "Attach");
-
-                    var $dragLst = $("<div />")
-                        .addClass("drag-tile-list")
-
-                    selectedSuites.forEach(r => {
-                        var id = r["SuiteId"];
-                        $dragLst.append(
-                            $("<span />").append(
-                                $("<span />")
-                                    .addClass("icon")
-                                    .addClass("tree-node-img ")
-                                    .addClass(r["Icon"])
-                                    .text("h")
-                            )
-                                .text(id + " " + r["Title"])
-                                .addClass(id)
-
-                        );
-                    });
-                    $dragTile.append($dragLst);
-
-                    return $dragTile;
-                },
-                drag: function (e: any, ui) {
-                    console.log("moving..." + e.ctrlKey);
-                    $(this).css("cursor", "move");
-                },
-                zIndex: 1000,
-                cursor: "move",
-                cursorAt: { top: -5, left: -5 },
-                refreshPositions: true,
-                stop: function () {
-                    // Set all draggable parts back to revert: false
-                    // This fixes elements after drag was cancelled with ESC key
-                    //$("li.node").draggable("option", { revert: false });
-                }                               
-            });
-
-            $(document).keyup(function (e) {
-                if (e.which === 27 || e.keyCode === 27) {
-                    console.log("cancelling drag...");
-                    $("li.node").draggable({ 'revert': true }).trigger('mouseup');
-                }
-            });
-
-            $("li.node").droppable({
-                scope: "test-case-scope",
-                greedy: true,
-                tolerance: "pointer",
-                hoverClass: "droppable-hover",
-                drop: function (event: any, ui) {
-                    var n: TreeView.TreeNode = treeview.getNodeFromElement(event.target);
-                    var action = jQuery.makeArray(ui.helper.data("DROP_ACTION")).toString();
-                    switch (action) {
-                        case "CLONE":
-                            if (event.ctrlKey) {
-                                // TODO: clone
-                                console.log("Drop + clone");
-                            }
-                            else {
-                                // TODO: move
-                                console.log("Drop + move");
-                            }
-                            view.CloneTestSuite(ui,n);
-                            break;
-                        case "ASSOCIATE":   // TODO: make sure to get associate event
-                        default:
-                            view.AssociateTestCase(ui, n);
-                            break;
+                if (selectedNodeId != 0) {
+                    selectedNode = view.getTreeviewNode(n, selectedNodeId);
+                    if (selectedNode == null) {
+                        //Strange - the selected node as been removed - set root as selected.
+                        console.log("Selected item missing - swithing to root")
+                        selectedNode = view._treeview.rootNode.children[0];
                     }
                 }
+                if (selectedNode != null) {
+                    treeview.setSelectedNode(selectedNode);
+                    view._currentNode = selectedNode;
+                    selectedNode.selected = true;
+                    selectedNode.expanded = true;
+                    if (view._currentSource == const_Pivot_TestPlan) {
+                        view.toogleCloneTestplanEnabled(view._currentNode.config.type != "TestPlan");
+                        
+                    }
+                }
+
+                view.RefreshGrid();
+
+                n.expanded = true;
+                var elem = treeview._getNodeElement(n);
+                treeview._setNodeExpansion(n, elem, true);
+
+                treeview.rootNode.children.forEach(n => {
+                    var elem = treeview._getNodeElement(n);
+                    treeview._setNodeExpansion(n, elem, true);
+                });
+    
+                deferred.resolve(data);
             });
-            deferred.resolve(data);
-        });
+
         return deferred.promise();
     }
+    
+    // TODO: refactor to enum
+    private getCurrentDragMode(event): string {
+        var mode = "";
+        if (this._currentSource == const_Pivot_TestPlan) {
+            mode = "MOVE";
+            if (event.ctrlKey) mode = "CLONE";
+            if (event.shiftKey) mode = "ADD";
+        }
+        else {
+            mode="Assign"
+        }
+        return mode;
+    }
 
-    public AssociateTestCase(ui,n ) {
+    public processDropTestCase(ui, n, pivot, mode) {
+        if (pivot != const_Pivot_TestPlan) {
+            this.UpdateTestCase(ui, n);
+        }
+    }
+
+    public UpdateTestCase(ui, n) {
         var view = this;
 
         var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
@@ -365,7 +646,7 @@ export class TreeviewView {
                 field = "System.IterationPath";
                 value = n.config.path;
                 break;
-            case "Priority":
+            case const_Pivot_Priority:
                 field = "Microsoft.VSTS.Common.Priority";
                 value = n.config.name;
                 break;
@@ -386,9 +667,9 @@ export class TreeviewView {
                     data => {
                         noRemainingAssign--;
                         if (noRemainingAssign == 0) {
-                            view.RefreshGrid()
+                            view.RefreshGrid();
                         }
-                        itemDiv.text("Saved" + txt);;
+                        itemDiv.text("Saved" + txt);
                     },
                     err => {
                         alert(err);
@@ -396,51 +677,8 @@ export class TreeviewView {
             });
         }
         else {
+
             alert("Not supported in this version");
-        }
-
-    }
-    
-    public CloneTestSuite(ui: JQueryUI.DroppableEventUIParam, n: TreeView.TreeNode) {
-
-        var view = this;
-        var plan = ui.helper.data("PLAN_ID");
-        var sourcePlanName: string = plan[0].name;
-        var sourcePlanId: number = plan[0].testPlanId;
-        var sourceSuiteId: number = ui.helper.data("SUITE_ID");
-        var mode = ui.helper.data("MODE");
-        var itemDiv = ui.helper.find("." +sourceSuiteId);
-        var txt = itemDiv.text();
-        itemDiv.text("Saving " + txt);
-
-        var targetPlanId: number = n.config.testPlanId;
-        var targetSuiteId: number = n.config.suiteId;
-
-        console.log("plan name: " + sourcePlanName);
-        console.log("plan id: " + sourcePlanId);
-        console.log("suite id: " + sourceSuiteId);
-        console.log("mode: " + mode);
-        console.log("target plan id: " + targetPlanId);
-        console.log("target suite id: " + targetSuiteId);
-
-        if (confirm("Are you sure you want to clone '" + sourcePlanName + "' to '" + n.config.name + "'?")) {
-            TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId).then(result => {
-                // TODO: kolla om det finns target suite med samma namn?
-                var node = new TreeView.TreeNode(sourcePlanName);
-
-                //node.icon = icon-from-source-node?;
-                //node.id = id-from-clone-op?;
-                //node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
-                n.add(node);
-                view._treeview.updateNode(n);
-
-                // TODO: update progress
-                // TODO: refresh tree when complete
-            });
-        }
-        else {
-            // TODO: best way to cancel drag?
-            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
         }
     }
 }

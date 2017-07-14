@@ -13,10 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/jqueryui.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
-/// <reference path="telemetryclient.ts" />
+/// <reference path='../typings/tsd.d.ts' />
 
 import Controls = require("VSS/Controls");
 import TreeView = require("VSS/Controls/TreeView");
@@ -25,32 +22,44 @@ import CtrlCombos = require("VSS/Controls/Combos");
 import Menus = require("VSS/Controls/Menus");
 import StatusIndicator = require("VSS/Controls/StatusIndicator");
 import Navigation = require("VSS/Controls/Navigation");
+import TestContracts = require("TFS/TestManagement/Contracts");
+import Context = require("VSS/Context");
+
 import Toggler = require("scripts/DetailsToggle");
 import TreeViewDataService = require("scripts/TreeViewDataService");
 import Common = require("scripts/Common");
+import LeftTreeView = require("scripts/TreeViewView");
+import CloneTestSuite = require("scripts/CloneTestSuiteForm");
+import TestCaseView = require("scripts/TestCaseView");
+
+import TelemetryClient = require("scripts/TelemetryClient");
+//import CloneTestPlan = require("scripts/CloneTestPlanForm");
 
 
 interface IPaneRefresh {
     initialize(view: DetailsView): void;
     hide(): void;
     show(): void;
-    masterIdChanged(id: string): void;
+    masterIdChanged(id: string, isRefresh: boolean): void;
 }
 
 export class DetailsView {
     public _selectedPane: IPaneRefresh;
     public _toggler: Toggler.DetailsPaneToggler;
     public _waitControl: StatusIndicator.WaitControl;
+    public _leftTreeView: LeftTreeView.TreeviewView;
 
     private _selectedMasterId: string
     private _PaneLst: IPaneRefresh[];
+    public _tcView: TestCaseView.TestCaseView;
 
-    public initialize(paneToggler: Toggler.DetailsPaneToggler) {
-
+    public initialize(paneToggler: Toggler.DetailsPaneToggler, leftTreeView: LeftTreeView.TreeviewView, tcView: TestCaseView.TestCaseView) {
+        this._tcView = tcView;
         this._PaneLst = [];
         this._toggler = paneToggler;
+        this._leftTreeView = leftTreeView;
         var view = this;
-
+        
         var panels = [
             { id: "TestPlan", text: "Test plans" },
             { id: "TestSuites", text: "Test suites", selected: true },
@@ -58,18 +67,30 @@ export class DetailsView {
             { id: "Requirements", text: "Linked requirements" }
         ];
 
-        Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
+        var pivot= Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
             behavior: "dropdown",
             text: "Pane",
             items: panels,
             change: function (item) {
                 var command = item.id;
                 view.ShowPanel(command);
+                VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+                    // Set value in user scope
+                    dataService.setValue("LeftPaneSelectedPanel", command, { scopeType: "User" }).then(function (value) {
+                        console.log("Saved user preference");
+                    });
+                });
             }
         });
 
+        VSS.getService<IExtensionDataService>(VSS.ServiceIds.ExtensionData).then(function (dataService) {
+            // Set value in user scope
+            dataService.getValue("LeftPaneSelectedPanel", { scopeType: "User" }).then(function (value) {
+                pivot.setSelectedItem(pivot._options.items.filter(i => { return i.id === value; })[0]);
+            });
+        });
         Controls.create(Navigation.PivotFilter, $("#details-filter-container"), {
-            behavior: "dropdown",
+            behavior: "button",
             text: "Position",
             items: [
                 { id: "right", text: "Right", selected: true },
@@ -88,14 +109,25 @@ export class DetailsView {
 
     public selectionChanged(id: string) {
         if (this._selectedPane != null) {
-            this._selectedMasterId = id;
-            this._selectedPane.masterIdChanged(id);
+            if (this._selectedMasterId != id) {
+                this._selectedMasterId = id;
+                this._selectedPane.masterIdChanged(id, false);
+            }
         }
     }
 
     public Refresh(): void {
-        this.selectionChanged(this._selectedMasterId);
+        this._selectedPane.masterIdChanged(this._selectedMasterId, true);
     }
+
+    public refreshTestCaseView(): void {
+
+    }
+
+    public refreshLeftTree() {
+        this._leftTreeView.refreshTreeView(true)
+    }
+
 
     private ShowPanel(panel: string) {
 
@@ -131,7 +163,7 @@ export class DetailsView {
 
         this._selectedPane = pane;
         this._selectedPane.show();
-        this._selectedPane.masterIdChanged(this._selectedMasterId);
+        this._selectedPane.masterIdChanged(this._selectedMasterId, false);
     }
 
     public StartLoading(longRunning, message) {
@@ -155,12 +187,15 @@ export class DetailsView {
 
     public DoneLoading() {
         $("body").css("cursor", "default");
-
-        if (this._waitControl != null) {
-            this._waitControl.cancelWait();
-            this._waitControl.endWait();
-            this._waitControl = null;
-        }
+        var view = this;
+        //setTimeout(3000, function () {
+            if (view._waitControl != null) {
+                view._waitControl.cancelWait();
+                view._waitControl.endWait();
+                view._waitControl = null;
+            }
+            
+        //});
     }
 }
 
@@ -196,7 +231,7 @@ class partOfTestSuitesPane implements IPaneRefresh {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestSuites"), options);
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {
@@ -216,7 +251,6 @@ class partOfTestSuitesPane implements IPaneRefresh {
         };
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testSuite-container"), menubarOptions);
-
     }
 
     public show() {
@@ -228,13 +262,11 @@ class partOfTestSuitesPane implements IPaneRefresh {
         $("#details-testSuites").css("display", "none");
     }
 
-    public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.PartOfTestSuite");
+    public masterIdChanged(id: string, isRefresh: boolean) {
+        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.PartOfTestSuite");
         var pane = this;
-        if (id == null) {
-            pane._grid.setDataSource(null);
-        }
-        else {
+        pane._grid.setDataSource(null);
+        if(id != null) {
             TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(
                 data=> {
                     if (data != null) {
@@ -259,11 +291,15 @@ class testPlanPane implements IPaneRefresh {
     private _testPlans;
     private _view: DetailsView;
     private _grid;
+    private _treeView: TreeView.TreeView;
+   
+    private PreventDropOverDubbelBouble = false;
+   
 
     public initialize(view: DetailsView) {
         this._view = view;
         var tpp = this;
-
+    
         var cboOptions: CtrlCombos.IComboOptions = {
             mode: "drop",
             allowEdit: false,
@@ -271,77 +307,36 @@ class testPlanPane implements IPaneRefresh {
 
         this._cbo = Controls.create(CtrlCombos.Combo, $("#details-cboTestPlan"), cboOptions);
 
-        TreeViewDataService.getTestPlans().then(
-            data=> {
-                tpp._testPlans = data[0].children;
-                tpp._cbo.setSource(tpp._testPlans.map(i=> { return i.text;}));
-            },
-            err=> {
-                console.log(err);
-                TelemetryClient.getClient().trackException(err);
-            }
-        );
+        this.refreshTestPlanCombo();
 
-        var treeOptionsTestPlan = {
-            width: 400,
-            height: "100%",
-            nodes: null
+        var that = this;
+        var treeOptionsTestPlan: TreeView.ITreeOptions = {
+            nodes: null,
+            droppable:  $.extend({
+                scope: "test-case-scope",
+                greedy: true,
+                tolerance: "pointer",
+                drop: function (event, ui) {
+                    return that.droppableDrop(that, event, ui);
+                },
+                hoverClass: "accept-drop-hover", 
+                over: function (event, ui) {
+                    that.droppableOver($(this), event, ui);
+                }
+           
+            }),
+            
         };
 
         var treeviewTestPlan = Controls.create(TreeView.TreeView, $("#details-treeviewTestPlan"), treeOptionsTestPlan);
-
-        treeviewTestPlan.onItemClick = function (node, nodeElement, e) {
-        };
+        this._treeView = treeviewTestPlan;
 
         $("#details-cboTestPlan").change(function () {
-            tpp._view.StartLoading(true, "Fetching test plan " + tpp._cbo.getText());
-            var tp = tpp._testPlans[tpp._cbo.getSelectedIndex()];
-            TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(
-                data=> {
-                    tpp._view.DoneLoading();
-                    treeviewTestPlan.rootNode.clear();
-
-                    treeviewTestPlan.rootNode.addRange(data);
-                    treeviewTestPlan._draw();
-
-                    var gridTC = <Grids.Grid>Controls.Enhancement.getInstance(Grids.GridO, $("#grid-container"));
-
-                    $("li.node").droppable({
-                        scope: "test-case-scope",
-                        greedy: true,
-                        tolerance: "pointer",
-                        hoverClass: "droppable-hover",
-                        drop: function (event, ui) {
-                            var n = treeviewTestPlan.getNodeFromElement(event.target);
-                            var grd = <Grids.Grid>Controls.Enhancement.getInstance(Grids.Grid, $("#grid-container"));
-                            var tcId = ui.draggable.context.childNodes[0].textContent;
-                            //var x = grd.getDraggingRowInfo();
-                            //Grids.Grid.getInstance($("#grid-container"));
-                            var s = "Mapped test case " + tcId + " to suite " + n.config.suiteId + " in test plan " + n.config.testPlanId;
-                            var div = $("<div />").text(s);
-                            ui.draggable.context = div[0];
-                            TreeViewDataService.mapTestCaseToSuite(VSS.getWebContext().project.name, tcId, n.config.suiteId, n.config.testPlanId).then(
-                                data => { alert(s); },
-                                err => { alert(err); });
-                        }
-                    });
-                },
-                err=> {
-                    console.log("Err fetching test plans");
-                    console.log(err);
-                });
-        });
-
-        $(".ui-draggable").draggable({
-            revert: true,
-            appendTo: document.body,
-            helper: "clone",
-            zIndex: 1000,
-            refreshPositions: true
+            tpp.refreshTestPlan();
         });
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {
@@ -361,6 +356,323 @@ class testPlanPane implements IPaneRefresh {
         };
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-testPlan-container"), menubarOptions);
+
+        var treeView = this._treeView;
+        var leftTreeView = this._view._leftTreeView;
+        
+    }
+
+    private droppableDrop(that: testPlanPane, event, ui) {
+        var n: TreeView.TreeNode = that._treeView.getNodeFromElement(event.target);
+        console.log("Droped "); 
+
+        if (that.acceptDropTest(n, ui)) {
+            var action = ui.helper.data("MODE");  // TODO: rename to action
+            var mode = that.getCurrentDragMode(event);
+            console.log(action); 
+            console.log(mode); 
+
+            switch (action) {
+                case "TEST_SUITE":
+                    that.processDropTestSuite(ui, n, mode);
+                    break;
+                case "TEST_CASE":
+                    that.processDropTestCase(ui, n, mode);
+                    break;
+                default:    // TODO: verify this should not happen
+                    console.log("treeview::drop - undefined action");
+                    break;
+            }
+        }
+    }
+
+    private acceptDropTest(node, ui): boolean {
+
+        if (node && node.type !== "StaticTestSuite") {
+            //Vi försöker släppa på nåt annat än static
+            return false;
+        } else {
+            if (node.id === ui.helper.data("SUITE_ID")) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+    }
+
+    private droppableOver($node, event, ui) {
+
+        var node = this._treeView._getNode($node);
+        var $dragElem = ui.helper;
+
+        if (this.PreventDropOverDubbelBouble) {
+            this.PreventDropOverDubbelBouble = false;
+        }
+        else {
+            if (node && node.type !== "StaticTestSuite") {
+                //Vi försöker släppa på nåt annat än static
+                console.log("Hide");
+                $dragElem.find(".drop-allowed").hide();
+                $dragElem.find(".drop-not-allowed").show();
+                $dragElem.find(".drop-not-allowed-message").text("You can only " + this.getCurrentDragMode(event).toLowerCase() + " to static suites")
+                this.PreventDropOverDubbelBouble = true;
+            } else {
+                if (node.id === ui.helper.data("SUITE_ID")) {
+                    $dragElem.find(".drop-allowed").hide();
+                    $dragElem.find(".drop-not-allowed").show();
+                    $dragElem.find(".drop-not-allowed-message").text("You can not " + this.getCurrentDragMode(event).toLowerCase()+ " to self")
+                }
+                else {
+                    console.log("show");
+                    $dragElem.find(".drop-allowed").show();
+                    $dragElem.find(".drop-not-allowed").hide();
+                }
+            }
+            $("ul.tree-children li.droppable-hover").removeClass("droppable-hover");
+            $("ul.tree-children li.selected").removeClass("selected");
+
+            event.stopPropagation();
+            event.preventDefault();
+        }
+    }
+
+    private refreshTestPlan() {
+        if (this._cbo.getSelectedIndex() >= 0) {
+
+            this._view.StartLoading(true, "Fetching test plan " + this._cbo.getText());
+
+            var treeView = this._treeView;
+            var tpp = this;
+
+            treeView.rootNode.clear();
+            treeView._draw();
+
+            var tp = this._testPlans[this._cbo.getSelectedIndex()];
+            TreeViewDataService.getTestPlanAndSuites(tp.id, tp.text).then(
+                data => {
+                    this._view.DoneLoading();
+
+                    this._treeView.rootNode.addRange(data);
+                    this._treeView._draw();
+                    /*
+                    $("li.node").droppable({
+                        scope: "test-case-scope",
+                        greedy: true,
+                        tolerance: "pointer",
+                        drop: function (event, ui) {
+                            var n: TreeView.TreeNode = treeView.getNodeFromElement(event.target);
+
+                            var action = ui.helper.data("MODE");  // TODO: rename to action
+                            var mode = tpp.getCurrentDragMode(event);
+
+                            switch (action) {
+                                case "TEST_SUITE":
+                                    tpp.processDropTestSuite(ui, n, mode);
+                                    break;
+                                case "TEST_CASE":
+                                    tpp.processDropTestCase(ui, n, mode);
+                                    break;
+                                default:    // TODO: verify this should not happen
+                                    console.log("treeview::drop - undefined action");
+                                    break;
+                            }
+
+                            // TODO: best way to cancel drag?
+                            $("li.node").draggable({ 'revert': true }).trigger('mouseup');
+                        }
+                    });
+                    */
+                },
+                err => {
+                    console.log("Err fetching test plans");
+                    console.log(err);
+                });
+        }
+    }
+
+    private refreshTestPlanCombo() {
+        var tpp = this;
+        TreeViewDataService.getTestPlans().then(
+            data => {
+                tpp._testPlans = data[0].children;
+                tpp._cbo.setSource(tpp._testPlans.map(i => { return i.text; }));
+                tpp._cbo.setSelectedIndex(0);
+                tpp.refreshTestPlan();
+            },
+            err => {
+                console.log(err);
+                TelemetryClient.TelemetryClient.getClient().trackException(err);
+            }
+        );
+    }
+
+    // TODO: refactor to enum
+    private getCurrentDragMode(event): string {
+        var mode = "";
+        if (this._view._leftTreeView._currentSource == "Test plan") {
+            mode = "MOVE";
+            if (event.ctrlKey) mode = "CLONE";
+            if (event.shiftKey) mode = "ADD";
+        }
+        else {
+            mode = "ASSIGN"
+        }
+        return mode;
+    }
+
+    private processDropTestSuite(ui, n, mode) {
+        var self = this;
+
+        var draggedNode: TreeView.TreeNode = this._view._leftTreeView._treeview.getNodeFromElement(ui.draggable);
+
+        // TODO: Refactor, rename sourcePlanName to sourceSuiteName
+        var sourcePlanName: string = draggedNode.config.name;
+        var sourcePlanId: number = draggedNode.config.testPlanId;
+        var sourceSuiteId: number = draggedNode.config.suiteId;
+        var targetPlanName: string = n.config.name;
+        var targetPlanId: number = n.config.testPlanId;
+        var targetSuiteId: number = n.config.suiteId;
+
+        console.log("source plan name: " + sourcePlanName);
+        console.log("source plan id: " + sourcePlanId);
+        console.log("source suite id: " + sourceSuiteId);
+        console.log("mode: " + mode);
+        console.log("target plan name: " + targetPlanName);
+        console.log("target plan id: " + targetPlanId);
+        console.log("target suite id: " + targetSuiteId);
+        if(mode=="MOVE" ||mode=="ADD"){
+            self._view._tcView.ShowMsg(mode + " test suite from " + sourcePlanName + ":" + sourceSuiteId + " to " + targetPlanName + ":" + targetSuiteId + " please wait while operation completes");
+        }
+
+        switch (mode) {
+            case "MOVE":
+                TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
+                    result => {
+                        TreeViewDataService.removeTestSuite(sourcePlanId, sourceSuiteId).then(
+                            result => {
+                                self._view._tcView.ShowMsg(mode + " completed");
+                                self._view._tcView.HideMsg();
+                                self.refreshTestPlan();
+                                self._view.refreshLeftTree();
+                                self._view.refreshTestCaseView();
+                            });
+                    }
+                );
+                break;
+            case "CLONE":
+                this.showCloneTestSuite(this, sourcePlanName, sourcePlanId, sourceSuiteId, targetPlanName, targetPlanId, targetSuiteId);
+                break;
+            case "ADD":
+                TreeViewDataService.addTestSuite(draggedNode, targetPlanId, targetSuiteId).then(
+                    result => {
+                        self._view._tcView.ShowMsg(mode + " completed");
+                        self._view._tcView.HideMsg();
+                        self.refreshTestPlan();
+                        self._view.refreshLeftTree();
+                        self._view.refreshTestCaseView();
+                    }
+                );
+                break;
+        }
+    }
+
+    private cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements) {
+        var self = this;
+       
+        console.log("cloning test suite...");
+        TreeViewDataService.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, cloneChildSuites, cloneRequirements).then(
+            result => {
+                self.refreshTestPlan();
+                self._view._tcView.ShowCloningMessage(result.opId);
+            },
+            err => {
+                self._view._tcView.ShowErr(err.message);
+            }
+        );
+    }
+
+    private showCloneTestSuite(view: testPlanPane, sourcePlanName: string, sourcePlanId: number, sourceSuiteId: number, targetPlanName: string, targetPlanId: number, targetSuiteId: number) {
+
+        VSS.getService(VSS.ServiceIds.Dialog).then(function (dialogService: IHostDialogService) {
+            
+            var cloneTestSuiteForm: CloneTestSuite.CloneTestSuiteForm;
+            var extensionCtx = VSS.getExtensionContext();
+            var contributionId = extensionCtx.publisherId + "." + extensionCtx.extensionId + ".clone-testsuite-form";
+
+            var dialogOptions = {
+                title: "Clone Test Suite",
+                width: 500,
+                height: 300,
+                okText: "Clone",
+                getDialogResult: function () {
+                    return cloneTestSuiteForm ? cloneTestSuiteForm.getFormData() : null;
+                },
+                okCallback: function (result: CloneTestSuite.IFormInput) {
+                    view.cloneTestSuite(sourcePlanId, sourceSuiteId, targetPlanId, targetSuiteId, result.cloneChildSuites, result.cloneRequirements);
+                    
+                }
+            };
+
+            dialogService.openDialog(contributionId, dialogOptions).then(dialog => {
+                dialog.getContributionInstance("clone-testsuite-form").then(function (cloneTestSiteFormInstance: CloneTestSuite.CloneTestSuiteForm) {
+                    cloneTestSuiteForm = cloneTestSiteFormInstance;
+                    cloneTestSuiteForm.setSuites(sourcePlanName, targetPlanName);
+                    dialog.updateOkButton(true);
+                });
+            });
+        });
+    }
+
+    public processDropTestCase(ui, n, mode) {
+        var that = this;
+        var tcIds = jQuery.makeArray(ui.helper.data("WORK_ITEM_IDS"));
+        var targetPlanId: number = n.config.testPlanId;
+        var targetSuiteId: number = n.config.suiteId;
+        var sourcePlanId: number = this._view._leftTreeView._currentNode.config.testPlanId;
+        var sourceSuiteId: number = this._view._leftTreeView._currentNode.config.suiteId;
+
+        console.log("source plan id: " + sourcePlanId);
+        console.log("source suite id: " + sourceSuiteId);
+        console.log("target plan id: " + targetPlanId);
+        console.log("target suite id: " + targetSuiteId);
+        console.log("ids: " + tcIds.join(","));
+
+        if (mode == "MOVE" || mode == "ADD") {
+            this._view._tcView.ShowMsg(mode + " test case(s) from " + sourcePlanId + ":" + sourceSuiteId + " to " + targetPlanId + ":" + targetSuiteId);
+        }
+        else if (mode == "ASSIGN") {
+            this._view._tcView.ShowMsg("ADD test case(s) to " + targetPlanId + ":" + targetSuiteId);
+        }
+
+        switch (mode) {
+            case "MOVE":
+                TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
+                    result => {
+                        TreeViewDataService.removeTestCaseFromSuite(sourcePlanId, sourceSuiteId, tcIds.join(",")).then(
+                            result => {
+                                that._view.refreshTestCaseView();
+                                that._view._tcView.ShowDone();
+                            },
+                            err => {
+                                that._view._tcView.ShowErr("Failed" + err.message);
+                            }
+                        );
+                    }
+                );
+                break;
+            case "ADD":
+            case "ASSIGN":
+                TreeViewDataService.addTestCasesToSuite(targetPlanId, targetSuiteId, tcIds.join(",")).then(
+                    result => {
+                        that._view.refreshTestCaseView();
+                        that._view._tcView.ShowDone();
+                    },
+                    err => {
+                        that._view._tcView.ShowErr("Failed" + err.message);
+                    });
+                break;
+        }
     }
 
     public show() {
@@ -372,29 +684,12 @@ class testPlanPane implements IPaneRefresh {
         $("#details-TestPlan").css("display", "none");
     }
 
-    public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.TestPlans");
-        //var pane = this;
-        //if (id == null) {
-        //    pane._grid.setDataSource(null);
-        //}
-        //else {
-        //    TreeViewDataService.getTestSuitesForTestCase(parseInt(id)).then(
-        //        data => {
-        //            if (data != null) {
-        //                $("#details-gridTestSuites").show();
-        //                pane._grid.setDataSource(data.map(function (i) { return { id: i.id, suite: i.name, plan: i.plan.name, suiteType: i.suiteType }; }));
-        //            }
-        //            else {
-        //                $("#details-gridTestSuites").hide();
-        //            }
-
-        //        },
-        //        err => {
-        //            $("#details-gridTestSuites").hide();
-        //        }
-        //    );
-        //}
+    public masterIdChanged(id: string, isRefresh: boolean) {
+        if (isRefresh) {
+            var view = this;
+            TelemetryClient.TelemetryClient.getClient().trackPageView("Details.TestPlans");
+            view.refreshTestPlanCombo();
+        }
     }
 }
 
@@ -406,10 +701,7 @@ class testResultsPane implements IPaneRefresh {
             height: "100%",
             width: "100%",
             columns: [
-                {
-                    text: "Outcome", index: "Outcome", width: 75, getCellContents: Common.getTestResultCellContent
-                },
-
+                { text: "Outcome", index: "Outcome", width: 75, getCellContents: Common.getTestResultCellContent },
                 { text: "Configuration", index: "Configuration", width: 75 },
                 { text: "Run by", index: "RunBy", width: 150 },
                 { text: "Date ", index: "Date", width: 150 },
@@ -422,7 +714,7 @@ class testResultsPane implements IPaneRefresh {
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridTestResults"), options);
 
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {
@@ -453,13 +745,11 @@ class testResultsPane implements IPaneRefresh {
         $("#details-title").text("Recent test results");
     }
 
-    public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.TestResults");
+    public masterIdChanged(id: string, isRefresh: boolean) {
+        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.TestResults");
         var pane = this;
-        if (id == null) {
-            pane._grid.setDataSource(null);
-        }
-        else {
+        pane._grid.setDataSource(null);
+        if (id != null) {
             TreeViewDataService.getTestResultsForTestCase(parseInt(id)).then(
                 data => {
                     var ds = data.map(function (i) { return { id: i.id, Outcome: i.outcome, Configuration: i.configuration.name, RunBy: (i.runBy == null ? "" : i.runBy.displayName), Date: i.completedDate }; });
@@ -490,9 +780,8 @@ class linkedRequirementsPane implements IPaneRefresh {
 
         this._grid = Controls.create<Grids.Grid, Grids.IGridOptions>(Grids.Grid, $("#details-gridReq"), options);
 
-
         var menuItems: any[] = [
-            { id: "refresh", showText: false, title: "Refresh grid", icon: "bowtie-navigate-refresh", cssClass: "bowtie-icon" },
+            { id: "refresh", showText: false, title: "Refresh grid", icon: Common.getToolbarIcon("refresh"), cssClass: Common.getToolbarCss() }
         ];
 
         var menubarOptions = {
@@ -512,7 +801,6 @@ class linkedRequirementsPane implements IPaneRefresh {
         };
 
         var menubar = Controls.create<Menus.MenuBar, any>(Menus.MenuBar, $("#detailsMenuBar-linkedReq-container"), menubarOptions);
-
     }
 
     public hide() {
@@ -524,8 +812,8 @@ class linkedRequirementsPane implements IPaneRefresh {
         $("#details-title").text("Linked requirements");
     }
 
-    public masterIdChanged(id: string) {
-        TelemetryClient.getClient().trackPageView("Details.LinkedRequirements");
+    public masterIdChanged(id: string, isRefresh: boolean) {
+        TelemetryClient.TelemetryClient.getClient().trackPageView("Details.LinkedRequirements");
         var pane = this;
         pane._grid.setDataSource(null);
         if (id != null) {

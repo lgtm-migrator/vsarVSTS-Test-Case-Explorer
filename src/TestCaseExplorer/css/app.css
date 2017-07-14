@@ -4,6 +4,14 @@
     height: 100%;
 }
 
+.oblig{
+    background-color:lightgoldenrodyellow;
+}
+
+.help{
+    background-color: #dce6f4;
+    padding:2px;
+}
 #far-right-pane-pivot {
     display:none;
     width:150px;
@@ -14,6 +22,7 @@
     content: url('../img/Child-node-icon.png');
     
 }
+
 
 .test-outcome-node-icon::before {
     position: relative;
@@ -28,10 +37,10 @@
 #testmanagement-view-left-pane{
     margin-left:16px;
 }
-#treeview-Cbo-container {
+#treeview-pivot-Cbo-container {
     margin-left:12px;
     margin-right:10px;
-
+    margin-top: -4px;
 }
 
 
@@ -48,7 +57,10 @@
         left: 10%;
         overflow: auto;
     }
-
+.paneWorkArea {
+    margin-left:10px;
+    margin-right:10px;
+}
   .far-right-pane-list-container {
     top: 120px;
     left: 0px;
@@ -56,17 +68,28 @@
     bottom: 0px;
     position: absolute;
     overflow: auto;
-    margin: 0 10px;
+    margin: 0 0px;
 }
 
-    .testmanagement-suites-tree {
+    .testmanagement-suites-tree 
+    {
+    overflow: auto;
     position: absolute;
+    bottom: 0px;
+    left: 12px;
+    right: 12px;
     top: 70px;
+}
+ #details-treeviewTestPlan
+    {
+    overflow: auto;
+    position: absolute;
+    bottom: 0px;
     left: 12px;
     right: 0px;
-    bottom: 0px;
-    overflow: auto;
+    top: 70px;
 }
+
     .fill-grid{
        position:absolute; 
           top:45px;
@@ -86,7 +109,7 @@
     top: 40px;
 }
 
-    .test-case-details-pane .far-right-pane-title {
+ .pane-title {
     left: 0px;
     right: 0px;
     margin-left: 20px;
@@ -102,9 +125,12 @@
     overflow: hidden;
 }
 
-.left-hub-content .hub-pivot-content {
+ .left-hub-content .hub-pivot-content {
     top:0px;
 }
+
+
+
 .testmanagement-details-grid{
     position: absolute;
     top: 0px;
@@ -115,21 +141,39 @@
 }
 
 .drag-tile{
-    background-color:lightblue;
-    border-color:black;
-    border-width:1px;
+    background-color:whitesmoke;
+    border: 1px solid black;
     vertical-align:middle;
+    opacity: 0.7;
 }
+
 .drag-tile-item-count {
     font-size:large;
     font-weight:bold;
     text-align:center;
 }
 
+.drag-tile-title {
+    text-align:center;
+}
+
+.drag-help {
+  
+    font-size:smaller;
+    display:inline-block;
+}
+
+
+.drag-tile-head > .node-content{
+    font-weight:bold;
+    color:#007acc;
+}
+
 .drag-tile-drag-type {
     font-size:large;
     font-weight:bold;
     margin:6px;
+    color:black;    
 }
 
 .drag-tile-head{
@@ -141,9 +185,26 @@
    
 }
 
+#left-cboTestPlan-container{
+    padding-top: 8px;
+    display: flex;
+    flex-direction: row;
+    margin-left: 10px;
+}
+
+
+.drag-hover {
+    background-color:#E0E9CC;
+}
+
+.drag-hover-invalid {
+    background-color:red;
+}
+
 .droppable-hover {
     background-color:lightgreen;
 }
+
 .test-count{
 
 }
@@ -173,7 +234,11 @@
 }
 
 #testCasePane .right-hub-content {
-    top: 40px;
+    top: 36px;
+}
+
+#leftMasterPivot .right-hub-content {
+    top: 36px;
 }
 
 .right-hub-content .pivot-filter {
@@ -218,6 +283,7 @@
     right: 0px;
     bottom: 0px;
 }
+
 select {
     width: 100%;
     height: 100%;
@@ -240,3 +306,49 @@ select {
     background-color: #e6e6e6;
 }
 
+.clone-info {
+    display: grid;
+    -ms-grid-columns: auto auto auto auto auto;
+    -ms-grid-rows: auto;
+}
+
+.description1 {
+    -ms-grid-column: 1;
+    float: left;
+    padding-right: 5px;
+}
+
+.sourceSuite {
+    -ms-grid-column: 2;
+    font-weight: bold;
+    padding-right: 5px;
+    float: left;
+}
+
+.description2 {
+    -ms-grid-column: 3;
+    float: left;
+    padding-right: 5px;
+}
+
+.targeSuite {
+    -ms-grid-column: 4;
+    font-weight: bold;
+    float: left;
+}
+
+.description3 {
+    -ms-grid-column: 5;
+    float: left; 
+}
+
+.clone-test-plan-header-label {
+    font-weight: bold;
+}
+
+.cellText
+{
+   display: block;
+   width: 100%;
+   height: 100%;
+}

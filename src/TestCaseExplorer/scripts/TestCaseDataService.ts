@@ -13,9 +13,7 @@
 // </summary>
 //---------------------------------------------------------------------
 
-/// <reference path='ref/jquery/jquery.d.ts' />
-/// <reference path='ref/q/q.d.ts' />
-/// <reference path='ref/VSS.d.ts' />
+/// <reference path='../typings/tsd.d.ts' />
 
 import WorkItemContracts = require("TFS/WorkItemTracking/Contracts");
 import TestClient = require("TFS/TestManagement/RestClient");
@@ -120,10 +118,7 @@ export class testSuiteFilter implements ITestCaseFilter {
     }
 }
 
-
-
 export function getTestResultsForTestCases(testCaseLst: number[]): IPromise<TestContracts.TestCaseResult[]> {
-    // Get an instance of the client
     var deferred = $.Deferred<any[]>();
     var tstClient = TestClient.getClient();
     var q = { query: "Select * from TestResult  WHERE TestCaseId IN (" + testCaseLst.join(",") + ") ORDER BY CreationDate DESC" };
@@ -305,10 +300,6 @@ function getTestCasesByWiql(fields: string[], wiqlWhere: string): IPromise<any> 
     var workItemClient = WorkItemClient.getClient();
 
     var wiql: string = "SELECT System.Id ";
-    //fields.forEach(function (f) {
-    //    wiql += f + ", ";
-    //});
-    //wiql = wiql.substr(0, wiql.lastIndexOf(", "));
     wiql += " FROM WorkItems WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.WorkItemType] IN GROUP '" + Common.WIQLConstants.getWiqlConstants().TestCaseCategoryName + "'  " + (wiqlWhere ? " AND " + wiqlWhere : "") + " ORDER BY [System.Id]";
 
     workItemClient.queryByWiql({ query: wiql }, VSS.getWebContext().project.name).then(
