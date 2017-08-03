@@ -195,9 +195,9 @@ export function getTestPlanAndSuites(planId: number, testPlanName: string): IPro
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var tstClient = TestClient.getClient();
-    tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId).then(
-        data => {
-            var tRoot = BuildTestSuiteTree(data.filter(function (i) { return i.parent == null }), null, data);
+    tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId, true, 0,0,true).then(
+        testSuites => {
+            var tRoot = BuildTestSuiteTree(testSuites.filter(function (i) { return i.parent == null }), null);
             deferred.resolve([tRoot]);
         },
         err => {
@@ -208,7 +208,7 @@ export function getTestPlanAndSuites(planId: number, testPlanName: string): IPro
     return deferred.promise();
 }
 
-function BuildTestSuiteTree(tsList: any[], parentNode: TreeView.TreeNode, allTS: any[]): TreeView.TreeNode {
+function BuildTestSuiteTree(tsList: TestContracts.TestSuite[], parentNode: TreeView.TreeNode): TreeView.TreeNode {
     var returnNode: TreeView.TreeNode = null;
 
     tsList.forEach(function (t) {
@@ -230,7 +230,10 @@ function BuildTestSuiteTree(tsList: any[], parentNode: TreeView.TreeNode, allTS:
             node.icon = "icon-testplan";
             node.config.type = "TestPlan";
         }
-        BuildTestSuiteTree(allTS.filter(function (i) { return i.parent != null && i.parent.id == t.id }), node, allTS);
+        if (t.children != null) {
+            BuildTestSuiteTree(t.children, node);
+        }
+        
 
         if (parentNode != null) {
             parentNode.children.push(node);
