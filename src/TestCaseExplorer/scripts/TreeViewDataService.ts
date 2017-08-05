@@ -50,7 +50,7 @@ export function getNodes(param, testPlan, teamProject: string) {
             }
             else {
                 //Fetch the TestPlan
-                return getTestPlanAndSuites(testPlan.id, testPlan.text) 
+                return getTestPlanAndSuites(testPlan.id, testPlan.text)
             }
     }
 }
@@ -86,7 +86,7 @@ export function updateAreaIteration(project, workItemId: number, area: string, i
 
     var client = WITClient.getClient();
     var msg = [{ "op": "add", "path": "/fields/System.AreaPath", "value": area },
-               { "op": "add", "path": "/fields/System.IterationPath", "value": iteration}];
+    { "op": "add", "path": "/fields/System.IterationPath", "value": iteration }];
     return client.updateWorkItem(msg, workItemId);
 }
 
@@ -150,7 +150,7 @@ export function getTestResultsForTestCase(testCaseId: number): IPromise<any[]> {
     var deferred = $.Deferred<any[]>();
     //var tstClient = TestClient.getClient(TestClient.TestHttpClient2_2);
     let tstClient = VSS_Service.getClient<TestClient.TestHttpClient2_2>(TestClient.TestHttpClient2_2, undefined, undefined, undefined, null);
-    var q = { query: "Select * from TestResult WHERE TestCaseId=" + testCaseId + " AND State<>'Pending'"};
+    var q = { query: "Select * from TestResult WHERE TestCaseId=" + testCaseId + " AND State<>'Pending'" };
 
     tstClient.getTestResultsByQuery(q, VSS.getWebContext().project.name).then(
         data => {
@@ -274,7 +274,7 @@ function getStates(): IPromise<TreeView.TreeNode[]> {
         client.getWorkItemType(project, witCat.defaultWorkItemType.name).then(function (data) {
             var d: any = data;
 
-            var t = { name: "States", children: [], expanded:true };
+            var t = { name: "States", children: [], expanded: true };
             for (var s in d.transitions) {
                 if (s != "") {
                     t.children.push({ name: s, config: s });
@@ -295,7 +295,7 @@ function getPrioriy(): IPromise<TreeView.TreeNode[]> {
 
     var client = WITClient.getClient();
     client.getWorkItemType(VSS.getWebContext().project.name, Common.WIQLConstants.getWiqlConstants().TestCaseTypeName).then(data => {
-        var d = [{ name: const_Pivot_Priority, expanded: true, config: "root", children: [{ name: "1", config: "1", type:"Prio" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
+        var d = [{ name: const_Pivot_Priority, expanded: true, config: "root", children: [{ name: "1", config: "1", type: "Prio" }, { name: "2", config: "2" }, { name: "3", config: "3" }, { name: "4", config: "4" }] }];
 
         deferred.resolve(convertToTreeNodes(d, ""));
     });
@@ -324,7 +324,7 @@ function convertToTreeNodes(items, path): TreeView.TreeNode[] {
 
         var node = new TreeView.TreeNode(item.name);
         node.icon = item.icon;
-           
+
         node.id = item.id;
         node.config = { name: item.name, path: itemPath, testPlanId: item.testPlanId };
         node.droppable = true;
@@ -342,7 +342,7 @@ export function cloneTestPlan(sourcePlanId: number, sourceSuiteIds: number[], pr
 
     var testPlan: any = {
         name: testPlanName,
-        project: { "Name": projectName } 
+        project: { "Name": projectName }
     };
 
     if (areaPath == "") areaPath = projectName;
@@ -417,7 +417,7 @@ export function cloneTestSuite(sourcePlanId: number, sourceSuiteId: number, targ
     testCaseClient.cloneTestSuite(cloneRequest, teamProjectName, sourcePlanId, sourceSuiteId).then(
         data => {
             console.log("Clone test suite started: " + data.creationDate);
-            
+
             deferred.resolve(data);
         },
         err => {
@@ -436,11 +436,12 @@ function createTestSuite(suiteModel, targetPlanId: number, targetSuiteId: number
     tstClient.createTestSuite(suiteModel, VSS.getWebContext().project.name, targetPlanId, targetSuiteId).then(
         result => {
 
-            console.log("createTestSuite: " + suiteModel.name + ", parent: " + targetSuiteId + ", node: " + result[0].id);
+            console.log("createTestSuite: ", suiteModel, ", parent: ", targetSuiteId, ", newId: " + result[0].id);
 
             deferred.resolve(result[0]);
         },
         err => {
+            console.log("error creatig suite: ", suiteModel, ", parent: ", targetSuiteId, ", err: ", err);
             deferred.reject(err);
         }
     );
@@ -448,21 +449,19 @@ function createTestSuite(suiteModel, targetPlanId: number, targetSuiteId: number
     return deferred.promise();
 }
 
-function getTestCases(planId, suiteId): IPromise<string> {
-    var deferred = $.Deferred<string>();
+function getTestCases(planId, suiteId): IPromise<TestContracts.SuiteEntry[]> {
+    var deferred = $.Deferred<TestContracts.SuiteEntry[]>();
 
     var tstClient = TestClient.getClient();
-    tstClient.getTestCases(VSS.getWebContext().project.name, planId, suiteId).then(result => {
-        var idList = result.map(function (item) {
-            return item.testCase.id;
-        });
-        deferred.resolve(idList.join());
-    });
-
+    tstClient.getSuiteEntries(VSS.getWebContext().project.name, suiteId).then(
+        suiteEntries => {
+            deferred.resolve(suiteEntries);
+        }
+    );
     return deferred.promise();
 }
 
-function createStaticSuite(suiteName: string, testCaseIds: string, targetPlanId: number, targetSuiteId: number): IPromise<TestContracts.TestSuite> {
+function createStaticSuite(suiteName: string, targetPlanId: number, targetSuiteId: number): IPromise<TestContracts.TestSuite> {
     var deferred = $.Deferred<TestContracts.TestSuite>();
 
     var suiteModel: TestContracts.SuiteCreateModel = {
@@ -472,16 +471,10 @@ function createStaticSuite(suiteName: string, testCaseIds: string, targetPlanId:
         "requirementIds": []
     };
 
-    createTestSuite(suiteModel, targetPlanId, targetSuiteId).then(testSuite => {
-        if (testCaseIds != "") {
-            addTestCasesToSuite(targetPlanId, testSuite.id, testCaseIds).then(result => {
-                deferred.resolve(testSuite);
-            });
-        }
-        else {
+    createTestSuite(suiteModel, targetPlanId, targetSuiteId).then(
+        testSuite => {
             deferred.resolve(testSuite);
-        }
-    });
+        });
 
     return deferred.promise();
 }
@@ -529,37 +522,73 @@ function getTestSuite(planId: number, suiteId: number): IPromise<TestContracts.T
 
 export function addTestSuite(sourceNode: TreeView.TreeNode, targetPlanId: number, targetSuiteId: number): IPromise<TestContracts.TestSuite> {
     var deferred = $.Deferred<TestContracts.TestSuite>();
-
+    console.log("addign org suite", sourceNode.config.suiteId, sourceNode.config);
     switch (sourceNode.type) {
         case "StaticTestSuite":
-            getTestCases(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(testCaseIds => {
-                createStaticSuite(sourceNode.config.name, testCaseIds, targetPlanId, targetSuiteId).then(testSuite => {
-                    var lst = [];
-                    sourceNode.children.forEach(n => {
-                        lst.push(addTestSuite(n, targetPlanId, testSuite.id));
-                    });
-                    Q.all(lst).then(data => {
-                        deferred.resolve(testSuite);
-                    });
+
+            getTestCases(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(
+                suiteEntries => {
+
+                    createStaticSuite(sourceNode.config.name, targetPlanId, targetSuiteId).then(
+                        createdTestSuite => {
+                            var sortOrderUpdate: TestContracts.SuiteEntryUpdateModel[] = [];
+                            var lst: IPromise<TestContracts.TestSuite>[] = [];
+                            var csEntries: TestContracts.SuiteEntry[] = [];
+                            sourceNode.children.forEach(n => {
+                                csEntries.push(suiteEntries.filter(se => { return se.childSuiteId == n.config.suiteId; })[0]);
+                                lst.push(addTestSuite(n, targetPlanId, createdTestSuite.id));
+                            });
+
+                            Q.all(lst).then(
+                                createdSuites => {
+
+                                    csEntries.forEach((csEntry, ix) => {
+                                        console.log("sortorder suite", createdSuites[ix].id, "sequence", csEntry)
+                                        sortOrderUpdate.push({ childSuiteId: createdSuites[ix].id, testCaseId: 0, sequenceNumber: csEntry.sequenceNumber });
+                                    });
+
+                                    // Add test cases 
+                                    var tcEntries = suiteEntries.filter(se => { return se.testCaseId > 0; });
+                                    var testCaseIds = tcEntries.map(se => { return se.testCaseId }).join();
+                                    console.log("adding test cases to suite", testCaseIds);
+
+                                    addTestCasesToSuite(targetPlanId, createdTestSuite.id, testCaseIds).then(
+                                        stc => {
+                                            tcEntries.forEach((tcEntry, ix) => {
+                                                sortOrderUpdate.push({ childSuiteId: 0, testCaseId: Number(stc[ix].testCase.id), sequenceNumber: tcEntry.sequenceNumber });
+                                            });
+                                            console.log("reorder suite", sortOrderUpdate);
+                                            reorderTestSuite(createdTestSuite.id, sortOrderUpdate).then(
+                                                data => {
+                                                    deferred.resolve(createdTestSuite);
+                                                }
+                                            );
+                                        });
+
+                                }
+                            );
+
+                        });
                     //promises.push(sourceNode.config.name);
                     //deferred.resolve(testSuite);
-                });
-            });
+                }
+            );
             break;
         case "RequirementTestSuite":
             getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(testSuite => {
-                createRequirementSuite(testSuite.requirementId, targetPlanId, targetSuiteId).then(data => {
-                    deferred.resolve(testSuite);
+                createRequirementSuite(testSuite.requirementId, targetPlanId, targetSuiteId).then(createdTestSuite => {
+                    deferred.resolve(createdTestSuite);
                 });
-                
+
             });
             break;
         case "DynamicTestSuite":
             getTestSuite(sourceNode.config.testPlanId, sourceNode.config.suiteId).then(testSuite => {
-                createQuerySuite(sourceNode.config.name, testSuite.queryString, targetPlanId, targetSuiteId).then(data => {
-                    deferred.resolve(testSuite);
-                });
-                
+                createQuerySuite(sourceNode.config.name, testSuite.queryString, targetPlanId, targetSuiteId).then(
+                    createdTestSuite => {
+                        deferred.resolve(createdTestSuite);
+                    });
+
             });
             break;
     }
@@ -601,11 +630,29 @@ export function removeTestPlan(planId: number): IPromise<void> {
     return deferred.promise();
 }
 
-export function addTestCasesToSuite(planId: number, suiteId: number, testCaseIds: string): IPromise<TreeView.TreeNode[]> {
-    var deferred = $.Deferred<any[]>();
+export function addTestCasesToSuite(planId: number, suiteId: number, testCaseIds: string): IPromise<TestContracts.SuiteTestCase[]> {
+    var deferred = $.Deferred<TestContracts.SuiteTestCase[]>();
 
     var tstClient = TestClient.getClient();
     tstClient.addTestCasesToSuite(VSS.getWebContext().project.name, planId, suiteId, testCaseIds).then(
+        data => {
+            deferred.resolve(data);
+        },
+        err => {
+            deferred.reject(err);
+        }
+    );
+
+    return deferred.promise();
+}
+
+
+export function reorderTestSuite(suiteId: number, updates: TestContracts.SuiteEntryUpdateModel[]): IPromise<TestContracts.SuiteEntry[]> {
+    var deferred = $.Deferred<TestContracts.SuiteEntry[]>();
+
+    var tstClient = TestClient.getClient();
+
+    tstClient.reorderSuiteEntries(updates, VSS.getWebContext().project.name, suiteId).then(
         data => {
             deferred.resolve(data);
         },
@@ -638,8 +685,8 @@ export function getProjects(): IPromise<string[]> {
 
     var coreClient = CoreClient.getClient();
     coreClient.getProjects().then(
-        data => {                
-            deferred.resolve(data.map(p => { return p.name }).sort(function(a, b) { return a.localeCompare(b); }));
+        data => {
+            deferred.resolve(data.map(p => { return p.name }).sort(function (a, b) { return a.localeCompare(b); }));
         },
         err => {
             deferred.reject(err);
