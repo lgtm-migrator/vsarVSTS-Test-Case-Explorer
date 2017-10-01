@@ -195,9 +195,21 @@ export function getTestPlanAndSuites(planId: number, testPlanName: string): IPro
     var deferred = $.Deferred<TreeView.TreeNode[]>();
 
     var tstClient = TestClient.getClient();
-    tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId, true, 0,0,true).then(
-        testSuites => {
-            var tRoot = BuildTestSuiteTree(testSuites.filter(function (i) { return i.parent == null }), null);
+    var promises: IPromise<TestContracts.TestSuite[]>[] = [];
+    //Need to make 2 call - firt for order, second for type and tc counts...
+    promises.push(tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId, true, 0, 0, true));
+    promises.push(tstClient.getTestSuitesForPlan(VSS.getWebContext().project.name, planId, true));
+
+    Q.all(promises).then(
+        data => {
+            console.log(data);
+
+            var testSuitesOrder = data[0];
+            var testSuitesData = data[1];
+         
+            copyNodeValues(testSuitesOrder, testSuitesData);
+
+            var tRoot = BuildTestSuiteTree(testSuitesOrder.filter(function (i) { return i.parent == null }), null);
             deferred.resolve([tRoot]);
         },
         err => {
@@ -206,6 +218,20 @@ export function getTestPlanAndSuites(planId: number, testPlanName: string): IPro
     );
 
     return deferred.promise();
+}
+
+function copyNodeValues(testSuitesOrder: TestContracts.TestSuite[], testSuitesData: TestContracts.TestSuite[]) {
+    testSuitesOrder.forEach(n => {
+        console.log("Finding values for node ", n);
+        var sameNodes = testSuitesData.filter(i => { return i.id == n.id });
+        if (sameNodes.length >= 1) {
+            n.suiteType = sameNodes[0].suiteType;
+            n.testCaseCount = sameNodes[0].testCaseCount;
+        }
+        if(n.children!=null){
+            copyNodeValues(n.children, testSuitesData);
+        }
+    });
 }
 
 function BuildTestSuiteTree(tsList: TestContracts.TestSuite[], parentNode: TreeView.TreeNode): TreeView.TreeNode {
